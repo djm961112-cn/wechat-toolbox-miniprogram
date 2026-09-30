@@ -1,12 +1,16 @@
 <view class="page home-page">
   <view class="hero card">
     <view class="hero-copy"><view class="hero-title">小工具<br />大效率</view><view class="hero-subtitle">让工作与生活更轻松</view></view>
-    <view class="toolbox-art">🧰</view>
+    <view class="hero-art">
+      <image class="hero-icon hero-icon-one" src="/assets/icons/image-compress.png" mode="aspectFit" />
+      <image class="hero-icon hero-icon-two" src="/assets/icons/format-convert.png" mode="aspectFit" />
+      <image class="hero-icon hero-icon-three" src="/assets/icons/calculator.png" mode="aspectFit" />
+    </view>
   </view>
   <view class="home-panel">
     <view class="section-heading"><text>常用工具</text><text class="section-more" bindtap="openMarket">全部 ›</text></view>
     <view class="quick-grid">
-      <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" bindtap="showDeveloping"><view class="tool-icon {{item.color}}">{{item.icon}}</view><text class="tool-name">{{item.name}}</text></view>
+      <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" bindtap="showDeveloping"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /><text class="tool-name">{{item.name}}</text></view>
     </view>
     <view class="section-heading recommendation-heading"><text>推荐工具</text></view>
     <scroll-view class="category-scroll" scroll-x="true" show-scrollbar="false"><view class="category-row">
@@ -15,7 +19,7 @@
     <view wx:for="{{recommendationGroups}}" wx:key="title" class="recommend-card card">
       <view class="recommend-head"><text class="recommend-title">{{item.title}}</text><text class="section-more" bindtap="openMarket">更多 ›</text></view>
       <view class="recommend-grid">
-        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" bindtap="showDeveloping"><view class="tool-icon small {{tool.color}}">{{tool.icon}}</view><text class="tool-name">{{tool.name}}</text></view>
+        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" bindtap="showDeveloping"><image class="tool-icon small" src="{{tool.icon}}" mode="aspectFit" /><text class="tool-name">{{tool.name}}</text></view>
       </view>
     </view>
   </view>

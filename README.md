@@ -43,3 +43,7 @@ git push
 ```
 
 不要提交 `project.private.config.json`、AppSecret、用户数据或云服务密钥。
+
+## 图标资源
+
+工具入口统一使用 `assets/icons/` 中 144×144 的 PNG 图标，文件名与 `utils/tool-data.js` 的工具记录对应；工具市场分类图标在 `pages/market/index.js` 配置。新增工具时，将资源放入该目录并在工具数据中填写绝对小程序路径，如 `/assets/icons/image-compress.png`。

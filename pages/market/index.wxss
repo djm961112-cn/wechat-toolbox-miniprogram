@@ -3,18 +3,17 @@
 .page-title { font-size: 36rpx; font-weight: 750; white-space: nowrap; }
 .search-box { display: flex; height: 68rpx; flex: 1; align-items: center; padding: 0 20rpx; border-radius: 99rpx; background: #edf1f7; color: #8995a9; }
 .search-icon { margin-right: 12rpx; font-size: 36rpx; }
-.search-box input { width: 100%; font-size: 23rpx; }
+.search-input { width: 100%; font-size: 23rpx; }
 .market-body { display: flex; min-height: 0; flex: 1; border-top: 1rpx solid #eef1f5; background: #fff; }
 .side-scroll { width: 190rpx; flex-shrink: 0; background: #f7f9fc; }
 .side-category { position: relative; display: flex; min-height: 100rpx; align-items: center; padding: 0 16rpx; color: #748198; font-size: 22rpx; }
 .side-category.active { background: #eef5ff; color: #1677ff; font-weight: 650; }
 .side-category.active::before { position: absolute; top: 24rpx; bottom: 24rpx; left: 0; width: 6rpx; border-radius: 0 5rpx 5rpx 0; background: #1677ff; content: ''; }
-.side-mark { width: 42rpx; font-size: 29rpx; text-align: center; }
+.side-icon { width: 46rpx; height: 46rpx; flex-shrink: 0; margin-right: 8rpx; }
 .market-results { min-width: 0; flex: 1; padding: 20rpx 18rpx; }
 .result-title { margin: 4rpx 0 20rpx; font-size: 28rpx; font-weight: 700; }
 .market-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14rpx; }
 .market-tool { display: flex; min-height: 172rpx; flex-direction: column; align-items: center; justify-content: center; border: 1rpx solid #f0f3f8; border-radius: 20rpx; background: #f9fafc; }
-.market-tool .tool-icon { width: 68rpx; height: 68rpx; margin-bottom: 13rpx; }
-.market-tool .tool-icon.red { font-size: 20rpx; }
+.market-tool .tool-icon { width: 88rpx; height: 88rpx; margin-bottom: 3rpx; }
 .market-tool .tool-name { font-size: 23rpx; }
 .empty-state { padding: 100rpx 0; color: #9aa5b6; font-size: 24rpx; text-align: center; }

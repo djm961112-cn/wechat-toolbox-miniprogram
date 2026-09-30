@@ -1,6 +1,6 @@
 const { categories, tools } = require('../../utils/tool-data')
-const groupNames = { 图片: '图片工具', 文档: '文档工具', 格式: '格式转换', 办公: '办公效率', 生活: '生活服务' }
-const categoryMap = { 全部: ['图片', '文档', '格式', '办公', '生活'], 图片: ['图片'], 文档: ['文档'], 办公: ['办公'], 生活: ['生活'] }
+const groupNames = { 图片: '图片工具', 文档: '文档工具', 格式: '格式转换', 办公: '办公效率', 生活: '生活服务', 其他: '其他工具' }
+const categoryMap = { 全部: ['图片', '文档', '格式', '办公', '生活', '其他'], 图片: ['图片'], 文档: ['文档'], 办公: ['办公'], 生活: ['生活'], 其他: ['其他'] }
 
 function buildGroups(category) {
   return (categoryMap[category] || categoryMap.全部).map((key) => ({
