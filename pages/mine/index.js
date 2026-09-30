@@ -1,4 +1,8 @@
 Page({
+  onShow() {
+    const tabBar = this.getTabBar && this.getTabBar()
+    if (tabBar) tabBar.setData({ selected: 2 })
+  },
   data: { menuItems: [
     { id: 'tools', icon: '▣', title: '我的工具', subtitle: '已使用 0 个工具' },
     { id: 'feedback', icon: '▢', title: '意见反馈', subtitle: '有什么建议告诉我们' },
