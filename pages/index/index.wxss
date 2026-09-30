@@ -14,9 +14,7 @@
 .section-more { color: #8190a7; font-size: 23rpx; font-weight: 400; }
 .quick-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18rpx 14rpx; }
 .tool-tile { display: flex; min-height: 148rpx; flex-direction: column; align-items: center; justify-content: center; border: 1rpx solid #f0f3f8; border-radius: 20rpx; background: linear-gradient(145deg,#fbfcfe,#f4f7fb); }
-.tool-icon-wrap { position: relative; width: 78rpx; height: 78rpx; flex-shrink: 0; margin-bottom: 5rpx; }
-.tool-icon { display: block; width: 100%; height: 100%; }
-.tool-icon-mask { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 19rpx; background: rgba(83, 91, 104, .5); pointer-events: none; }
+.tool-icon-wrap { width: 78rpx; height: 78rpx; margin-bottom: 5rpx; }
 .tool-name { color: #24324b; font-size: 22rpx; white-space: nowrap; }
 .recommendation-heading { margin-top: 34rpx; }
 .category-scroll { margin: 0 -4rpx 20rpx; white-space: nowrap; }
