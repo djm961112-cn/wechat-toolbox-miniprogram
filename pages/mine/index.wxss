@@ -1,0 +1,22 @@
+.mine-page { padding-top: 42rpx; background: linear-gradient(180deg,#e7f1ff 0,#f4f7fc 460rpx); }
+.profile-head { display: flex; align-items: center; padding: 26rpx 16rpx 34rpx; }
+.avatar { display: flex; width: 112rpx; height: 112rpx; align-items: center; justify-content: center; margin-right: 20rpx; border: 5rpx solid rgba(255,255,255,.85); border-radius: 50%; background: linear-gradient(150deg,#75b6ed,#315f9b); color: white; font-size: 52rpx; }
+.profile-copy { flex: 1; }
+.profile-name { margin-bottom: 9rpx; font-size: 34rpx; font-weight: 700; }
+.profile-subtitle { color: #73829a; font-size: 22rpx; }
+.settings { width: 62rpx; color: #253650; font-size: 38rpx; text-align: center; }
+.stats { display: flex; justify-content: space-around; margin-bottom: 22rpx; padding: 28rpx 12rpx; }
+.stat { display: flex; min-width: 30%; flex-direction: column; align-items: center; border-right: 1rpx solid #edf0f5; }
+.stat:last-child { border-right: 0; }
+.stat-value { margin-bottom: 8rpx; font-size: 32rpx; font-weight: 700; }
+.stat-value.vip { color: #f29b52; font-size: 27rpx; }
+.stat-label { color: #8190a6; font-size: 22rpx; }
+.menu { padding: 0 24rpx; }
+.menu-row { display: flex; min-height: 124rpx; align-items: center; border-bottom: 1rpx solid #edf0f5; }
+.menu-row:last-child { border-bottom: 0; }
+.menu-icon { display: flex; width: 66rpx; height: 66rpx; align-items: center; justify-content: center; margin-right: 20rpx; border: 2rpx solid #edf1f7; border-radius: 50%; color: #20314f; font-size: 31rpx; }
+.menu-copy { display: flex; flex: 1; flex-direction: column; gap: 7rpx; }
+.menu-title { font-size: 26rpx; font-weight: 600; }
+.menu-subtitle { color: #8a96a9; font-size: 21rpx; }
+.menu-arrow { color: #95a1b3; font-size: 40rpx; }
+.local-note { margin-top: 28rpx; color: #9aa5b5; font-size: 21rpx; text-align: center; }

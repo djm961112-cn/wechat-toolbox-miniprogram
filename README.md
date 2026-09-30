@@ -1,6 +1,6 @@
 # 轻便工具箱（微信小程序）
 
-一个原生微信小程序起步框架：工具目录首页 + 可运行的 BMI 计算器示例。计算逻辑在客户端本地执行，当前不需要服务器、域名、登录或用户数据存储。
+按 `工具箱小程序集合/设计.png` 搭建的原生微信小程序界面，包含首页、工具市场和“我的”三个页面。工具入口暂时统一提示“开发中”；分类筛选和工具搜索可以使用。当前不需要服务器、域名或登录。
 
 ## 开始使用
 
@@ -11,9 +11,9 @@
 
 ## 添加工具
 
-1. 在 `pages/tool/<tool-id>/` 新增 `index.js`、`index.json`、`index.wxml`、`index.wxss`。
-2. 在 `app.json` 的 `pages` 注册页面路径。
-3. 在 `pages/index/index.js` 的 `tools` 列表加入 `{ id, title, description, icon, path }`。
+1. 在 `utils/tool-data.js` 的 `tools` 列表添加工具标题、分类和图标。
+2. 在 `pages/index/index.js` 和 `pages/market/index.js` 中调整首页快捷工具或市场分类展示。
+3. 将入口绑定的 `showDeveloping` 替换为实际工具页面或处理逻辑。
 4. 有用户数据访问或使用微信 API 时，再补充对应隐私说明与授权流程。
 
 ## 域名、服务器和费用
@@ -26,11 +26,12 @@
 
 ## GitHub 管理
 
-本目录已作为独立 Git 仓库初始化。创建一个 GitHub 私有仓库（先不要添加 README、License 或 `.gitignore`），然后在本目录执行：
+本目录已连接到 `djm961112-cn/wechat-toolbox-miniprogram`。提交本地更改后执行：
 
 ```sh
-git remote add origin https://github.com/<你的账号>/<仓库名>.git
-git push -u origin main
+git add .
+git commit -m "feat: update toolbox design"
+git push
 ```
 
 后续日常提交：

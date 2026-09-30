@@ -1,0 +1,6 @@
+<view class="page mine-page">
+  <view class="profile-head"><view class="avatar">☁</view><view class="profile-copy"><view class="profile-name">小明同学</view><view class="profile-subtitle">一切为了更高效的生活</view></view><view class="settings" bindtap="showDeveloping">⚙</view></view>
+  <view class="stats card"><view class="stat" bindtap="showDeveloping"><text class="stat-value">0</text><text class="stat-label">我的收藏</text></view><view class="stat" bindtap="showDeveloping"><text class="stat-value">0</text><text class="stat-label">使用记录</text></view><view class="stat" bindtap="showDeveloping"><text class="stat-value vip">普通</text><text class="stat-label">会员中心</text></view></view>
+  <view class="menu card"><view wx:for="{{menuItems}}" wx:key="id" class="menu-row" bindtap="showDeveloping"><view class="menu-icon">{{item.icon}}</view><view class="menu-copy"><text class="menu-title">{{item.title}}</text><text class="menu-subtitle">{{item.subtitle}}</text></view><text class="menu-arrow">›</text></view></view>
+  <view class="local-note">本地体验版 · 暂无需登录</view>
+</view>

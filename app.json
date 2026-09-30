@@ -1,13 +1,22 @@
 {
-  "pages": [
-    "pages/index/index",
-    "pages/tool/bmi/index"
-  ],
+  "pages": ["pages/index/index", "pages/market/index", "pages/mine/index"],
   "window": {
-    "navigationBarTitleText": "轻便工具箱",
-    "navigationBarBackgroundColor": "#f6f7fb",
+    "navigationBarTitleText": "工具箱",
+    "navigationBarBackgroundColor": "#f6f8fc",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f6f7fb"
+    "backgroundColor": "#f6f8fc"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#77849a",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/market/index", "text": "工具市场" },
+      { "pagePath": "pages/mine/index", "text": "我的" }
+    ]
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

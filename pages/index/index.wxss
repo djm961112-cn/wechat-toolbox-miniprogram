@@ -1,11 +1,33 @@
-.hero { padding: 34rpx 8rpx 48rpx; }
-.eyebrow { color: #3867f5; font-size: 22rpx; font-weight: 700; letter-spacing: 3rpx; }
-.title { margin: 16rpx 0 10rpx; font-size: 48rpx; font-weight: 700; }
-.section-title { margin: 4rpx 8rpx 20rpx; font-size: 30rpx; font-weight: 650; }
-.tool-list { display: flex; flex-direction: column; gap: 18rpx; }
-.tool-card { display: flex; align-items: center; }
-.tool-icon { display: flex; align-items: center; justify-content: center; width: 84rpx; height: 84rpx; margin-right: 22rpx; border-radius: 22rpx; background: #edf2ff; font-size: 38rpx; }
-.tool-copy { flex: 1; }
-.tool-title { margin-bottom: 8rpx; font-size: 30rpx; font-weight: 600; }
-.chevron { color: #9aa1af; font-size: 44rpx; }
-.footer { padding: 32rpx 8rpx; text-align: center; font-size: 23rpx; }
+.home-page { padding-top: 24rpx; }
+.hero { position: relative; display: flex; height: 350rpx; box-sizing: border-box; align-items: center; overflow: hidden; padding: 40rpx; border: 0; border-radius: 34rpx; background: linear-gradient(125deg,#1685ff 0%,#438fff 56%,#85b8ff 100%); color: #fff; }
+.hero::after { position: absolute; right: -70rpx; bottom: -150rpx; width: 480rpx; height: 320rpx; border-radius: 50%; background: rgba(255,255,255,.13); content: ''; }
+.hero-copy { position: relative; z-index: 1; }
+.hero-title { font-size: 48rpx; font-weight: 750; line-height: 1.22; letter-spacing: 2rpx; }
+.hero-subtitle { margin-top: 22rpx; font-size: 24rpx; opacity: .92; }
+.toolbox-art { position: absolute; z-index: 1; top: 62rpx; right: 26rpx; font-size: 150rpx; filter: drop-shadow(0 14rpx 8rpx rgba(18,69,154,.2)); }
+.home-panel { position: relative; margin-top: -30rpx; padding: 30rpx 24rpx 26rpx; border-radius: 30rpx 30rpx 0 0; background: #fff; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; margin: 4rpx 4rpx 22rpx; font-size: 32rpx; font-weight: 700; }
+.section-more { color: #8190a7; font-size: 23rpx; font-weight: 400; }
+.quick-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18rpx 14rpx; }
+.tool-tile { display: flex; min-height: 148rpx; flex-direction: column; align-items: center; justify-content: center; border: 1rpx solid #f0f3f8; border-radius: 20rpx; background: linear-gradient(145deg,#fbfcfe,#f4f7fb); }
+.tool-icon { display: flex; width: 66rpx; height: 66rpx; align-items: center; justify-content: center; margin-bottom: 12rpx; border-radius: 17rpx; color: #fff; font-size: 36rpx; font-weight: 700; box-shadow: 0 6rpx 14rpx rgba(55,98,166,.14); }
+.tool-icon.red { background: linear-gradient(145deg,#ff6b62,#ef3e46); font-size: 20rpx; }
+.tool-icon.blue { background: linear-gradient(145deg,#62b5ff,#267bff); }
+.tool-icon.purple { background: linear-gradient(145deg,#b17aff,#8247f5); }
+.tool-icon.green { background: linear-gradient(145deg,#56d9a1,#25b87b); }
+.tool-icon.orange { background: linear-gradient(145deg,#ffad65,#ff7838); }
+.tool-icon.navy { background: linear-gradient(145deg,#6484bd,#36588f); }
+.tool-icon.gray { background: linear-gradient(145deg,#c5ceda,#9aa8bb); font-size: 17rpx; }
+.tool-name { color: #24324b; font-size: 22rpx; white-space: nowrap; }
+.recommendation-heading { margin-top: 34rpx; }
+.category-scroll { margin: 0 -4rpx 20rpx; white-space: nowrap; }
+.category-row { display: inline-flex; gap: 14rpx; padding: 0 4rpx; }
+.category-pill { min-width: 94rpx; padding: 15rpx 22rpx; border-radius: 99rpx; background: #f3f5f8; color: #64728a; font-size: 23rpx; text-align: center; }
+.category-pill.selected { background: #1677ff; color: #fff; }
+.recommend-card { margin-bottom: 18rpx; padding: 20rpx 18rpx 18rpx; border-radius: 20rpx; box-shadow: none; }
+.recommend-head { display: flex; align-items: center; justify-content: space-between; margin: 0 2rpx 16rpx; }
+.recommend-title { font-size: 27rpx; font-weight: 650; }
+.recommend-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8rpx; }
+.recommend-tool { display: flex; min-height: 134rpx; flex-direction: column; align-items: center; justify-content: center; border-radius: 16rpx; background: #f8f9fc; }
+.tool-icon.small { width: 54rpx; height: 54rpx; margin-bottom: 9rpx; border-radius: 14rpx; font-size: 27rpx; }
+.tool-icon.small.red { font-size: 16rpx; }

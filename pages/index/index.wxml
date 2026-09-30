@@ -1,20 +1,22 @@
-<view class="page">
-  <view class="hero">
-    <view class="eyebrow">TOOLS FOR EVERYDAY</view>
-    <view class="title">轻便工具箱</view>
-    <view class="muted">简单、顺手，打开就能用</view>
+<view class="page home-page">
+  <view class="hero card">
+    <view class="hero-copy"><view class="hero-title">小工具<br />大效率</view><view class="hero-subtitle">让工作与生活更轻松</view></view>
+    <view class="toolbox-art">🧰</view>
   </view>
-
-  <view class="section-title">全部工具</view>
-  <view class="tool-list">
-    <view wx:for="{{tools}}" wx:key="id" class="card tool-card" data-path="{{item.path}}" bindtap="openTool">
-      <view class="tool-icon">{{item.icon}}</view>
-      <view class="tool-copy">
-        <view class="tool-title">{{item.title}}</view>
-        <view class="muted">{{item.description}}</view>
+  <view class="home-panel">
+    <view class="section-heading"><text>常用工具</text><text class="section-more" bindtap="openMarket">全部 ›</text></view>
+    <view class="quick-grid">
+      <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" bindtap="showDeveloping"><view class="tool-icon {{item.color}}">{{item.icon}}</view><text class="tool-name">{{item.name}}</text></view>
+    </view>
+    <view class="section-heading recommendation-heading"><text>推荐工具</text></view>
+    <scroll-view class="category-scroll" scroll-x="true" show-scrollbar="false"><view class="category-row">
+      <view wx:for="{{categories}}" wx:key="*this" class="category-pill {{selectedCategory === item ? 'selected' : ''}}" data-category="{{item}}" bindtap="selectCategory">{{item}}</view>
+    </view></scroll-view>
+    <view wx:for="{{recommendationGroups}}" wx:key="title" class="recommend-card card">
+      <view class="recommend-head"><text class="recommend-title">{{item.title}}</text><text class="section-more" bindtap="openMarket">更多 ›</text></view>
+      <view class="recommend-grid">
+        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" bindtap="showDeveloping"><view class="tool-icon small {{tool.color}}">{{tool.icon}}</view><text class="tool-name">{{tool.name}}</text></view>
       </view>
-      <view class="chevron">›</view>
     </view>
   </view>
-  <view class="footer muted">目前所有计算都在本机完成，无需登录</view>
 </view>

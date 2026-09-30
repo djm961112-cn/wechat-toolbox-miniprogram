@@ -1,0 +1,10 @@
+<view class="page market-page">
+  <view class="market-header"><text class="page-title">工具市场</text><view class="search-box"><text class="search-icon">⌕</text><input placeholder="搜索工具" value="{{keyword}}" bindinput="onSearch" /></view></view>
+  <view class="market-body">
+    <scroll-view class="side-scroll" scroll-y="true"><view wx:for="{{categories}}" wx:key="*this" class="side-category {{selectedCategory === item ? 'active' : ''}}" data-category="{{item}}" bindtap="selectCategory"><text class="side-mark">{{selectedCategory === item ? '▧' : '▢'}}</text><text>{{item}}</text></view></scroll-view>
+    <scroll-view class="market-results" scroll-y="true"><view class="result-title">{{selectedCategory}}</view>
+      <view wx:if="{{shownTools.length}}" class="market-grid"><view wx:for="{{shownTools}}" wx:key="id" class="market-tool" bindtap="showDeveloping"><view class="tool-icon {{item.color}}">{{item.icon}}</view><text class="tool-name">{{item.name}}</text></view></view>
+      <view wx:else class="empty-state">没有找到相关工具</view>
+    </scroll-view>
+  </view>
+</view>
