@@ -15,6 +15,7 @@ const tools = [
   { id: 'audio-to-text', name: '音频转文字', icon: '/assets/icons/audio-to-text.png', category: '格式' },
   { id: 'text-to-speech', name: '文本转语音', icon: '/assets/icons/text-to-speech.png', category: '格式' },
   { id: 'calculator', name: '计算器', icon: '/assets/icons/calculator.png', category: '办公' },
+  { id: 'mfa', name: 'MFA验证器', icon: '/assets/icons/security-check.png', category: '办公' },
   { id: 'qrcode', name: '二维码', icon: '/assets/icons/qrcode.png', category: '办公' },
   { id: 'unit-convert', name: '单位换算', icon: '/assets/icons/unit-convert.png', category: '办公' },
   { id: 'notepad', name: '记事本', icon: '/assets/icons/notepad.png', category: '办公' },

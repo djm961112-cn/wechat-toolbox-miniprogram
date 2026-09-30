@@ -17,12 +17,20 @@ Page({
   data: {
     categories,
     selectedCategory: '全部',
-    quickTools: tools.filter((tool) => ['image-compress', 'format-convert', 'calculator', 'notepad', 'pdf-tools', 'qrcode', 'unit-convert', 'more'].includes(tool.id)),
+    quickTools: tools.filter((tool) => ['image-compress', 'format-convert', 'calculator', 'mfa', 'notepad', 'pdf-tools', 'qrcode', 'unit-convert', 'more'].includes(tool.id)),
     recommendationGroups: buildGroups('全部')
   },
   selectCategory(event) {
     const selectedCategory = event.currentTarget.dataset.category
     this.setData({ selectedCategory, recommendationGroups: buildGroups(selectedCategory) })
+  },
+  openTool(event) {
+    const id = event.currentTarget.dataset.id
+    if (id === 'mfa') {
+      wx.navigateTo({ url: '/pages/tool/mfa/index' })
+      return
+    }
+    this.showDeveloping()
   },
   openMarket() { wx.switchTab({ url: '/pages/market/index' }) },
   showDeveloping() { wx.showToast({ title: '开发中', icon: 'none' }) }

@@ -1,0 +1,30 @@
+.mfa-page { padding-top: 24rpx; }
+.tabs { display: flex; margin-bottom: 22rpx; padding: 8rpx; border-radius: 18rpx; box-shadow: none; }
+.tab { flex: 1; padding: 18rpx 0; border-radius: 14rpx; color: #728097; font-size: 26rpx; text-align: center; }
+.tab.active { background: #edf4ff; color: #1677ff; font-weight: 650; }
+.account-list { display: flex; flex-direction: column; gap: 16rpx; }
+.account-card { padding: 24rpx; border-radius: 20rpx; }
+.account-head { display: flex; align-items: center; justify-content: space-between; }
+.account-labels { display: flex; min-width: 0; flex-direction: column; gap: 5rpx; }
+.issuer { color: #8490a4; font-size: 21rpx; }
+.account-name { overflow: hidden; color: #1d2b45; font-size: 27rpx; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.remove-link { padding: 8rpx 0 8rpx 20rpx; color: #9aa4b2; font-size: 22rpx; }
+.code-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 28rpx; }
+.otp-code { color: #23395e; font-size: 58rpx; font-weight: 700; letter-spacing: 8rpx; line-height: 1.2; }
+.countdown { color: #1677ff; font-size: 30rpx; font-weight: 650; }
+.seconds { margin-left: 4rpx; font-size: 21rpx; font-weight: 400; }
+.progress-track { height: 6rpx; margin-top: 18rpx; overflow: hidden; border-radius: 99rpx; background: #edf0f5; }
+.progress-value { height: 100%; border-radius: inherit; background: #4a8bff; transition: width .2s linear; }
+.empty { display: flex; flex-direction: column; align-items: center; padding: 72rpx 36rpx; text-align: center; }
+.empty-icon { display: flex; width: 116rpx; height: 116rpx; align-items: center; justify-content: center; margin-bottom: 22rpx; border-radius: 32rpx; background: #edf4ff; color: #4387f5; font-size: 68rpx; }
+.empty-title { color: #25344d; font-size: 30rpx; font-weight: 650; }
+.empty-hint { margin: 12rpx 0 28rpx; color: #8995a7; font-size: 23rpx; line-height: 1.6; }
+.primary-button { width: 100%; margin: 0; border-radius: 16rpx; background: #287bfa; color: #fff; font-size: 27rpx; }
+.scan-button { margin-top: 44rpx; }
+.bind-panel { display: flex; flex-direction: column; align-items: center; padding: 46rpx 32rpx 30rpx; text-align: center; }
+.bind-icon { display: flex; width: 116rpx; height: 116rpx; align-items: center; justify-content: center; border-radius: 32rpx; background: #edf4ff; color: #4387f5; font-size: 62rpx; }
+.bind-title { margin-top: 22rpx; color: #25344d; font-size: 31rpx; font-weight: 650; }
+.bind-description { margin-top: 12rpx; color: #7e8ba0; font-size: 23rpx; line-height: 1.7; }
+.local-note { color: #8995a7; font-size: 21rpx; text-align: center; }
+.bind-panel .local-note { margin-top: 24rpx; }
+.supported-note { margin-top: 28rpx; color: #9aa4b2; font-size: 19rpx; line-height: 1.6; }

@@ -21,5 +21,12 @@ Page({
     const keyword = this.data.keyword.trim().toLowerCase()
     this.setData({ shownTools: tools.filter((tool) => (keyword || allowed.includes(tool.category)) && (!keyword || tool.name.toLowerCase().includes(keyword))) })
   },
+  openTool(event) {
+    if (event.currentTarget.dataset.id === 'mfa') {
+      wx.navigateTo({ url: '/pages/tool/mfa/index' })
+      return
+    }
+    this.showDeveloping()
+  },
   showDeveloping() { wx.showToast({ title: '开发中', icon: 'none' }) }
 })

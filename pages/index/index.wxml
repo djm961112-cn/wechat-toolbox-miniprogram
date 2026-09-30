@@ -10,7 +10,7 @@
   <view class="home-panel">
     <view class="section-heading"><text>常用工具</text><text class="section-more" bindtap="openMarket">全部 ›</text></view>
     <view class="quick-grid">
-      <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" bindtap="showDeveloping"><view class="tool-icon-wrap"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /><view class="tool-icon-mask"></view></view><text class="tool-name">{{item.name}}</text></view>
+      <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" data-id="{{item.id}}" bindtap="openTool"><view class="tool-icon-wrap"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /><view class="tool-icon-mask"></view></view><text class="tool-name">{{item.name}}</text></view>
     </view>
     <view class="section-heading recommendation-heading"><text>推荐工具</text></view>
     <scroll-view class="category-scroll" scroll-x="true" show-scrollbar="false"><view class="category-row">
@@ -19,7 +19,7 @@
     <view wx:for="{{recommendationGroups}}" wx:key="title" class="recommend-card card">
       <view class="recommend-head"><text class="recommend-title">{{item.title}}</text><text class="section-more" bindtap="openMarket">更多 ›</text></view>
       <view class="recommend-grid">
-        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" bindtap="showDeveloping"><view class="tool-icon-wrap small"><image class="tool-icon" src="{{tool.icon}}" mode="aspectFit" /><view class="tool-icon-mask"></view></view><text class="tool-name">{{tool.name}}</text></view>
+        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" data-id="{{tool.id}}" bindtap="openTool"><view class="tool-icon-wrap small"><image class="tool-icon" src="{{tool.icon}}" mode="aspectFit" /><view class="tool-icon-mask"></view></view><text class="tool-name">{{tool.name}}</text></view>
       </view>
     </view>
   </view>

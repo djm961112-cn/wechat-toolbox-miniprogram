@@ -1,0 +1,39 @@
+<view class="page mfa-page">
+  <view class="tabs card">
+    <view class="tab {{activeTab === 'list' ? 'active' : ''}}" data-tab="list" bindtap="selectTab">验证码</view>
+    <view class="tab {{activeTab === 'bind' ? 'active' : ''}}" data-tab="bind" bindtap="selectTab">绑定</view>
+  </view>
+
+  <view wx:if="{{activeTab === 'list'}}" class="account-list">
+    <view wx:if="{{accounts.length === 0}}" class="empty card">
+      <view class="empty-icon">◷</view>
+      <view class="empty-title">还没有绑定验证器</view>
+      <view class="empty-hint">扫描网站或应用提供的 TOTP 二维码开始使用</view>
+      <button class="primary-button" bindtap="selectTab" data-tab="bind">去绑定</button>
+    </view>
+    <view wx:for="{{accounts}}" wx:key="id" class="account-card card">
+      <view class="account-head">
+        <view class="account-labels">
+          <text wx:if="{{item.issuer}}" class="issuer">{{item.issuer}}</text>
+          <text class="account-name">{{item.account}}</text>
+        </view>
+        <text class="remove-link" data-id="{{item.id}}" catchtap="removeAccount">移除</text>
+      </view>
+      <view class="code-row">
+        <text class="otp-code">{{codes[index].code}}</text>
+        <view class="countdown"><text>{{codes[index].countdown}}</text><text class="seconds">秒</text></view>
+      </view>
+      <view class="progress-track"><view class="progress-value" style="width: {{codes[index].progress}}%;"></view></view>
+    </view>
+    <view wx:if="{{accounts.length > 0}}" class="local-note">验证码仅在本机生成，密钥不会上传</view>
+  </view>
+
+  <view wx:if="{{activeTab === 'bind'}}" class="bind-panel card">
+    <view class="bind-icon">▦</view>
+    <view class="bind-title">绑定验证器</view>
+    <view class="bind-description">使用相应网站或应用的安全设置，显示 TOTP / 验证器二维码，再用这里扫码绑定。</view>
+    <button class="primary-button scan-button" bindtap="scanAndBind">扫一扫绑定</button>
+    <view class="local-note">二维码密钥会保存在本机，不会发送到服务器</view>
+    <view class="supported-note">目前支持标准 otpauth://totp 二维码、SHA1 算法及 6 / 8 位验证码</view>
+  </view>
+</view>
