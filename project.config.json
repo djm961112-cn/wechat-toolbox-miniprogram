@@ -1,0 +1,17 @@
+{
+  "description": "轻便工具箱微信小程序",
+  "packOptions": { "ignore": [] },
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "compileHotReLoad": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.8.8",
+  "appid": "touristappid",
+  "projectname": "wechat-toolbox-miniprogram",
+  "condition": {}
+}

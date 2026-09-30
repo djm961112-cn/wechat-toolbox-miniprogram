@@ -1,0 +1,20 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">TOOLS FOR EVERYDAY</view>
+    <view class="title">轻便工具箱</view>
+    <view class="muted">简单、顺手，打开就能用</view>
+  </view>
+
+  <view class="section-title">全部工具</view>
+  <view class="tool-list">
+    <view wx:for="{{tools}}" wx:key="id" class="card tool-card" data-path="{{item.path}}" bindtap="openTool">
+      <view class="tool-icon">{{item.icon}}</view>
+      <view class="tool-copy">
+        <view class="tool-title">{{item.title}}</view>
+        <view class="muted">{{item.description}}</view>
+      </view>
+      <view class="chevron">›</view>
+    </view>
+  </view>
+  <view class="footer muted">目前所有计算都在本机完成，无需登录</view>
+</view>

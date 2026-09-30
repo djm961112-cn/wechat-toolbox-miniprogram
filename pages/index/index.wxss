@@ -1,0 +1,11 @@
+.hero { padding: 34rpx 8rpx 48rpx; }
+.eyebrow { color: #3867f5; font-size: 22rpx; font-weight: 700; letter-spacing: 3rpx; }
+.title { margin: 16rpx 0 10rpx; font-size: 48rpx; font-weight: 700; }
+.section-title { margin: 4rpx 8rpx 20rpx; font-size: 30rpx; font-weight: 650; }
+.tool-list { display: flex; flex-direction: column; gap: 18rpx; }
+.tool-card { display: flex; align-items: center; }
+.tool-icon { display: flex; align-items: center; justify-content: center; width: 84rpx; height: 84rpx; margin-right: 22rpx; border-radius: 22rpx; background: #edf2ff; font-size: 38rpx; }
+.tool-copy { flex: 1; }
+.tool-title { margin-bottom: 8rpx; font-size: 30rpx; font-weight: 600; }
+.chevron { color: #9aa1af; font-size: 44rpx; }
+.footer { padding: 32rpx 8rpx; text-align: center; font-size: 23rpx; }
