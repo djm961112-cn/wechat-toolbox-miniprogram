@@ -3,7 +3,7 @@
   <view class="market-body">
     <scroll-view class="side-scroll" scroll-y="true"><view wx:for="{{categories}}" wx:key="name" class="side-category {{selectedCategory === item.name ? 'active' : ''}}" data-category="{{item.name}}" bindtap="selectCategory"><image class="side-icon" src="{{item.icon}}" mode="aspectFit" /><text>{{item.name}}</text></view></scroll-view>
     <scroll-view class="market-results" scroll-y="true"><view class="result-title">{{selectedCategory}}</view>
-      <view wx:if="{{shownTools.length}}" class="market-grid"><view wx:for="{{shownTools}}" wx:key="id" class="market-tool" bindtap="showDeveloping"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /><text class="tool-name">{{item.name}}</text></view></view>
+      <view wx:if="{{shownTools.length}}" class="market-grid"><view wx:for="{{shownTools}}" wx:key="id" class="market-tool" bindtap="showDeveloping"><view class="tool-icon-wrap"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /><view class="tool-icon-mask"></view></view><text class="tool-name">{{item.name}}</text></view></view>
       <view wx:else class="empty-state">没有找到相关工具</view>
     </scroll-view>
   </view>
