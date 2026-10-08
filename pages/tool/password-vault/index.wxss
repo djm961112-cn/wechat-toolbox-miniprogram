@@ -16,9 +16,9 @@
 .record-list { display: flex; flex-direction: column; gap: 18rpx; }
 .record-card { padding: 24rpx; border-radius: 22rpx; }
 .record-card.selected { border-color: #7f8efa; background: #fbfbff; box-shadow: 0 0 0 2rpx rgba(85,104,236,.08); }
-.platform-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18rpx; }
-.platform-list { display: flex; min-width: 0; flex: 1; flex-wrap: wrap; gap: 10rpx; }
-.platform-tag { padding: 8rpx 17rpx; border-radius: 99rpx; background: #eef1ff; color: #4f61c8; font-size: 21rpx; font-weight: 600; }
+.platform-header { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; margin-bottom: 18rpx; }
+.platform-list { display: flex; min-width: 0; flex: 1; flex-wrap: wrap; gap: 10rpx; overflow: visible; }
+.platform-tag { display: block; max-width: 100%; box-sizing: border-box; padding: 8rpx 17rpx; border-radius: 22rpx; background: #eef1ff; color: #4f61c8; font-size: 21rpx; font-weight: 600; line-height: 1.45; white-space: normal; word-break: break-all; }
 .select-check { display: flex; width: 38rpx; height: 38rpx; flex-shrink: 0; align-items: center; justify-content: center; margin-left: 14rpx; border: 2rpx solid #c8cfdd; border-radius: 50%; color: #fff; font-size: 23rpx; }
 .select-check.checked { border-color: #586bec; background: #586bec; }
 .credential-list { overflow: hidden; border: 1rpx solid #edf0f5; border-radius: 17rpx; background: #f9fafc; }
