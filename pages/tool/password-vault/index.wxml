@@ -1,0 +1,99 @@
+<view class="page vault-page">
+  <view class="vault-header">
+    <view>
+      <view class="page-title">账号密码本</view>
+      <view class="page-subtitle">本地整理常用账号，不上传服务器</view>
+    </view>
+    <button class="add-button" bindtap="openAddForm">＋ 添加</button>
+  </view>
+
+  <view class="search-box card">
+    <text class="search-icon">⌕</text>
+    <input class="search-input" placeholder="搜索平台、账号或备注" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view wx:if="{{filteredRecords.length}}" class="record-list">
+    <view wx:for="{{filteredRecords}}" wx:key="id" class="record-card card">
+      <view class="record-head">
+        <view class="account-block">
+          <text class="field-label">账号</text>
+          <text class="account-value">{{item.account}}</text>
+        </view>
+        <button class="copy-button" data-id="{{item.id}}" data-field="account" catchtap="copyRecordValue">复制账号</button>
+      </view>
+
+      <view class="platform-list">
+        <text wx:for="{{item.platforms}}" wx:for-item="platform" wx:key="*this" class="platform-tag">{{platform}}</text>
+      </view>
+
+      <view class="password-row">
+        <view class="password-block">
+          <text class="field-label">密码</text>
+          <text class="password-value">••••••••••••</text>
+        </view>
+        <button class="copy-button password-copy" data-id="{{item.id}}" data-field="password" catchtap="copyRecordValue">复制密码</button>
+      </view>
+
+      <view wx:if="{{item.note}}" class="note-box"><text class="note-label">备注</text><text class="note-text">{{item.note}}</text></view>
+      <view class="record-actions">
+        <text class="action-link edit" data-id="{{item.id}}" catchtap="openEditForm">编辑</text>
+        <text class="action-link merge" data-id="{{item.id}}" catchtap="openMerge">合并</text>
+        <text class="action-link delete" data-id="{{item.id}}" catchtap="deleteRecord">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{records.length}}" class="empty card">
+    <view class="empty-icon">⌕</view>
+    <view class="empty-title">没有匹配的记录</view>
+    <view class="empty-hint">试试搜索平台名称、账号或备注</view>
+  </view>
+
+  <view wx:else class="empty card">
+    <image class="empty-image" src="/assets/icons/password-vault.png" mode="aspectFit" />
+    <view class="empty-title">还没有账号记录</view>
+    <view class="empty-hint">添加后可快速搜索和复制账号密码</view>
+    <button class="empty-add-button" bindtap="openAddForm">添加第一条记录</button>
+  </view>
+
+  <view class="security-note">数据仅保存在当前微信本地缓存，未额外加密；删除小程序或清理缓存后无法恢复。复制密码后请留意系统剪贴板。</view>
+
+  <view wx:if="{{formVisible}}" class="sheet-mask" catchtap="closeForm">
+    <view class="form-sheet" catchtap="stopPropagation">
+      <view class="sheet-head"><text class="sheet-title">{{formMode === 'edit' ? '编辑记录' : '添加记录'}}</text><text class="sheet-close" catchtap="closeForm">×</text></view>
+      <view class="form-field">
+        <text class="form-label">平台名称</text>
+        <input class="form-input" maxlength="120" placeholder="例如：GitHub；多个平台用逗号分隔" value="{{form.platforms}}" data-field="platforms" bindinput="onFormInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">账号</text>
+        <input class="form-input" maxlength="120" placeholder="手机号、邮箱或用户名" value="{{form.account}}" data-field="account" bindinput="onFormInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">密码</text>
+        <view class="password-input-wrap">
+          <input class="form-input password-input" maxlength="200" password="{{!formPasswordVisible}}" placeholder="请输入密码" value="{{form.password}}" data-field="password" bindinput="onFormInput" />
+          <text class="password-toggle" catchtap="toggleFormPassword">{{formPasswordVisible ? '隐藏' : '显示'}}</text>
+        </view>
+      </view>
+      <view class="form-field">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" maxlength="300" placeholder="可记录用途、登录方式等信息" value="{{form.note}}" data-field="note" bindinput="onFormInput"></textarea>
+      </view>
+      <view class="sheet-actions"><button class="cancel-button" catchtap="closeForm">取消</button><button class="save-button" catchtap="saveForm">保存</button></view>
+    </view>
+  </view>
+
+  <view wx:if="{{mergeVisible}}" class="sheet-mask" catchtap="closeMerge">
+    <view class="merge-sheet" catchtap="stopPropagation">
+      <view class="sheet-head"><text class="sheet-title">选择要合并的平台</text><text class="sheet-close" catchtap="closeMerge">×</text></view>
+      <view class="merge-hint">只显示账号和密码完全相同的记录。合并后会保留全部平台和备注。</view>
+      <view class="merge-list">
+        <view wx:for="{{mergeCandidates}}" wx:key="id" class="merge-item" data-id="{{item.id}}" catchtap="mergeWithRecord">
+          <view class="merge-platforms">{{item.platformSummary}}</view>
+          <view class="merge-account">{{item.account}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

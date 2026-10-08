@@ -9,8 +9,9 @@ Page({
     quickTools: tools,
     recommendationGroups: [{ title: '办公效率', tools }]
   },
-  openTool() {
-    wx.navigateTo({ url: '/pages/tool/mfa/index' })
+  openTool(event) {
+    const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
+    if (tool) wx.navigateTo({ url: tool.url })
   },
   openMarket() { wx.switchTab({ url: '/pages/market/index' }) }
 })

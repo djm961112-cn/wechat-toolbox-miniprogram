@@ -13,7 +13,8 @@ Page({
     const keyword = this.data.keyword.trim().toLowerCase()
     this.setData({ shownTools: tools.filter((tool) => !keyword || tool.name.toLowerCase().includes(keyword)) })
   },
-  openTool() {
-    wx.navigateTo({ url: '/pages/tool/mfa/index' })
+  openTool(event) {
+    const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
+    if (tool) wx.navigateTo({ url: tool.url })
   }
 })

@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/market/index"],
+  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/tool/password-vault/index", "pages/market/index"],
   "window": {
     "navigationBarTitleText": "工具箱",
     "navigationBarBackgroundColor": "#f6f8fc",
