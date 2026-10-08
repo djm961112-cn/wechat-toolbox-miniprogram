@@ -5,8 +5,8 @@ function splitPlatforms(value) {
   return [...new Set(String(value || '').split(/[，,、\n]/).map((item) => item.trim()).filter(Boolean))]
 }
 
-function mergeNotes(left, right) {
-  return [...new Set([left, right].map((item) => String(item || '').trim()).filter(Boolean))].join('\n')
+function mergeNotes(...notes) {
+  return [...new Set(notes.map((item) => String(item || '').trim()).filter(Boolean))].join('\n')
 }
 
 function toViewRecord(record) {
@@ -21,12 +21,12 @@ Page({
     keyword: '',
     formVisible: false,
     formMode: 'add',
+    formTitle: '添加记录',
     editingId: '',
     formPasswordVisible: false,
     form: { ...EMPTY_FORM },
-    mergeVisible: false,
-    mergeSourceId: '',
-    mergeCandidates: []
+    mergeMode: false,
+    selectedMergeIds: []
   },
 
   onShow() {
@@ -54,7 +54,10 @@ Page({
         .join(' ')
         .toLowerCase()
         .includes(keyword)
-    }).map(toViewRecord)
+    }).map((record) => ({
+      ...toViewRecord(record),
+      selected: this.data.selectedMergeIds.includes(record.id)
+    }))
     this.setData({ filteredRecords })
   },
 
@@ -67,9 +70,12 @@ Page({
     this.setData({
       formVisible: true,
       formMode: 'add',
+      formTitle: '添加记录',
       editingId: '',
       formPasswordVisible: false,
-      form: { ...EMPTY_FORM }
+      form: { ...EMPTY_FORM },
+      mergeMode: false,
+      selectedMergeIds: []
     })
   },
 
@@ -79,10 +85,29 @@ Page({
     this.setData({
       formVisible: true,
       formMode: 'edit',
+      formTitle: '编辑记录',
       editingId: record.id,
       formPasswordVisible: false,
       form: {
-        platforms: (record.platforms || []).join('，'),
+        platforms: (record.platforms || []).join('、'),
+        account: record.account,
+        password: record.password,
+        note: record.note || ''
+      }
+    })
+  },
+
+  openCopyForm(event) {
+    const record = (this.records || []).find((item) => item.id === event.currentTarget.dataset.id)
+    if (!record) return
+    this.setData({
+      formVisible: true,
+      formMode: 'copy',
+      formTitle: '复制记录',
+      editingId: '',
+      formPasswordVisible: false,
+      form: {
+        platforms: (record.platforms || []).join('、'),
         account: record.account,
         password: record.password,
         note: record.note || ''
@@ -94,6 +119,7 @@ Page({
     this.setData({
       formVisible: false,
       formMode: 'add',
+      formTitle: '添加记录',
       editingId: '',
       formPasswordVisible: false,
       form: { ...EMPTY_FORM }
@@ -132,7 +158,10 @@ Page({
       records = [{ id, platforms, account, password, note, createdAt: now, updatedAt: now }, ...(this.records || [])]
     }
 
-    if (this.persistRecords(records, this.data.formMode === 'edit' ? '已保存修改' : '已添加账号')) {
+    const successTitle = this.data.formMode === 'edit'
+      ? '已保存修改'
+      : this.data.formMode === 'copy' ? '已复制记录' : '已添加账号'
+    if (this.persistRecords(records, successTitle)) {
       this.closeForm()
     }
   },
@@ -173,48 +202,56 @@ Page({
     })
   },
 
-  openMerge(event) {
-    const source = (this.records || []).find((item) => item.id === event.currentTarget.dataset.id)
-    if (!source) return
-    const mergeCandidates = (this.records || []).filter((record) => (
-      record.id !== source.id && record.account === source.account && record.password === source.password
-    ))
-    if (!mergeCandidates.length) {
-      wx.showToast({ title: '没有相同账号和密码的记录', icon: 'none' })
+  startMergeMode() {
+    if ((this.records || []).length < 2) {
+      wx.showToast({ title: '至少需要两条记录', icon: 'none' })
       return
     }
-    this.setData({
-      mergeVisible: true,
-      mergeSourceId: source.id,
-      mergeCandidates: mergeCandidates.map((record) => ({
-        ...toViewRecord(record),
-        platformSummary: (record.platforms || []).join('、')
-      }))
+    this.setData({ mergeMode: true, selectedMergeIds: [], keyword: '' }, () => {
+      this.applyFilter(this.records || [], '')
     })
   },
 
-  closeMerge() {
-    this.setData({ mergeVisible: false, mergeSourceId: '', mergeCandidates: [] })
+  cancelMergeMode() {
+    this.setData({ mergeMode: false, selectedMergeIds: [] }, () => {
+      this.applyFilter(this.records || [], this.data.keyword)
+    })
   },
 
-  mergeWithRecord(event) {
-    const source = (this.records || []).find((item) => item.id === this.data.mergeSourceId)
-    const candidate = (this.records || []).find((item) => item.id === event.currentTarget.dataset.id)
-    if (!source || !candidate || source.account !== candidate.account || source.password !== candidate.password) {
-      wx.showToast({ title: '记录已变化，请重试', icon: 'none' })
-      this.closeMerge()
+  toggleMergeSelection(event) {
+    if (!this.data.mergeMode) return
+    const id = event.currentTarget.dataset.id
+    const selectedMergeIds = this.data.selectedMergeIds.includes(id)
+      ? this.data.selectedMergeIds.filter((item) => item !== id)
+      : [...this.data.selectedMergeIds, id]
+    this.setData({ selectedMergeIds }, () => this.applyFilter(this.records || [], this.data.keyword))
+  },
+
+  confirmMerge() {
+    const selectedIdSet = new Set(this.data.selectedMergeIds)
+    const selectedRecords = this.data.selectedMergeIds
+      .map((id) => (this.records || []).find((record) => record.id === id))
+      .filter(Boolean)
+    if (selectedRecords.length < 2) {
+      wx.showToast({ title: '请至少选择两条记录', icon: 'none' })
+      return
+    }
+    const base = selectedRecords[0]
+    const canMerge = selectedRecords.every((record) => record.account === base.account && record.password === base.password)
+    if (!canMerge) {
+      wx.showModal({ title: '无法合并', content: '只有账号和密码完全相同的记录才能合并。', showCancel: false })
       return
     }
 
     const merged = {
-      ...source,
-      platforms: [...new Set([...(source.platforms || []), ...(candidate.platforms || [])])],
-      note: mergeNotes(source.note, candidate.note),
+      ...base,
+      platforms: [...new Set(selectedRecords.reduce((all, record) => all.concat(record.platforms || []), []))],
+      note: mergeNotes(...selectedRecords.map((record) => record.note)),
       updatedAt: Date.now()
     }
     const records = (this.records || [])
-      .filter((record) => record.id !== candidate.id)
-      .map((record) => record.id === source.id ? merged : record)
-    if (this.persistRecords(records, '已合并平台')) this.closeMerge()
+      .filter((record) => !selectedIdSet.has(record.id) || record.id === base.id)
+      .map((record) => record.id === base.id ? merged : record)
+    if (this.persistRecords(records, '已合并平台')) this.cancelMergeMode()
   }
 })
