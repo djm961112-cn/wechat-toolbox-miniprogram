@@ -14,11 +14,11 @@
     <view wx:for="{{accounts}}" wx:key="id" class="account-card card">
       <view class="account-head">
         <view class="account-labels">
-          <text wx:if="{{item.issuer}}" class="issuer">{{item.issuer}}</text>
-          <text class="account-name">{{item.name || item.account}}</text>
+          <text wx:if="{{item.name || item.issuer}}" class="service-name">{{item.name || item.issuer}}</text>
+          <text class="account-name">{{item.account}}</text>
         </view>
         <view class="account-actions">
-          <text class="edit-link" data-id="{{item.id}}" catchtap="editAccountName">编辑</text>
+          <text class="edit-link" data-id="{{item.id}}" catchtap="editDisplayName">编辑</text>
           <text class="remove-link" data-id="{{item.id}}" catchtap="removeAccount">移除</text>
         </view>
       </view>

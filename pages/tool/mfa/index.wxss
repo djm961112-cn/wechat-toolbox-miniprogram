@@ -6,7 +6,7 @@
 .account-card { padding: 24rpx; border-radius: 20rpx; }
 .account-head { display: flex; align-items: center; justify-content: space-between; }
 .account-labels { display: flex; min-width: 0; flex-direction: column; gap: 5rpx; }
-.issuer { color: #8490a4; font-size: 21rpx; }
+.service-name { color: #8490a4; font-size: 21rpx; }
 .account-name { overflow: hidden; color: #1d2b45; font-size: 27rpx; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .account-actions { display: flex; flex-shrink: 0; align-items: center; }
 .edit-link, .remove-link { padding: 8rpx 0 8rpx 20rpx; font-size: 22rpx; }

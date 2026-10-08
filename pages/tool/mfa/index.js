@@ -104,14 +104,14 @@ Page({
     wx.showToast({ title: '绑定成功', icon: 'success' })
   },
 
-  editAccountName(event) {
+  editDisplayName(event) {
     const id = event.currentTarget.dataset.id
     const account = this.data.accounts.find((item) => item.id === id)
     if (!account) return
 
     wx.showModal({
       title: '修改名称',
-      content: account.name || account.account,
+      content: account.name || account.issuer || account.account,
       editable: true,
       placeholderText: '请输入名称',
       confirmText: '保存',
