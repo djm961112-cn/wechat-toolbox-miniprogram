@@ -36,9 +36,12 @@
         <view class="credential-row">
           <view class="credential-block">
             <text class="field-label">密码</text>
-            <text class="password-value">••••••••••••</text>
+            <text class="password-value {{item.passwordVisible ? 'visible' : ''}}">{{item.displayPassword}}</text>
           </view>
-          <text wx:if="{{!mergeMode}}" class="copy-button password-copy" data-id="{{item.id}}" data-field="password" catchtap="copyRecordValue">复制</text>
+          <view wx:if="{{!mergeMode}}" class="password-actions">
+            <text class="copy-button password-copy" data-id="{{item.id}}" data-field="password" catchtap="copyRecordValue">复制</text>
+            <text class="visibility-button" data-id="{{item.id}}" catchtap="toggleRecordPassword">{{item.passwordVisible ? '密文' : '明文'}}</text>
+          </view>
         </view>
       </view>
 

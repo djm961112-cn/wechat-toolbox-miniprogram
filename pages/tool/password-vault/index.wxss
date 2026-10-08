@@ -28,8 +28,12 @@
 .field-label { color: #8a96aa; font-size: 20rpx; }
 .account-value { overflow: hidden; margin-top: 4rpx; color: #1e2d49; font-size: 27rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .password-value { margin-top: 4rpx; color: #3f4b64; font-size: 26rpx; font-weight: 650; letter-spacing: 4rpx; }
+.password-value.visible { color: #253550; font-size: 23rpx; letter-spacing: 0; line-height: 1.35; word-break: break-all; }
 .copy-button { display: flex; width: 76rpx; height: 46rpx; flex: 0 0 76rpx; align-items: center; justify-content: center; margin-left: 14rpx; border-radius: 12rpx; background: #edf0ff; color: #5166e9; font-size: 19rpx; }
+.password-actions { display: flex; flex-shrink: 0; align-items: center; gap: 8rpx; margin-left: 14rpx; }
+.password-actions .copy-button { margin-left: 0; }
 .password-copy { background: #edf8f7; color: #259e96; }
+.visibility-button { display: flex; width: 76rpx; height: 46rpx; flex: 0 0 76rpx; align-items: center; justify-content: center; border-radius: 12rpx; background: #f2f3f7; color: #68758a; font-size: 19rpx; }
 .note-box { display: flex; margin-top: 20rpx; padding: 16rpx 18rpx; border-radius: 14rpx; background: #f8f9fc; }
 .note-label { flex-shrink: 0; margin-right: 14rpx; color: #8b96a8; font-size: 20rpx; }
 .note-text { color: #59667a; font-size: 21rpx; line-height: 1.55; word-break: break-all; }

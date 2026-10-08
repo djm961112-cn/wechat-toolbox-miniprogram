@@ -26,11 +26,16 @@ Page({
     formPasswordVisible: false,
     form: { ...EMPTY_FORM },
     mergeMode: false,
-    selectedMergeIds: []
+    selectedMergeIds: [],
+    revealedRecordIds: []
   },
 
   onShow() {
-    this.loadRecords()
+    this.setData({ revealedRecordIds: [] }, () => this.loadRecords())
+  },
+
+  onHide() {
+    this.setData({ revealedRecordIds: [] }, () => this.applyFilter(this.records || [], this.data.keyword))
   },
 
   loadRecords() {
@@ -56,7 +61,9 @@ Page({
         .includes(keyword)
     }).map((record) => ({
       ...toViewRecord(record),
-      selected: this.data.selectedMergeIds.includes(record.id)
+      selected: this.data.selectedMergeIds.includes(record.id),
+      passwordVisible: this.data.revealedRecordIds.includes(record.id),
+      displayPassword: this.data.revealedRecordIds.includes(record.id) ? record.password : '••••••••••••'
     }))
     this.setData({ filteredRecords })
   },
@@ -75,8 +82,9 @@ Page({
       formPasswordVisible: false,
       form: { ...EMPTY_FORM },
       mergeMode: false,
-      selectedMergeIds: []
-    })
+      selectedMergeIds: [],
+      revealedRecordIds: []
+    }, () => this.applyFilter(this.records || [], this.data.keyword))
   },
 
   openEditForm(event) {
@@ -88,13 +96,14 @@ Page({
       formTitle: '编辑记录',
       editingId: record.id,
       formPasswordVisible: false,
+      revealedRecordIds: [],
       form: {
         platforms: (record.platforms || []).join('、'),
         account: record.account,
         password: record.password,
         note: record.note || ''
       }
-    })
+    }, () => this.applyFilter(this.records || [], this.data.keyword))
   },
 
   openCopyForm(event) {
@@ -106,13 +115,14 @@ Page({
       formTitle: '复制记录',
       editingId: '',
       formPasswordVisible: false,
+      revealedRecordIds: [],
       form: {
         platforms: (record.platforms || []).join('、'),
         account: record.account,
         password: record.password,
         note: record.note || ''
       }
-    })
+    }, () => this.applyFilter(this.records || [], this.data.keyword))
   },
 
   closeForm() {
@@ -123,7 +133,7 @@ Page({
       editingId: '',
       formPasswordVisible: false,
       form: { ...EMPTY_FORM }
-    })
+    }, () => this.applyFilter(this.records || [], this.data.keyword))
   },
 
   stopPropagation() {},
@@ -189,6 +199,12 @@ Page({
     })
   },
 
+  toggleRecordPassword(event) {
+    const id = event.currentTarget.dataset.id
+    const revealedRecordIds = this.data.revealedRecordIds.includes(id) ? [] : [id]
+    this.setData({ revealedRecordIds }, () => this.applyFilter(this.records || [], this.data.keyword))
+  },
+
   deleteRecord(event) {
     const id = event.currentTarget.dataset.id
     wx.showModal({
@@ -207,7 +223,7 @@ Page({
       wx.showToast({ title: '至少需要两条记录', icon: 'none' })
       return
     }
-    this.setData({ mergeMode: true, selectedMergeIds: [], keyword: '' }, () => {
+    this.setData({ mergeMode: true, selectedMergeIds: [], revealedRecordIds: [], keyword: '' }, () => {
       this.applyFilter(this.records || [], '')
     })
   },
