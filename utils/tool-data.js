@@ -1,36 +1,4 @@
-const categories = ['全部', '图片', '文档', '办公', '生活', '其他']
 const tools = [
-  { id: 'image-compress', name: '图片压缩', icon: '/assets/icons/image-compress.png', category: '图片' },
-  { id: 'format-convert', name: '格式转换', icon: '/assets/icons/format-convert.png', category: '图片' },
-  { id: 'image-crop', name: '图片裁剪', icon: '/assets/icons/image-crop.png', category: '图片' },
-  { id: 'image-watermark-remove', name: '图片去水印', icon: '/assets/icons/remove-watermark.png', category: '图片' },
-  { id: 'image-watermark-add', name: '图片加水印', icon: '/assets/icons/add-watermark.png', category: '图片' },
-  { id: 'image-enlarge', name: '图片放大', icon: '/assets/icons/image-enlarge.png', category: '图片' },
-  { id: 'pdf-tools', name: 'PDF工具', icon: '/assets/icons/pdf-tools.png', category: '文档' },
-  { id: 'word-to-pdf', name: 'Word转PDF', icon: '/assets/icons/word-to-pdf.png', category: '文档' },
-  { id: 'pdf-to-word', name: 'PDF转Word', icon: '/assets/icons/pdf-to-word.png', category: '文档' },
-  { id: 'ocr', name: '文字识别', icon: '/assets/icons/ocr.png', category: '文档' },
-  { id: 'image-to-pdf', name: '图片转PDF', icon: '/assets/icons/image-to-pdf.png', category: '格式' },
-  { id: 'video-to-audio', name: '视频转音频', icon: '/assets/icons/video-to-audio.png', category: '格式' },
-  { id: 'audio-to-text', name: '音频转文字', icon: '/assets/icons/audio-to-text.png', category: '格式' },
-  { id: 'text-to-speech', name: '文本转语音', icon: '/assets/icons/text-to-speech.png', category: '格式' },
-  { id: 'calculator', name: '计算器', icon: '/assets/icons/calculator.png', category: '办公' },
-  { id: 'mfa', name: 'MFA验证器', icon: '/assets/icons/security-check.png', category: '办公' },
-  { id: 'qrcode', name: '二维码', icon: '/assets/icons/qrcode.png', category: '办公' },
-  { id: 'unit-convert', name: '单位换算', icon: '/assets/icons/unit-convert.png', category: '办公' },
-  { id: 'notepad', name: '记事本', icon: '/assets/icons/notepad.png', category: '办公' },
-  { id: 'more', name: '更多', icon: '/assets/icons/more.png', category: '生活' },
-  { id: 'bus-query', name: '公交查询', icon: '/assets/icons/bus-query.png', category: '生活' },
-  { id: 'train-query', name: '火车查询', icon: '/assets/icons/train-query.png', category: '生活' },
-  { id: 'flight-query', name: '航班查询', icon: '/assets/icons/flight-query.png', category: '生活' },
-  { id: 'hotel-booking', name: '酒店预订', icon: '/assets/icons/hotel-booking.png', category: '生活' },
-  { id: 'life-payment', name: '生活缴费', icon: '/assets/icons/life-payment.png', category: '生活' },
-  { id: 'spreadsheet', name: '表格处理', icon: '/assets/icons/spreadsheet.png', category: '文档' },
-  { id: 'todo', name: '待办清单', icon: '/assets/icons/todo.png', category: '办公' },
-  { id: 'cloud-drive', name: '云盘', icon: '/assets/icons/cloud-drive.png', category: '其他' },
-  { id: 'cloud-management', name: '云管理', icon: '/assets/icons/cloud-management.png', category: '其他' },
-  { id: 'code-tools', name: '代码工具', icon: '/assets/icons/code-tools.png', category: '其他' },
-  { id: 'security-check', name: '安全检测', icon: '/assets/icons/security-check.png', category: '其他' },
-  { id: 'web-tools', name: '网页工具', icon: '/assets/icons/web-tools.png', category: '其他' }
+  { id: 'mfa', name: 'MFA验证器', icon: '/assets/icons/security-check.png', category: '办公' }
 ]
-module.exports = { categories, tools }
+module.exports = { tools }

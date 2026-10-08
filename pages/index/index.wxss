@@ -4,11 +4,8 @@
 .hero-copy { position: relative; z-index: 1; }
 .hero-title { font-size: 48rpx; font-weight: 750; line-height: 1.22; letter-spacing: 2rpx; }
 .hero-subtitle { margin-top: 22rpx; font-size: 24rpx; opacity: .92; }
-.hero-art { position: absolute; z-index: 1; top: 70rpx; right: 10rpx; width: 270rpx; height: 205rpx; }
-.hero-icon { position: absolute; width: 116rpx; height: 116rpx; filter: drop-shadow(0 10rpx 8rpx rgba(18,69,154,.16)); }
-.hero-icon-one { top: 2rpx; right: 18rpx; transform: rotate(8deg); }
-.hero-icon-two { bottom: 2rpx; left: 18rpx; transform: rotate(-8deg); }
-.hero-icon-three { right: 0; bottom: 0; transform: rotate(6deg); }
+.hero-art { position: absolute; z-index: 1; top: 82rpx; right: 54rpx; width: 160rpx; height: 160rpx; }
+.hero-icon { width: 160rpx; height: 160rpx; filter: drop-shadow(0 10rpx 8rpx rgba(18,69,154,.16)); }
 .home-panel { position: relative; margin-top: -30rpx; padding: 30rpx 24rpx 26rpx; border-radius: 30rpx 30rpx 0 0; background: #fff; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 4rpx 4rpx 22rpx; font-size: 32rpx; font-weight: 700; }
 .section-more { color: #8190a7; font-size: 23rpx; font-weight: 400; }
@@ -17,14 +14,9 @@
 .tool-icon-wrap { width: 78rpx; height: 78rpx; margin-bottom: 5rpx; }
 .tool-name { color: #24324b; font-size: 22rpx; white-space: nowrap; }
 .recommendation-heading { margin-top: 34rpx; }
-.category-scroll { margin: 0 -4rpx 20rpx; white-space: nowrap; }
-.category-row { display: inline-flex; gap: 14rpx; padding: 0 4rpx; }
-.category-pill { min-width: 94rpx; padding: 15rpx 22rpx; border-radius: 99rpx; background: #f3f5f8; color: #64728a; font-size: 23rpx; text-align: center; }
-.category-pill.selected { background: #1677ff; color: #fff; }
 .recommend-card { margin-bottom: 18rpx; padding: 20rpx 18rpx 18rpx; border-radius: 20rpx; box-shadow: none; }
 .recommend-head { display: flex; align-items: center; justify-content: space-between; margin: 0 2rpx 16rpx; }
 .recommend-title { font-size: 27rpx; font-weight: 650; }
 .recommend-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8rpx; }
 .recommend-tool { display: flex; min-height: 134rpx; flex-direction: column; align-items: center; justify-content: center; border-radius: 16rpx; background: #f8f9fc; }
 .tool-icon-wrap.small { width: 66rpx; height: 66rpx; margin-bottom: 4rpx; }
-.tool-icon-wrap.small .tool-icon-mask { border-radius: 16rpx; }

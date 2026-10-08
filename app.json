@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/market/index", "pages/mine/index"],
+  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/market/index"],
   "window": {
     "navigationBarTitleText": "工具箱",
     "navigationBarBackgroundColor": "#f6f8fc",
@@ -14,8 +14,7 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/market/index", "text": "工具市场" },
-      { "pagePath": "pages/mine/index", "text": "我的" }
+      { "pagePath": "pages/market/index", "text": "工具市场" }
     ]
   },
   "style": "v2",

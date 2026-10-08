@@ -15,9 +15,12 @@
       <view class="account-head">
         <view class="account-labels">
           <text wx:if="{{item.issuer}}" class="issuer">{{item.issuer}}</text>
-          <text class="account-name">{{item.account}}</text>
+          <text class="account-name">{{item.name || item.account}}</text>
         </view>
-        <text class="remove-link" data-id="{{item.id}}" catchtap="removeAccount">移除</text>
+        <view class="account-actions">
+          <text class="edit-link" data-id="{{item.id}}" catchtap="editAccountName">编辑</text>
+          <text class="remove-link" data-id="{{item.id}}" catchtap="removeAccount">移除</text>
+        </view>
       </view>
       <view class="code-row">
         <text class="otp-code">{{codes[index].code}}</text>

@@ -104,6 +104,36 @@ Page({
     wx.showToast({ title: '绑定成功', icon: 'success' })
   },
 
+  editAccountName(event) {
+    const id = event.currentTarget.dataset.id
+    const account = this.data.accounts.find((item) => item.id === id)
+    if (!account) return
+
+    wx.showModal({
+      title: '修改名称',
+      content: account.name || account.account,
+      editable: true,
+      placeholderText: '请输入名称',
+      confirmText: '保存',
+      success: (result) => {
+        if (!result.confirm) return
+        const name = String(result.content || '').trim()
+        if (!name) {
+          wx.showToast({ title: '名称不能为空', icon: 'none' })
+          return
+        }
+        const accounts = this.data.accounts.map((item) => item.id === id ? { ...item, name } : item)
+        try {
+          wx.setStorageSync(STORAGE_KEY, accounts)
+          this.setData({ accounts })
+          wx.showToast({ title: '名称已修改', icon: 'success' })
+        } catch (error) {
+          wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+        }
+      }
+    })
+  },
+
   removeAccount(event) {
     const id = event.currentTarget.dataset.id
     wx.showModal({

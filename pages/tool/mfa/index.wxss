@@ -8,7 +8,10 @@
 .account-labels { display: flex; min-width: 0; flex-direction: column; gap: 5rpx; }
 .issuer { color: #8490a4; font-size: 21rpx; }
 .account-name { overflow: hidden; color: #1d2b45; font-size: 27rpx; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-.remove-link { padding: 8rpx 0 8rpx 20rpx; color: #9aa4b2; font-size: 22rpx; }
+.account-actions { display: flex; flex-shrink: 0; align-items: center; }
+.edit-link, .remove-link { padding: 8rpx 0 8rpx 20rpx; font-size: 22rpx; }
+.edit-link { color: #1677ff; }
+.remove-link { color: #9aa4b2; }
 .code-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 28rpx; }
 .otp-code { color: #23395e; font-size: 58rpx; font-weight: 700; letter-spacing: 8rpx; line-height: 1.2; }
 .countdown { color: #1677ff; font-size: 30rpx; font-weight: 650; }
