@@ -7,7 +7,10 @@ Page({
   },
   data: {
     quickTools: tools,
-    recommendationGroups: [{ title: '办公效率', tools }]
+    recommendationGroups: [
+      { title: '办公效率', tools: tools.filter((tool) => tool.category === '办公效率') },
+      { title: '个人日常', tools: tools.filter((tool) => tool.category === '个人日常') }
+    ]
   },
   openTool(event) {
     const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
