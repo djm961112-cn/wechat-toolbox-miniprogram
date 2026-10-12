@@ -4,9 +4,9 @@ const { savePlan, formatTime } = require('../../../../utils/simulation-plans')
 Page({
   data: {
     loading: true, error: '', updatedAt: '', fetchedAt: '', market: 'had',
-    markets: [{ id: 'mixed', name: '混合玩法' }, ...POOLS.map(({ id, name }) => ({ id, name }))],
+    markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
     matches: [], selections: {}, selectedCount: 0, passMode: 'free', passes: [], chosenPassIds: [],
-    multiplier: '1', summary: null, calculationError: '', previewVisible: false, preview: null,
+    multiplier: '1', summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
     planTitle: '', planNote: '', saving: false, expandedMatchId: '', saved: false, previewEntries: []
   },
   onShow() { this.refreshFeed() },
@@ -16,7 +16,7 @@ Page({
     const version = (this.requestVersion || 0) + 1
     this.requestVersion = version
     if (this.requestTask) this.requestTask.abort()
-    this.setData({ loading: true, error: '', previewVisible: false, summary: null })
+    this.setData({ loading: true, error: '', passVisible: false, previewVisible: false, summary: null, passes: [], chosenPassIds: [], passLabel: '' })
     this.requestTask = wx.request({
       url: API_URL, data: { channel: 'c' }, timeout: 15000,
       success: (res) => {
@@ -41,12 +41,21 @@ Page({
   expandMatch(event) { const id = event.currentTarget.dataset.id; this.setData({ expandedMatchId: this.data.expandedMatchId === id ? '' : id }, () => this.updateView()) },
   toggleOption(event) {
     if (!this.feed || this.data.loading) return
-    const { key, match } = event.currentTarget.dataset
+    const { key, match, pool } = event.currentTarget.dataset
+    const game = this.feed.matches.find((item) => item.id === match)
+    if (!game || !game.pools.some((item) => item.options.some((option) => `${match}:${item.id}:${option.key}` === key))) return
     const selections = { ...this.data.selections }
     if (selections[key]) delete selections[key]
     else {
       const selected = selectedMatches(this.feed.matches, selections)
       if (selected.length >= 8 && !selected.some((item) => item.id === match)) { wx.showToast({ title: '最多选择 8 场比赛', icon: 'none' }); return }
+      if (pool === 'had' || pool === 'hhad') {
+        // One match can use only one result market, including when switching to mixed play.
+        const other = pool === 'had' ? 'hhad' : 'had'
+        const removed = Object.keys(selections).filter((value) => value.startsWith(`${match}:${other}:`))
+        removed.forEach((value) => { delete selections[value] })
+        if (removed.length) wx.showToast({ title: '已切换该场胜平负玩法', icon: 'none' })
+      }
       selections[key] = true
     }
     this.setData({ selections, saved: false }, () => this.updateView())
@@ -62,29 +71,36 @@ Page({
     this.setData({ chosenPassIds: ids, saved: false }, () => this.updateView())
   },
   setMultiplier(event) { this.setData({ multiplier: event.detail.value, saved: false }, () => this.updateView()) },
-  configurePasses() { wx.pageScrollTo({ selector: '#pass-settings', duration: 200 }) },
+  configurePasses() { this.setData({ passVisible: !this.data.passVisible }) },
+  closePasses() { this.setData({ passVisible: false }) },
   updateView() {
     if (!this.feed) return
     const selected = selectedMatches(this.feed.matches, this.data.selections)
     const available = availablePasses(selected, this.feed.rules, this.data.passMode)
     const chosenPassIds = this.data.chosenPassIds.filter((id) => available.some((pass) => pass.id === id))
     const matches = this.feed.matches.map((match) => {
-      const allPools = match.pools.map((pool) => ({ ...pool, options: pool.options.map((option) => {
-        const key = `${match.id}:${pool.id}:${option.key}`
-        return { ...option, selectionKey: key, selected: Boolean(this.data.selections[key]) }
-      }) }))
+      const allPools = POOLS.map((definition) => {
+        const pool = match.pools.find((item) => item.id === definition.id)
+        if (!pool && !['had', 'hhad'].includes(definition.id)) return null
+        const goalLine = definition.id === 'had' ? '0' : pool && pool.goalLine
+        return { ...definition, ...pool, missing: !pool, goalLine, goalLabel: goalLine == null ? '—' : Number(goalLine) > 0 ? `+${Number(goalLine)}` : String(goalLine), options: definition.options.map(([optionKey, name]) => {
+          const option = pool && pool.options.find((item) => item.key === optionKey)
+          const key = `${match.id}:${definition.id}:${optionKey}`
+          return { ...option, key: optionKey, name, disabled: !option, oddsText: option ? option.oddsText : '-', selectionKey: key, selected: Boolean(option && this.data.selections[key]) }
+        }) }
+      }).filter(Boolean)
       const allSelected = allPools.reduce((count, pool) => count + pool.options.filter((option) => option.selected).length, 0)
-      const pools = allPools.filter((pool) => this.data.market === 'mixed' || pool.id === this.data.market)
+      const pools = allPools.filter((pool) => this.data.market === 'mixed' || (this.data.market === 'had' ? ['had', 'hhad'].includes(pool.id) : pool.id === this.data.market))
       const expanded = this.data.expandedMatchId === match.id
       return { ...match, selectedOptions: allSelected, expanded, pools: this.data.market === 'mixed' && !expanded ? pools.filter((pool) => ['had','hhad'].includes(pool.id)) : pools }
-    }).filter((match) => this.data.market === 'mixed' || match.pools.length)
+    }).filter((match) => this.data.market === 'mixed' || match.pools.some((pool) => !pool.missing))
     let summary = null
     let calculationError = ''
     if (selected.length && chosenPassIds.length) {
       try { summary = calculate(selected, available.filter((pass) => chosenPassIds.includes(pass.id)), Number(this.data.multiplier)) }
       catch (error) { calculationError = error.message }
     }
-    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, summary, calculationError })
+    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError })
   },
   openPreview() {
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及过关方式', icon: 'none' }); return }
@@ -103,7 +119,7 @@ Page({
       passMode: this.data.passMode, passLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.label).join(' + '), ...this.data.summary
     }
     this.previewMatches = selected
-    this.setData({ preview, previewEntries: previewEntries(selected, preview.passes, preview.multiplier), previewVisible: true, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
+    this.setData({ preview, previewEntries: previewEntries(selected, preview.passes, preview.multiplier), passVisible: false, previewVisible: true, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
   },
   loadMoreEntries() {
     const next = previewEntries(this.previewMatches, this.data.preview.passes, this.data.preview.multiplier, this.data.previewEntries.length)

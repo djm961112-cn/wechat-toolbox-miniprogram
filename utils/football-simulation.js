@@ -89,14 +89,13 @@ function combinations(items, size) {
 
 function outcome(home, away) { return home > away ? 'h' : home === away ? 'd' : 'a' }
 
-// Find mutually compatible winners within each match, rather than treating conflicting mixed markets as simultaneous wins.
-function winningWeight(match, onlySingle) {
-  const options = match.options.filter((option) => !onlySingle || option.single)
-  if (!options.length) return 0
+// Each state is a feasible result, including unavoidable wins when all outcomes are covered.
+function winningStates(match) {
+  const options = match.options
   const handicap = Number((options.find((option) => option.poolId === 'hhad') || {}).goalLine || 0)
   const bound = Math.max(8, Math.abs(handicap) + 7)
   const scoreKeys = new Set(POOLS.find((pool) => pool.id === 'crs').options.map(([key]) => key))
-  let max = 0
+  const states = new Map()
   for (let home = 0; home <= bound; home += 1) {
     for (let away = 0; away <= bound; away += 1) {
       const full = outcome(home, away)
@@ -105,12 +104,57 @@ function winningWeight(match, onlySingle) {
       const halfOutcomes = ['d', ...(home > 0 ? ['h'] : []), ...(away > 0 ? ['a'] : [])]
       halfOutcomes.forEach((half) => {
         const keys = { had: full, hhad: outcome(home + handicap, away), ttg: `s${Math.min(home + away,7)}`, crs, hafu: half + full }
-        const sum = options.reduce((total, option) => total + (keys[option.poolId] === option.key ? option.odds : 0), 0)
-        max = Math.max(max, sum)
+        const winners = options.filter((option) => keys[option.poolId] === option.key)
+        const all = winners.reduce((total, option) => total + option.odds, 0)
+        const single = winners.reduce((total, option) => total + (option.single ? option.odds : 0), 0)
+        states.set(`${all}:${single}`, { all, single })
       })
     }
   }
-  return max
+  return [...states.values()]
+}
+
+function prizeRange(matches, sizes, multiplier) {
+  const states = matches.map(winningStates)
+  const singleCount = sizes.filter((size) => size === 1).length
+  const frequencies = new Array(matches.length + 1).fill(0)
+  sizes.filter((size) => size > 1).forEach((size) => { frequencies[size] += 1 })
+  const hasParlay = frequencies.some(Boolean)
+  // The payout is a monotone polynomial. Keep only Pareto extrema; for the minimum,
+  // retain losing and winning states separately so zero cannot erase the lowest positive payout.
+  function frontier(list, maximum) {
+    return list.filter((state, index) => !list.some((other, otherIndex) => {
+      if (otherIndex === index) return false
+      if (!maximum && ((state.all > 0) !== (other.all > 0) || (state.single > 0) !== (other.single > 0))) return false
+      const a = hasParlay ? state.all : 0
+      const b = singleCount ? state.single : 0
+      const x = hasParlay ? other.all : 0
+      const y = singleCount ? other.single : 0
+      return maximum ? x >= a && y >= b && (x > a || y > b || otherIndex < index && x === a && y === b)
+        : x <= a && y <= b && (x < a || y < b || otherIndex < index && x === a && y === b)
+    }))
+  }
+  function extreme(maximum) {
+    const candidates = states.map((list) => frontier(list, maximum))
+    let best = maximum ? 0 : Infinity
+    function visit(index, products, singleSum) {
+      if (index === candidates.length) {
+        const prize = singleSum * singleCount + products.reduce((sum, product, size) => sum + product * frequencies[size], 0)
+        if (prize > 0) best = maximum ? Math.max(best, prize) : Math.min(best, prize)
+        return
+      }
+      candidates[index].forEach((state) => {
+        const next = products.slice()
+        for (let size = index + 1; size >= 1; size -= 1) next[size] += products[size - 1] * state.all
+        visit(index + 1, next, singleSum + state.single)
+      })
+    }
+    const products = new Array(matches.length + 1).fill(0)
+    products[0] = 1
+    visit(0, products, 0)
+    return (Number.isFinite(best) ? best : 0) * 2 * multiplier
+  }
+  return { minReturn: extreme(false).toFixed(2), maxReturn: extreme(true).toFixed(2) }
 }
 
 function calculate(matches, passes, multiplier) {
@@ -118,29 +162,25 @@ function calculate(matches, passes, multiplier) {
   if (!matches.length || !passes.length) throw new Error('请选择比赛及可用的过关方式')
   if (matches.length > 8) throw new Error('最多选择 8 场比赛')
   if (new Set(matches.map((match) => match.id)).size !== matches.length) throw new Error('同场比赛不能重复作为串关场次')
-  const weights = new Map(matches.map((match) => [match.id, winningWeight(match, false)]))
   let count = 0
-  let maxReturn = 0
   let capped = false
   passes.forEach((pass) => pass.sizes.forEach((size) => {
     if (size === 1) {
-      matches.forEach((match) => { count += match.options.filter((option) => option.single).length; maxReturn += winningWeight(match, true) * 2 * multiplier })
+      matches.forEach((match) => { count += match.options.filter((option) => option.single).length })
       return
     }
     if (matches.some((match) => match.options.some((option) => !option.allUp || size > option.maxLegs))) throw new Error('所选玩法不支持该串关方式')
     combinations(matches, size).forEach((group) => {
       const entries = group.reduce((n, match) => n * match.options.length, 1)
       count += entries
-      const estimate = group.reduce((amount, match) => amount * weights.get(match.id), 2)
+      const estimate = group.reduce((amount, match) => amount * Math.max(...match.options.map((option) => option.odds)), 2)
       const perEntryCap = size <= 3 ? 200000 : size <= 5 ? 500000 : 1000000
-      // A conservative upper bound when per-entry caps are reached; never promise an exact payout.
       if (estimate > perEntryCap) capped = true
-      maxReturn += Math.min(estimate, entries * perEntryCap) * multiplier
     })
   }))
   if (!count) throw new Error('所选记录不支持当前过关方式')
   if (!Number.isSafeInteger(count * 2 * multiplier)) throw new Error('组合金额过大，请减少选项或倍数')
-  return { count, cost: (count * 2 * multiplier).toFixed(2), maxReturn: maxReturn.toFixed(2), capped }
+  return { count, cost: (count * 2 * multiplier).toFixed(2), ...prizeRange(matches, passes.reduce((all, pass) => all.concat(pass.sizes), []), multiplier), capped }
 }
 
 function roundPrize(value) {

@@ -29,7 +29,7 @@
 .amount-row > view { flex: 1; }
 .amount-label { display: block; color: #96a2b2; font-size: 20rpx; }
 .amount { display: block; margin-top: 5rpx; font-size: 31rpx; font-weight: 700; }
-.amount.return { color: #25866a; }
+.amount.return { color: #25866a; font-size: 25rpx; word-break: break-all; }
 .match-list { border-top: 1rpx solid #edf0f5; }
 .match-row { padding-top: 18rpx; }
 .match-title { font-size: 23rpx; word-break: break-all; }
