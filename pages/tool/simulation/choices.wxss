@@ -1,4 +1,4 @@
-.simulation-choice-box { width: 544rpx; max-width: 100%; margin: 12rpx auto 0; display: flex; flex-direction: column; gap: 8rpx; }
+.simulation-choice-box { width: 544rpx; max-width: 100%; margin: 12rpx auto 0; display: flex; flex-direction: column; gap: 24rpx; }
 .simulation-choice-box.columns-1 { width: 176rpx; }
 .simulation-choice-box.columns-2 { width: 360rpx; }
 .simulation-choice-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8rpx; }

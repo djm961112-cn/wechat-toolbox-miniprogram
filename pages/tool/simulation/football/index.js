@@ -129,7 +129,7 @@ Page({
       matches, multiplier: Number(this.data.multiplier), passes: this.data.passes.filter((pass) => pass.selected).map(({ id, label, sizes }) => ({ id, label, sizes })),
       passMode: 'free', passLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.label).join(' + '),
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
-      briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0), 0)), ...this.data.summary
+      briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0) + (match.selectionRows.length - 1) * 24, 0)), ...this.data.summary
     }
     this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
   },
