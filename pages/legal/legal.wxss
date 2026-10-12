@@ -1,0 +1,13 @@
+.legal-page { padding-top: 24rpx; }
+.legal-card { padding: 30rpx 28rpx; border-radius: 22rpx; }
+.legal-title { color: #1f2e49; font-size: 36rpx; font-weight: 750; }
+.legal-date { margin-top: 8rpx; color: #98a2b2; font-size: 20rpx; }
+.legal-intro { margin-top: 24rpx; padding: 20rpx; border-radius: 14rpx; background: #f5f7fc; color: #5f6c80; font-size: 22rpx; line-height: 1.75; }
+.section { margin-top: 30rpx; }
+.section-title { color: #283750; font-size: 27rpx; font-weight: 700; }
+.section-text { display: block; margin-top: 12rpx; color: #59667a; font-size: 22rpx; line-height: 1.8; }
+.section-list { margin-top: 12rpx; color: #59667a; font-size: 22rpx; line-height: 1.9; }
+.list-item { display: block; }
+.legal-warning { margin-top: 24rpx; padding: 18rpx 20rpx; border-radius: 14rpx; background: #fff5ea; color: #9b652b; font-size: 21rpx; line-height: 1.7; }
+.privacy-button { margin-top: 28rpx; border: 0; border-radius: 15rpx; background: #eef1ff; color: #5368e8; font-size: 23rpx; }
+.privacy-button::after { border: 0; }

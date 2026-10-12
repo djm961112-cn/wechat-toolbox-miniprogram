@@ -1,5 +1,19 @@
 .vault-page { padding-top: 24rpx; }
 .vault-page.merge-active { padding-bottom: 210rpx; }
+.policy-gate { display: flex; flex-direction: column; align-items: center; padding: 48rpx 30rpx 34rpx; border-radius: 24rpx; text-align: center; }
+.policy-icon { width: 112rpx; height: 112rpx; }
+.policy-title { margin-top: 22rpx; color: #21314d; font-size: 32rpx; font-weight: 700; }
+.policy-description { margin-top: 16rpx; color: #68758a; font-size: 23rpx; line-height: 1.7; }
+.policy-warning { width: 100%; box-sizing: border-box; margin-top: 20rpx; padding: 18rpx 20rpx; border-radius: 14rpx; background: #fff5ea; color: #a66a2b; font-size: 21rpx; line-height: 1.6; }
+.policy-check-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 26rpx; color: #69768a; font-size: 21rpx; line-height: 1.8; }
+.policy-checkbox { display: flex; width: 34rpx; height: 34rpx; align-items: center; justify-content: center; margin-right: 9rpx; border: 2rpx solid #bdc6d6; border-radius: 8rpx; color: #fff; }
+.policy-checkbox.checked { border-color: #586bec; background: #586bec; }
+.policy-link { color: #5368e8; }
+.policy-continue { width: 100%; margin-top: 26rpx; border: 0; border-radius: 16rpx; background: #586bec; color: #fff; font-size: 25rpx; }
+.policy-continue[disabled] { background: #c9cfdf; color: #fff; opacity: 1; }
+.policy-continue::after { border: 0; }
+.policy-footer { margin-top: 20rpx; color: #96a0b0; font-size: 20rpx; text-align: center; }
+.policy-divider { margin: 0 12rpx; }
 .vault-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22rpx; }
 .header-copy { min-width: 0; flex: 1; }
 .page-title { color: #192944; font-size: 38rpx; font-weight: 750; }

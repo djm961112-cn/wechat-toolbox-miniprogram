@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'password-vault-records-v1'
+const POLICY_STORAGE_KEY = 'password-vault-policy-accepted-v1'
 const EMPTY_FORM = { platforms: '', account: '', password: '', note: '' }
 
 function splitPlatforms(value) {
@@ -16,6 +17,8 @@ function toViewRecord(record) {
 
 Page({
   data: {
+    policyAccepted: false,
+    policyChecked: false,
     records: [],
     filteredRecords: [],
     keyword: '',
@@ -31,7 +34,15 @@ Page({
   },
 
   onShow() {
-    this.setData({ revealedRecordIds: [] }, () => this.loadRecords())
+    let policyAccepted = false
+    try {
+      policyAccepted = Boolean(wx.getStorageSync(POLICY_STORAGE_KEY))
+    } catch (error) {
+      policyAccepted = false
+    }
+    this.setData({ policyAccepted, revealedRecordIds: [] }, () => {
+      if (policyAccepted) this.loadRecords()
+    })
   },
 
   onHide() {
@@ -71,6 +82,29 @@ Page({
   onSearch(event) {
     const keyword = event.detail.value
     this.setData({ keyword }, () => this.applyFilter(this.records || [], keyword))
+  },
+
+  togglePolicyChecked() {
+    this.setData({ policyChecked: !this.data.policyChecked })
+  },
+
+  openLegalPage(event) {
+    const type = event.currentTarget.dataset.type
+    const url = type === 'terms' ? '/pages/legal/terms/index' : '/pages/legal/privacy/index'
+    wx.navigateTo({ url })
+  },
+
+  acceptPolicy() {
+    if (!this.data.policyChecked) {
+      wx.showToast({ title: '请先阅读并同意协议', icon: 'none' })
+      return
+    }
+    try {
+      wx.setStorageSync(POLICY_STORAGE_KEY, true)
+      this.setData({ policyAccepted: true, policyChecked: false }, () => this.loadRecords())
+    } catch (error) {
+      wx.showToast({ title: '保存授权状态失败', icon: 'none' })
+    }
   },
 
   openAddForm() {
@@ -153,7 +187,7 @@ Page({
     const password = String(this.data.form.password || '')
     const note = String(this.data.form.note || '').trim()
     if (!platforms.length || !account || !password) {
-      wx.showToast({ title: '请填写平台、账号和密码', icon: 'none' })
+      wx.showToast({ title: '请填写平台、账号标识和平台密码', icon: 'none' })
       return
     }
 
@@ -193,10 +227,18 @@ Page({
     const record = (this.records || []).find((item) => item.id === event.currentTarget.dataset.id)
     const field = event.currentTarget.dataset.field
     if (!record || !['account', 'password'].includes(field)) return
-    wx.setClipboardData({
+    const copyToClipboard = () => wx.setClipboardData({
       data: String(record[field]),
-      success: () => wx.showToast({ title: field === 'password' ? '密码已复制' : '账号已复制', icon: 'success' })
+      success: () => wx.showToast({ title: field === 'password' ? '平台密码已复制' : '账号标识已复制', icon: 'success' })
     })
+    if (typeof wx.requirePrivacyAuthorize === 'function') {
+      wx.requirePrivacyAuthorize({
+        success: copyToClipboard,
+        fail: () => wx.showToast({ title: '需同意隐私保护指引后复制', icon: 'none' })
+      })
+      return
+    }
+    copyToClipboard()
   },
 
   toggleRecordPassword(event) {
@@ -209,7 +251,7 @@ Page({
     const id = event.currentTarget.dataset.id
     wx.showModal({
       title: '删除记录',
-      content: '删除后无法恢复，确定删除这条账号密码吗？',
+      content: '删除后无法恢复，确定删除这条凭据记录吗？',
       success: (result) => {
         if (!result.confirm) return
         const records = (this.records || []).filter((record) => record.id !== id)
@@ -255,7 +297,7 @@ Page({
     const base = selectedRecords[0]
     const canMerge = selectedRecords.every((record) => record.account === base.account && record.password === base.password)
     if (!canMerge) {
-      wx.showModal({ title: '无法合并', content: '只有账号和密码完全相同的记录才能合并。', showCancel: false })
+      wx.showModal({ title: '无法合并', content: '只有账号标识和平台密码完全相同的记录才能合并。', showCancel: false })
       return
     }
 

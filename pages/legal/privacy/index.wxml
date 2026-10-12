@@ -1,0 +1,47 @@
+<view class="page legal-page">
+  <view class="legal-card card">
+    <view class="legal-title">隐私政策</view>
+    <view class="legal-date">生效日期：2026年10月12日</view>
+    <view class="legal-intro">本政策说明本小程序处理用户数据的目的、方式、保存期限和用户权利。当前版本没有服务器，数据不会上传至运营者服务器。</view>
+
+    <view class="section">
+      <view class="section-title">一、处理的数据</view>
+      <view class="section-list">
+        <text class="list-item">1. MFA 验证器：用户主动扫描的 TOTP 二维码信息，包括平台名称、账号标识和动态验证码密钥。</text>
+        <text class="list-item">2. 本地凭据本：用户主动录入的非微信平台名称、自定义账号标识、平台密码和备注。</text>
+        <text class="list-item">3. 协议同意状态：用于记录用户是否已阅读并同意本协议。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、处理目的和方式</view>
+      <text class="section-text">上述数据仅用于在当前设备中生成动态验证码、展示和搜索凭据，以及执行用户主动触发的复制操作。数据通过微信本地缓存保存，不会上传、出售、共享或用于广告分析。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、系统权限与剪贴板</view>
+      <view class="section-list">
+        <text class="list-item">1. 摄像头：仅在用户主动点击“扫一扫绑定”时用于扫描 TOTP 二维码。</text>
+        <text class="list-item">2. 剪贴板：仅在用户主动点击“复制”时，将所选账号标识或平台密码写入系统剪贴板；本小程序不会读取剪贴板中的其他内容。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、保存期限与删除</view>
+      <text class="section-text">数据会保存至用户主动删除对应记录、删除小程序或清理微信缓存。用户可在相应工具页面删除记录。删除后当前版本无法恢复。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、安全说明</view>
+      <text class="section-text">不同微信用户和不同小程序之间的本地缓存相互隔离，但当前版本未对本地缓存额外加密。请勿录入微信账号、微信密码、支付密码、银行卡密码或身份证件信息。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">六、联系我们</view>
+      <text class="section-text">如需查询、删除数据或对本政策有疑问，可通过小程序资料页中公示的联系方式联系运营者。</text>
+    </view>
+
+    <view class="legal-warning">本页面为当前功能对应的隐私说明。发布前仍需在微信公众平台“用户隐私保护指引”中如实声明剪贴板、扫码及实际处理的数据类型。</view>
+    <button class="privacy-button" bindtap="openOfficialPrivacy">查看微信官方隐私保护指引</button>
+  </view>
+</view>

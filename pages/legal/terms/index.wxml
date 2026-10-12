@@ -1,0 +1,36 @@
+<view class="page legal-page">
+  <view class="legal-card card">
+    <view class="legal-title">用户服务协议</view>
+    <view class="legal-date">生效日期：2026年10月12日</view>
+    <view class="legal-intro">欢迎使用本小程序。使用相关功能前，请完整阅读并理解本协议。继续使用即表示您同意遵守本协议。</view>
+
+    <view class="section">
+      <view class="section-title">一、服务内容</view>
+      <text class="section-text">本小程序提供无需服务器的本地工具，包括动态验证码计算与非微信平台凭据的本地整理。当前数据均在用户设备的微信本地环境中处理。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、凭据记录使用限制</view>
+      <view class="section-list">
+        <text class="list-item">1. 本地凭据本仅供记录用户有权管理的非微信平台凭据。</text>
+        <text class="list-item">2. 请勿填写微信账号、微信密码、支付密码、银行卡密码、身份证件信息或他人的个人信息。</text>
+        <text class="list-item">3. 不得利用本工具保存、复制或使用非法获取的账号信息。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、本地存储与风险</view>
+      <text class="section-text">本小程序不提供云端备份。删除小程序、清理微信缓存、更换设备或切换微信账号可能导致数据永久丢失。本地缓存未额外加密，请勿保存高价值或不可恢复的重要凭据。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、用户责任</view>
+      <text class="section-text">用户应妥善保管设备和系统剪贴板中的内容，并对录入数据的合法性、准确性和使用行为负责。因设备丢失、缓存清理或剪贴板泄露造成的风险由用户自行承担。</text>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、服务变更</view>
+      <text class="section-text">为满足法律法规、平台规范或安全要求，运营者可能调整、暂停或下线部分功能，并通过版本更新或页面提示说明。</text>
+    </view>
+  </view>
+</view>

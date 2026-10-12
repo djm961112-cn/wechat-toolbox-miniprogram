@@ -65,7 +65,7 @@ Page({
   },
 
   scanAndBind() {
-    wx.scanCode({
+    const startScan = () => wx.scanCode({
       onlyFromCamera: true,
       scanType: ['qrCode'],
       success: (result) => this.bindScannedCode(result.result),
@@ -75,6 +75,14 @@ Page({
         }
       }
     })
+    if (typeof wx.requirePrivacyAuthorize === 'function') {
+      wx.requirePrivacyAuthorize({
+        success: startScan,
+        fail: () => wx.showToast({ title: '需同意隐私保护指引后扫码', icon: 'none' })
+      })
+      return
+    }
+    startScan()
   },
 
   bindScannedCode(value) {

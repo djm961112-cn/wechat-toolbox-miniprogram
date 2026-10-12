@@ -1,8 +1,24 @@
 <view class="page vault-page {{mergeMode ? 'merge-active' : ''}}">
+  <view wx:if="{{!policyAccepted}}" class="policy-gate card">
+    <image class="policy-icon" src="/assets/icons/password-vault.png" mode="aspectFit" />
+    <view class="policy-title">使用前请阅读</view>
+    <view class="policy-description">本工具用于整理您主动录入的非微信平台凭据，数据仅保存在当前微信本地缓存，不上传服务器。</view>
+    <view class="policy-warning">请勿填写微信账号、微信密码、支付密码、银行卡密码或身份证件信息。</view>
+    <view class="policy-check-row" bindtap="togglePolicyChecked">
+      <view class="policy-checkbox {{policyChecked ? 'checked' : ''}}">{{policyChecked ? '✓' : ''}}</view>
+      <text>我已阅读并同意</text>
+      <text class="policy-link" data-type="terms" catchtap="openLegalPage">《用户服务协议》</text>
+      <text>及</text>
+      <text class="policy-link" data-type="privacy" catchtap="openLegalPage">《隐私政策》</text>
+    </view>
+    <button class="policy-continue" disabled="{{!policyChecked}}" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="acceptPolicy">同意并继续</button>
+  </view>
+
+  <block wx:else>
   <view class="vault-header">
     <view class="header-copy">
-      <view class="page-title">账号密码本</view>
-      <view class="page-subtitle">本地整理常用账号，不上传服务器</view>
+      <view class="page-title">本地凭据本</view>
+      <view class="page-subtitle">本地整理非微信平台凭据，不上传服务器</view>
     </view>
     <view wx:if="{{!mergeMode}}" class="header-actions">
       <view class="merge-mode-button" bindtap="startMergeMode">合并</view>
@@ -13,7 +29,7 @@
 
   <view class="search-box card">
     <text class="search-icon">⌕</text>
-    <input class="search-input" placeholder="搜索平台、账号或备注" value="{{keyword}}" bindinput="onSearch" />
+    <input class="search-input" placeholder="搜索平台、账号标识或备注" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
   <view wx:if="{{filteredRecords.length}}" class="record-list">
@@ -28,14 +44,14 @@
       <view class="credential-list">
         <view class="credential-row">
           <view class="credential-block">
-            <text class="field-label">账号</text>
+            <text class="field-label">账号标识</text>
             <text class="account-value">{{item.account}}</text>
           </view>
           <text wx:if="{{!mergeMode}}" class="copy-button" data-id="{{item.id}}" data-field="account" catchtap="copyRecordValue">复制</text>
         </view>
         <view class="credential-row">
           <view class="credential-block">
-            <text class="field-label">密码</text>
+            <text class="field-label">平台密码</text>
             <text class="password-value {{item.passwordVisible ? 'visible' : ''}}">{{item.displayPassword}}</text>
           </view>
           <view wx:if="{{!mergeMode}}" class="password-actions">
@@ -57,17 +73,18 @@
   <view wx:elif="{{records.length}}" class="empty card">
     <view class="empty-icon">⌕</view>
     <view class="empty-title">没有匹配的记录</view>
-    <view class="empty-hint">试试搜索平台名称、账号或备注</view>
+    <view class="empty-hint">试试搜索平台名称、账号标识或备注</view>
   </view>
 
   <view wx:else class="empty card">
     <image class="empty-image" src="/assets/icons/password-vault.png" mode="aspectFit" />
-    <view class="empty-title">还没有账号记录</view>
-    <view class="empty-hint">添加后可快速搜索和复制账号密码</view>
+    <view class="empty-title">还没有凭据记录</view>
+    <view class="empty-hint">添加后可快速搜索和复制非微信平台凭据</view>
     <button class="empty-add-button" bindtap="openAddForm">添加第一条记录</button>
   </view>
 
   <view class="security-note">数据仅保存在当前微信本地缓存，未额外加密；删除小程序或清理缓存后无法恢复。复制密码后请留意系统剪贴板。</view>
+  <view class="policy-footer"><text class="policy-link" data-type="terms" bindtap="openLegalPage">用户服务协议</text><text class="policy-divider">·</text><text class="policy-link" data-type="privacy" bindtap="openLegalPage">隐私政策</text></view>
 
   <view wx:if="{{mergeMode}}" class="batch-bar">
     <view class="batch-summary"><text class="batch-count">{{selectedMergeIds.length}}</text><text>条已选择</text></view>
@@ -82,13 +99,13 @@
         <input class="form-input" maxlength="120" placeholder="例如：GitHub；多个平台用、分隔" value="{{form.platforms}}" data-field="platforms" bindinput="onFormInput" />
       </view>
       <view class="form-field">
-        <text class="form-label">账号</text>
-        <input class="form-input" maxlength="120" placeholder="手机号、邮箱或用户名" value="{{form.account}}" data-field="account" bindinput="onFormInput" />
+        <text class="form-label">账号标识</text>
+        <input class="form-input" maxlength="120" placeholder="请输入非微信平台的自定义账号标识" value="{{form.account}}" data-field="account" bindinput="onFormInput" />
       </view>
       <view class="form-field">
-        <text class="form-label">密码</text>
+        <text class="form-label">平台密码</text>
         <view class="password-input-wrap">
-          <input class="form-input password-input" maxlength="200" password="{{!formPasswordVisible}}" placeholder="请输入密码" value="{{form.password}}" data-field="password" bindinput="onFormInput" />
+          <input class="form-input password-input" maxlength="200" password="{{!formPasswordVisible}}" placeholder="请输入非微信平台密码" value="{{form.password}}" data-field="password" bindinput="onFormInput" />
           <text class="password-toggle" catchtap="toggleFormPassword">{{formPasswordVisible ? '隐藏' : '显示'}}</text>
         </view>
       </view>
@@ -100,4 +117,5 @@
     </view>
   </view>
 
+  </block>
 </view>
