@@ -26,9 +26,8 @@
   <view wx:if="{{passVisible}}" class="pass-mask" catchtap="closePasses">
     <view class="pass-sheet" catchtap="stopPropagation">
       <view class="sheet-heading"><text>过关选择</text><text class="close" catchtap="closePasses">×</text></view>
-      <view class="mode-tabs"><view class="mode {{passMode === 'free' ? 'active' : ''}}" data-id="free" bindtap="setPassMode">自由过关</view><view class="mode {{passMode === 'compound' ? 'active' : ''}}" data-id="compound" bindtap="setPassMode">组合过关</view></view>
       <scroll-view class="pass-content" scroll-y="true" style="height: {{passPanelHeight}}rpx;">
-        <view class="pass-hint">自由过关可多选；组合过关选择一种组合，可另选单关。单关仅计算有单关资格的选项。</view>
+        <view class="pass-hint">自由过关可多选。增减比赛自动选择最高可用关数；同一场数下保留手动选择。单关仅计算有单关资格的选项。</view>
         <view class="pass-options"><view wx:for="{{passes}}" wx:key="id" class="pass {{item.selected ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="togglePass">{{item.label}}</view></view>
         <view wx:if="{{!passes.length}}" class="pass-hint">请先选择比赛。仅串关的选择至少需要两场。</view>
         <view wx:if="{{calculationError}}" class="calculation-error">{{calculationError}}</view>
@@ -43,22 +42,20 @@
   </view>
   <view class="floating-save" bindtap="openPreview">{{saved ? '已保存' : '保存'}}<text>方案</text></view>
   <view wx:if="{{previewVisible}}" class="preview-mask" catchtap="closePreview">
-    <view class="preview-sheet" catchtap="stopPropagation">
-      <view class="sheet-heading"><text>方案预览</text><text class="close" catchtap="closePreview">×</text></view>
-      <scroll-view class="preview-content" scroll-y="true">
-        <view class="preview-stats"><text>{{preview.matches.length}} 场 · {{preview.count}} 注 · {{preview.multiplier}} 倍</text><text>{{preview.passLabel}}</text></view>
-        <view class="preview-money"><view>投注金额<text>¥{{preview.cost}}</text></view><view>理论金额区间<text class="range-amount">¥{{preview.minReturn}} ～ ¥{{preview.maxReturn}}</text></view></view>
-        <view class="pass-hint">区间为至少中一注时的税前总奖金，未计逐注舍入、限额及税费，不代表保证中奖。</view>
-        <view wx:if="{{preview.capped}}" class="pass-hint">含可能触及逐注奖金限额的组合，实际奖金可能低于理论金额。</view>
-        <view wx:for="{{preview.matches}}" wx:key="id" class="preview-match"><view>{{item.label}}</view><view class="preview-match-time">{{item.date}} {{item.time}}</view><view class="preview-choices">{{item.selectionText}}</view></view>
-        <view class="form-label">逐注组合（已展示 {{previewEntries.length}} / {{preview.count}} 注）</view>
-        <view wx:for="{{previewEntries}}" wx:key="id" class="ticket"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view class="ticket-choices">{{item.choices}}</view></view>
-        <view wx:if="{{previewEntries.length < preview.count}}" class="load-more" bindtap="loadMoreEntries">加载更多组合</view>
+    <view class="preview-dialog" catchtap="stopPropagation">
+      <view class="preview-heading"><text>{{saveFormVisible ? '保存方案' : '过关方式：' + preview.briefPassLabel}}</text><text class="close" catchtap="closePreview">×</text></view>
+      <block wx:if="{{!saveFormVisible}}">
+        <scroll-view class="brief-content" scroll-y="true" style="height: {{preview.briefHeight}}rpx;">
+          <view wx:for="{{preview.matches}}" wx:key="id" class="brief-match"><view>{{item.label}}</view><view class="brief-choices">{{item.briefText}}</view></view>
+        </scroll-view>
+        <view class="preview-actions"><button class="save-button" catchtap="openSaveForm">保存方案</button></view>
+      </block>
+      <view wx:else class="save-form">
         <view class="form-label">方案名称</view><input class="form-input" maxlength="60" value="{{planTitle}}" bindinput="setTitle" />
-        <view class="form-label">备注</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />
-        <view class="pass-hint">赛事和赔率以本次预览为快照，保存后不随官方更新变化。</view>
-      </scroll-view>
-      <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : '保存到我的方案'}}</button>
+        <view class="form-label">备注（选填）</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />
+        <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : '保存到我的方案'}}</button>
+        <view class="back-preview" catchtap="backToPreview">返回预览</view>
+      </view>
     </view>
   </view>
 </view>

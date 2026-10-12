@@ -1,0 +1,19 @@
+.detail-page { padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
+.summary, .section { padding: 26rpx; margin-bottom: 22rpx; }
+.title { font-size: 32rpx; font-weight: 650; word-break: break-all; }
+.meta { margin-top: 8rpx; font-size: 20rpx; }
+.metrics { margin-top: 24rpx; color: #608578; font-size: 24rpx; }
+.pass-label { margin-top: 12rpx; color: #78869b; font-size: 23rpx; }
+.money { display: flex; gap: 20rpx; margin-top: 22rpx; padding: 20rpx; border-radius: 16rpx; background: #edf7f2; }
+.money view { flex: 1; color: #7b889a; font-size: 20rpx; }
+.money text { display: block; margin-top: 8rpx; color: #25866a; font-size: 26rpx; font-weight: 650; word-break: break-all; }
+.hint { margin-top: 16rpx; color: #98a3b3; font-size: 20rpx; line-height: 1.7; }
+.section-title { font-size: 28rpx; font-weight: 650; margin-bottom: 18rpx; }
+.match { padding: 18rpx 0; border-top: 1rpx solid #edf1f5; font-size: 24rpx; word-break: break-all; }
+.choices { margin-top: 10rpx; color: #5b806f; font-size: 22rpx; line-height: 1.7; }
+.note { margin-top: 20rpx; padding: 18rpx; background: #f7f9fc; border-radius: 14rpx; color: #78869b; font-size: 23rpx; white-space: pre-wrap; }
+.ticket { margin-bottom: 12rpx; padding: 18rpx; background: #f7f9fc; border-radius: 14rpx; }
+.ticket-title { color: #536a60; font-size: 22rpx; }
+.ticket-choices { margin-top: 8rpx; color: #8491a4; font-size: 20rpx; line-height: 1.7; word-break: break-all; }
+.load-more { padding: 18rpx; color: #25866a; text-align: center; font-size: 24rpx; }
+.empty { padding: 60rpx 26rpx; text-align: center; color: #8793a8; font-size: 25rpx; }

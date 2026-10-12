@@ -1,13 +1,13 @@
-const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate, previewEntries } = require('../../../../utils/football-simulation')
+const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
 const { savePlan, formatTime } = require('../../../../utils/simulation-plans')
 
 Page({
   data: {
     loading: true, error: '', updatedAt: '', fetchedAt: '', market: 'had',
     markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
-    matches: [], selections: {}, selectedCount: 0, passMode: 'free', passes: [], chosenPassIds: [],
+    matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
     multiplier: '1', summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
-    planTitle: '', planNote: '', saving: false, expandedMatchId: '', saved: false, previewEntries: []
+    planTitle: '', planNote: '', saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
   },
   onShow() { this.refreshFeed() },
   onUnload() { this.unloaded = true; if (this.requestTask) this.requestTask.abort() },
@@ -16,7 +16,7 @@ Page({
     const version = (this.requestVersion || 0) + 1
     this.requestVersion = version
     if (this.requestTask) this.requestTask.abort()
-    this.setData({ loading: true, error: '', passVisible: false, previewVisible: false, summary: null, passes: [], chosenPassIds: [], passLabel: '' })
+    this.setData({ loading: true, error: '', passVisible: false, previewVisible: false, summary: null, passes: [], chosenPassIds: [], passSelectionEdited: false, passLabel: '' })
     this.requestTask = wx.request({
       url: API_URL, data: { channel: 'c' }, timeout: 15000,
       success: (res) => {
@@ -60,15 +60,14 @@ Page({
     }
     this.setData({ selections, saved: false }, () => this.updateView())
   },
-  clearSelections() { this.setData({ selections: {}, chosenPassIds: [], saved: false }, () => this.updateView()) },
-  setPassMode(event) { this.setData({ passMode: event.currentTarget.dataset.id, chosenPassIds: [], saved: false }, () => this.updateView()) },
+  clearSelections() { this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, saved: false }, () => this.updateView()) },
   togglePass(event) {
     const id = event.currentTarget.dataset.id
+    if (!this.data.passes.some((pass) => pass.id === id)) return
     let ids = this.data.chosenPassIds.slice()
     if (ids.includes(id)) ids = ids.filter((value) => value !== id)
-    else if (this.data.passMode === 'compound' && id !== 'Single') ids = [...ids.filter((value) => value === 'Single'), id]
     else ids.push(id)
-    this.setData({ chosenPassIds: ids, saved: false }, () => this.updateView())
+    this.setData({ chosenPassIds: ids, passSelectionEdited: true, saved: false }, () => this.updateView())
   },
   setMultiplier(event) { this.setData({ multiplier: event.detail.value, saved: false }, () => this.updateView()) },
   configurePasses() { this.setData({ passVisible: !this.data.passVisible }) },
@@ -76,8 +75,16 @@ Page({
   updateView() {
     if (!this.feed) return
     const selected = selectedMatches(this.feed.matches, this.data.selections)
-    const available = availablePasses(selected, this.feed.rules, this.data.passMode)
-    const chosenPassIds = this.data.chosenPassIds.filter((id) => available.some((pass) => pass.id === id))
+    const available = availablePasses(selected, this.feed.rules, 'free')
+    let chosenPassIds = this.data.chosenPassIds.filter((id) => available.some((pass) => pass.id === id))
+    let passSelectionEdited = this.data.passSelectionEdited
+    // Rebuild the default when the number of selected matches changes. Manual choices
+    // survive odds/market changes while valid; intentionally deselecting all remains allowed.
+    if (selected.length !== this.data.selectedCount || !passSelectionEdited || (this.data.chosenPassIds.length && !chosenPassIds.length)) {
+      const defaultPass = available[available.length - 1]
+      chosenPassIds = defaultPass ? [defaultPass.id] : []
+      passSelectionEdited = false
+    }
     const matches = this.feed.matches.map((match) => {
       const allPools = POOLS.map((definition) => {
         const pool = match.pools.find((item) => item.id === definition.id)
@@ -100,7 +107,7 @@ Page({
       try { summary = calculate(selected, available.filter((pass) => chosenPassIds.includes(pass.id)), Number(this.data.multiplier)) }
       catch (error) { calculationError = error.message }
     }
-    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError })
+    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passSelectionEdited, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError })
   },
   openPreview() {
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及过关方式', icon: 'none' }); return }
@@ -110,27 +117,27 @@ Page({
       businessDate: match.businessDate, date: match.date, time: match.time, league: match.league,
       home: match.home, away: match.away,
       selections: match.options.map(({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt }) => ({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt })),
+      briefText: match.options.map((option) => `${option.name}${option.goalLine ? '[' + option.goalLine + ']' : ''}(${option.odds})`).join('、'),
       selectionText: match.options.map((option) => `${option.poolName}${option.goalLine ? `(${option.goalLine})` : ''} ${option.name} @${option.odds}${option.single ? ' [可单关]' : ' [仅串关]'}`).join(' · ')
     }))
     const preview = {
       toolId: 'football', source: 'sporttery-live', sourceUrl: 'https://m.sporttery.cn/mjc/jsq/zqspf/',
       sourceUpdatedAt: this.data.updatedAt, fetchedAt: this.data.fetchedAt,
       matches, multiplier: Number(this.data.multiplier), passes: this.data.passes.filter((pass) => pass.selected).map(({ id, label, sizes }) => ({ id, label, sizes })),
-      passMode: this.data.passMode, passLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.label).join(' + '), ...this.data.summary
+      passMode: 'free', passLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.label).join(' + '),
+      briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
+      briefHeight: Math.min(550, matches.reduce((height, match) => height + 72 + Math.ceil(match.briefText.length / 26) * 36 + Math.max(0, Math.ceil(match.label.length / 26) - 1) * 38, 0)), ...this.data.summary
     }
-    this.previewMatches = selected
-    this.setData({ preview, previewEntries: previewEntries(selected, preview.passes, preview.multiplier), passVisible: false, previewVisible: true, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
+    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
   },
-  loadMoreEntries() {
-    const next = previewEntries(this.previewMatches, this.data.preview.passes, this.data.preview.multiplier, this.data.previewEntries.length)
-    this.setData({ previewEntries: this.data.previewEntries.concat(next) })
-  },
+  openSaveForm() { this.setData({ saveFormVisible: true }) },
+  backToPreview() { if (!this.data.saving) this.setData({ saveFormVisible: false }) },
   closePreview() { if (!this.data.saving) this.setData({ previewVisible: false }) },
   stopPropagation() {},
   setTitle(event) { this.setData({ planTitle: event.detail.value }) },
   setNote(event) { this.setData({ planNote: event.detail.value }) },
   savePreview() {
-    if (this.data.saving || this.data.saved || !this.data.previewVisible || !this.data.preview) return
+    if (this.data.saving || this.data.saved || !this.data.previewVisible || !this.data.saveFormVisible || !this.data.preview) return
     const title = this.data.planTitle.trim()
     if (!title) { wx.showToast({ title: '请输入方案名称', icon: 'none' }); return }
     this.setData({ saving: true })

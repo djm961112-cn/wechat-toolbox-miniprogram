@@ -19,6 +19,9 @@ Page({
     const tool = simulationTools.find((item) => item.id === event.currentTarget.dataset.id)
     if (tool) wx.navigateTo({ url: tool.url })
   },
+  openDetail(event) {
+    wx.navigateTo({ url: `/pages/tool/simulation/detail/index?id=${encodeURIComponent(event.currentTarget.dataset.id)}` })
+  },
   deletePlan(event) {
     const id = event.currentTarget.dataset.id
     wx.showModal({

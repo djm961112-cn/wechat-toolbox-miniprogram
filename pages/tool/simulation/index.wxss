@@ -22,6 +22,7 @@
 .plan-head { display: flex; gap: 18rpx; align-items: center; justify-content: space-between; }
 .plan-title { flex: 1; min-width: 0; word-break: break-all; font-size: 29rpx; font-weight: 650; }
 .delete-link { color: #9ba6b6; font-size: 22rpx; }
+.detail-link { color: #25866a; font-size: 22rpx; flex-shrink: 0; }
 .plan-time { margin-top: 8rpx; color: #99a4b5; font-size: 20rpx; }
 .plan-metrics { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 22rpx 0; }
 .plan-metrics text { padding: 7rpx 15rpx; background: #eff5f3; border-radius: 10rpx; color: #608578; font-size: 21rpx; }

@@ -39,9 +39,6 @@
 .pass-mask { position: fixed; inset: 0; z-index: 25; background: rgba(20,35,50,.25); }
 .pass-sheet { position: absolute; left: 0; right: 0; bottom: calc(228rpx + env(safe-area-inset-bottom)); padding: 24rpx; border-radius: 26rpx 26rpx 0 0; background: #fff; }
 .pass-content { max-height: 36vh; }
-.mode-tabs { display: flex; gap: 12rpx; margin-top: 20rpx; }
-.mode { flex: 1; padding: 15rpx; border-radius: 14rpx; background: #f0f3f7; text-align: center; color: #8491a4; font-size: 24rpx; }
-.mode.active { background: #e3f5ed; color: #25866a; }
 .pass-hint { margin: 16rpx 0; color: #8b97a9; font-size: 20rpx; line-height: 1.6; }
 .pass-options { display: grid; grid-template-columns: repeat(4,1fr); gap: 12rpx; }
 .pass { padding: 16rpx 6rpx; text-align: center; border-radius: 12rpx; border: 1rpx solid #e4eaf1; color: #7b889a; font-size: 23rpx; }
@@ -66,26 +63,20 @@
 .prize-range text:last-child { color: #25866a; text-align: right; word-break: break-all; }
 .floating-save { position: fixed; z-index: 20; right: 26rpx; bottom: calc(248rpx + env(safe-area-inset-bottom)); display: flex; width: 90rpx; height: 90rpx; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; color: #fff; background: #25866a; box-shadow: 0 8rpx 24rpx rgba(37,134,106,.25); font-size: 24rpx; }
 .floating-save text { margin-top: 2rpx; font-size: 18rpx; }
-.preview-mask { position: fixed; z-index: 100; top: 0; bottom: 0; left: 0; right: 0; display: flex; align-items: flex-end; background: rgba(20,35,50,.42); }
-.preview-sheet { width: 100%; box-sizing: border-box; padding: 28rpx 26rpx calc(28rpx + env(safe-area-inset-bottom)); border-radius: 30rpx 30rpx 0 0; background: #fff; }
+.preview-mask { position: fixed; z-index: 100; top: 0; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; padding: 28rpx; box-sizing: border-box; background: rgba(20,35,50,.42); }
 .sheet-heading { display: flex; justify-content: space-between; align-items: center; font-size: 31rpx; font-weight: 650; }
 .close { padding: 0 8rpx; font-size: 40rpx; color: #9aa7b7; }
-.preview-content { height: 62vh; margin-top: 20rpx; }
-.preview-stats { display: flex; flex-direction: column; gap: 10rpx; color: #8491a4; font-size: 22rpx; }
-.preview-money { display: flex; margin: 22rpx 0; padding: 20rpx; border-radius: 14rpx; background: #f0f8f4; }
-.preview-money view { flex: 1; color: #7b889a; font-size: 20rpx; }
-.preview-money text { display: block; margin-top: 8rpx; color: #25866a; font-size: 32rpx; font-weight: 700; }
-.preview-money view:first-child { flex: 0 0 34%; }
-.preview-money .range-amount { font-size: 25rpx; word-break: break-all; }
-.preview-match { padding: 18rpx 0; border-top: 1rpx solid #edf1f5; font-size: 24rpx; }
-.preview-match-time { margin-top: 6rpx; color: #98a3b3; font-size: 19rpx; }
-.preview-choices { margin-top: 10rpx; color: #5b806f; line-height: 1.7; font-size: 22rpx; }
-.ticket { padding: 16rpx; margin-bottom: 10rpx; background: #f7f9fc; border-radius: 12rpx; }
-.ticket-title { color: #536a60; font-size: 22rpx; }
-.ticket-choices { margin-top: 6rpx; color: #8491a4; font-size: 20rpx; line-height: 1.6; }
-.load-more { padding: 16rpx; color: #25866a; text-align: center; font-size: 23rpx; }
 .form-label { margin: 18rpx 0 12rpx; color: #7b889a; font-size: 22rpx; }
 .form-input { height: 70rpx; box-sizing: border-box; padding: 0 18rpx; border-radius: 14rpx; background: #f5f7fa; font-size: 23rpx; }
 .form-note { width: 100%; height: 130rpx; box-sizing: border-box; padding: 16rpx; border-radius: 14rpx; background: #f5f7fa; font-size: 23rpx; }
 .save-button { margin-top: 20rpx; border-radius: 16rpx; background: #25866a; color: #fff; font-size: 25rpx; }
 .save-button::after { border: none; }
+.preview-dialog { width: 100%; max-height: 85vh; overflow: hidden; border-radius: 24rpx; background: #fff; box-shadow: 0 18rpx 60rpx rgba(20,35,50,.18); }
+.preview-heading { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; padding: 26rpx; background: #f5f8f7; font-size: 30rpx; font-weight: 650; }
+.preview-heading text:first-child { flex: 1; min-width: 0; word-break: break-all; }
+.brief-content { max-height: 55vh; }
+.brief-match { padding: 20rpx 22rpx; border-top: 1rpx solid #edf1f5; text-align: center; font-size: 25rpx; line-height: 1.5; word-break: break-all; }
+.brief-choices { margin-top: 6rpx; color: #8793a8; font-size: 24rpx; }
+.preview-actions { padding: 0 26rpx 24rpx; }
+.save-form { padding: 8rpx 26rpx 22rpx; }
+.back-preview { padding-top: 20rpx; text-align: center; color: #8793a8; font-size: 23rpx; }
