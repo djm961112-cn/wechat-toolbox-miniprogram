@@ -1,7 +1,10 @@
 {
   "description": "轻便工具箱微信小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "tests" },
+      { "type": "folder", "value": "docs" }
+    ],
     "include": []
   },
   "setting": {

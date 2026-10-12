@@ -1,0 +1,51 @@
+<view class="page football-page">
+  <view class="source-head"><view><view class="heading">足球模拟</view><view class="source-note">数据来自中国竞彩网 · {{updatedAt || '等待刷新'}}</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
+  <scroll-view class="market-scroll" scroll-x="true"><view class="markets"><view wx:for="{{markets}}" wx:key="id" class="market {{market === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectMarket">{{item.name}}</view></view></scroll-view>
+  <view class="selection-heading"><text>已选 {{selectedCount}} 场 · 可跨玩法选择</text><text bindtap="clearSelections">清空</text></view>
+  <view wx:if="{{loading}}" class="state card">正在查询官方最新赛事…</view>
+  <view wx:elif="{{error}}" class="state card"><view>{{error}}</view><button class="retry" bindtap="refreshFeed">重试</button></view>
+  <view wx:elif="{{!matches.length}}" class="state card">当前玩法暂无可用赛事</view>
+  <block wx:else>
+    <view wx:for="{{matches}}" wx:key="id" class="match-card card">
+      <view class="match-meta"><text>{{item.number}} · {{item.league}}</text><text>{{item.date}} {{item.time}}</text></view>
+      <view class="teams"><text>{{item.home}}</text><text class="versus">vs</text><text>{{item.away}}</text></view>
+      <view wx:if="{{item.selectedOptions}}" class="selected-note">已选择 {{item.selectedOptions}} 项</view>
+      <view wx:for="{{item.pools}}" wx:for-item="pool" wx:key="id" class="pool">
+        <view class="pool-heading"><text>{{pool.name}} {{pool.goalLine ? '(' + pool.goalLine + ')' : ''}}</text><view><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '可单关' : '仅串关'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单关</text></view></view>
+        <view class="options {{pool.id === 'crs' ? 'scores' : pool.id === 'ttg' ? 'goals' : ''}}">
+          <view wx:for="{{pool.options}}" wx:for-item="option" wx:key="key" class="option {{option.selected ? 'chosen' : ''}}" data-key="{{option.selectionKey}}" data-match="{{item.id}}" bindtap="toggleOption"><text>{{option.name}}</text><text class="odds">{{option.oddsText}}</text></view>
+        </view>
+      </view>
+      <view wx:if="{{market === 'mixed'}}" class="expand" data-id="{{item.id}}" bindtap="expandMatch">{{item.expanded ? '收起玩法 ↑' : '展开总进球 / 半全场 / 比分 ↓'}}</view>
+    </view>
+  </block>
+  <view id="pass-settings" class="pass-card card">
+    <view class="mode-tabs"><view class="mode {{passMode === 'free' ? 'active' : ''}}" data-id="free" bindtap="setPassMode">自由过关</view><view class="mode {{passMode === 'compound' ? 'active' : ''}}" data-id="compound" bindtap="setPassMode">组合过关</view></view>
+    <view class="pass-hint">单关只计算具备单关资格的选项；组合过关选择一种组合方式。</view>
+    <view class="pass-options"><view wx:for="{{passes}}" wx:key="id" class="pass {{item.selected ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="togglePass">{{item.label}}</view></view>
+    <view wx:if="{{!passes.length}}" class="pass-hint">请先选择比赛。仅串关的选择至少需要两场。</view>
+    <view class="multiplier"><text>模拟倍数</text><input type="number" maxlength="4" value="{{multiplier}}" bindinput="setMultiplier" /></view>
+    <view wx:if="{{calculationError}}" class="calculation-error">{{calculationError}}</view>
+  </view>
+  <view class="reference-note">仅作方案模拟。参考返回为税前估算，混合玩法按兼容赛果计算；逐注舍入与限额可能影响实际金额。</view>
+  <view class="bottom-bar"><view><text class="count">{{summary ? summary.count : 0}} 注</text><text class="cost">模拟 ¥{{summary ? summary.cost : '0.00'}}</text></view><text class="settings-shortcut" bindtap="configurePasses">过关设置</text><view wx:if="{{saved}}" class="preview-button" bindtap="viewPlans">查看我的方案</view><view wx:else class="preview-button" bindtap="openPreview">方案预览</view></view>
+  <view class="floating-save" bindtap="openPreview">{{saved ? '已保存' : '保存'}}<text>方案</text></view>
+  <view wx:if="{{previewVisible}}" class="preview-mask" catchtap="closePreview">
+    <view class="preview-sheet" catchtap="stopPropagation">
+      <view class="sheet-heading"><text>方案预览</text><text class="close" catchtap="closePreview">×</text></view>
+      <scroll-view class="preview-content" scroll-y="true">
+        <view class="preview-stats"><text>{{preview.matches.length}} 场 · {{preview.count}} 注 · {{preview.multiplier}} 倍</text><text>{{preview.passLabel}}</text></view>
+        <view class="preview-money"><view>模拟金额<text>¥{{preview.cost}}</text></view><view>参考最高返回<text>¥{{preview.maxReturn}}</text></view></view>
+        <view wx:if="{{preview.capped}}" class="pass-hint">包含高赔率组合，显示的是参考上限，逐注限额可能降低返回。</view>
+        <view wx:for="{{preview.matches}}" wx:key="id" class="preview-match"><view>{{item.label}}</view><view class="preview-match-time">{{item.date}} {{item.time}}</view><view class="preview-choices">{{item.selectionText}}</view></view>
+        <view class="form-label">逐注组合（已展示 {{previewEntries.length}} / {{preview.count}} 注）</view>
+        <view wx:for="{{previewEntries}}" wx:key="id" class="ticket"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view class="ticket-choices">{{item.choices}}</view></view>
+        <view wx:if="{{previewEntries.length < preview.count}}" class="load-more" bindtap="loadMoreEntries">加载更多组合</view>
+        <view class="form-label">方案名称</view><input class="form-input" maxlength="60" value="{{planTitle}}" bindinput="setTitle" />
+        <view class="form-label">备注</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />
+        <view class="pass-hint">赛事和赔率以本次预览为快照，保存后不随官方更新变化。</view>
+      </scroll-view>
+      <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : '保存到我的方案'}}</button>
+    </view>
+  </view>
+</view>

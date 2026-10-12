@@ -1,0 +1,27 @@
+<view class="page simulation-page">
+  <view class="intro"><view class="intro-title">模拟计算</view><view class="intro-subtitle">留下每次选择，积累自己的方案记录</view></view>
+  <view class="tabs card">
+    <view class="tab {{activeTab === 'collection' ? 'active' : ''}}" data-tab="collection" bindtap="selectTab">模拟集合</view>
+    <view class="tab {{activeTab === 'plans' ? 'active' : ''}}" data-tab="plans" bindtap="selectTab">我的方案</view>
+  </view>
+  <block wx:if="{{activeTab === 'collection'}}">
+    <view wx:for="{{tools}}" wx:key="id" class="tool-entry card" data-id="{{item.id}}" bindtap="openTool">
+      <view class="tool-symbol">{{item.symbol}}</view><view class="entry-copy"><view class="entry-title">{{item.name}}</view><view class="entry-description">{{item.description}}</view></view><text class="entry-arrow">›</text>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="tool-tabs"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view>
+    <view class="list-heading"><text>{{plans.length}} 个方案</text><text>按创建时间倒序</text></view>
+    <view wx:if="{{!plans.length}}" class="empty card"><view class="empty-symbol">▤</view><view class="empty-title">还没有保存的方案</view><view class="empty-description">在模拟工具中保存后，可以在这里回看</view></view>
+    <view wx:for="{{plans}}" wx:key="id" class="plan-card card">
+      <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
+      <view class="plan-time">{{item.createdTime}}</view>
+      <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 注</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
+      <view class="amount-row"><view><text class="amount-label">模拟金额</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">参考最高返回</text><text class="amount return">¥{{item.maxReturn}}</text></view></view>
+      <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-title">{{match.label}}</view><view class="match-choice">{{match.selectionText}}</view></view></view>
+      <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · 保存时赔率快照</view>
+      <view wx:if="{{item.note}}" class="plan-note">{{item.note}}</view>
+    </view>
+  </block>
+  <view class="local-note">方案保存在当前设备，清理缓存或删除小程序可能导致记录丢失。</view>
+</view>

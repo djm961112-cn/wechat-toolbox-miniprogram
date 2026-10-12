@@ -1,7 +1,8 @@
 const { tools } = require('../../utils/tool-data')
 const marketCategories = [
   { name: '办公效率', icon: '/assets/icons/security-check.png' },
-  { name: '个人日常', icon: '/assets/icons/password-vault.png' }
+  { name: '个人日常', icon: '/assets/icons/password-vault.png' },
+  { name: '娱乐', icon: '/assets/icons/calculator.png' }
 ]
 Page({
   onShow() {
