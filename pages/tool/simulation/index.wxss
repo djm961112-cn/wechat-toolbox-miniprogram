@@ -1,3 +1,4 @@
+@import "./choices.wxss";
 .intro { padding: 10rpx 4rpx 24rpx; }
 .intro-title { font-size: 38rpx; font-weight: 700; }
 .intro-subtitle { margin-top: 8rpx; color: #8793a8; font-size: 22rpx; }
@@ -34,6 +35,6 @@
 .match-list { border-top: 1rpx solid #edf0f5; }
 .match-row { padding-top: 18rpx; }
 .match-title { font-size: 23rpx; word-break: break-all; }
-.match-choice { margin-top: 6rpx; color: #78869b; font-size: 21rpx; line-height: 1.6; }
+.match-time { margin-top: 6rpx; color: #99a4b5; font-size: 20rpx; }
 .plan-note { margin-top: 20rpx; padding: 16rpx; border-radius: 12rpx; background: #f7f9fc; color: #78869b; font-size: 22rpx; white-space: pre-wrap; }
 .local-note { margin-top: 26rpx; color: #99a4b5; font-size: 20rpx; line-height: 1.6; text-align: center; }

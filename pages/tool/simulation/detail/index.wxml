@@ -11,15 +11,19 @@
     </view>
     <view class="section card">
       <view class="section-title">比赛选择</view>
-      <view wx:for="{{plan.matches}}" wx:key="id" class="match"><view>{{item.label}}</view><view class="meta muted">{{item.date}} {{item.time}}</view><view class="choices">{{item.selectionText}}</view></view>
+      <view wx:for="{{plan.matches}}" wx:key="id" class="match"><view>{{item.label}}</view><view class="meta muted">{{item.date}} {{item.time}}</view><view class="simulation-choice-box"><view wx:for="{{item.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row" style="grid-template-columns: repeat({{row.columns}}, minmax(0, 1fr));"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view>
       <view class="hint">官方数据更新：{{plan.sourceUpdatedAt}}<view>查询时间：{{plan.fetchedAt}} · 保存时赔率快照</view></view>
       <view wx:if="{{plan.note}}" class="note">{{plan.note}}</view>
     </view>
     <view class="section card">
-      <view class="section-title">逐注组合（{{entries.length}} / {{plan.count}} 注）</view>
-      <view wx:for="{{entries}}" wx:key="id" class="ticket"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view class="ticket-choices">{{item.choices}}</view></view>
+      <view class="section-title">逐注组合（{{entryCount}} / {{plan.count}} 注）</view>
+      <view wx:for="{{entryGroups}}" wx:for-item="group" wx:key="id" class="entry-group">
+        <view class="group-title">{{group.title}} · {{group.count}} 注</view><view class="group-choices">{{group.choices}}</view>
+        <view wx:for="{{group.entries}}" wx:key="id" class="ticket"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view class="ticket-choices">{{item.choices}}</view></view>
+        <view wx:if="{{group.entries.length < group.count}}" class="hint">本组已显示 {{group.entries.length}} / {{group.count}} 注，点击下方加载更多继续展开。</view>
+      </view>
       <view wx:if="{{entryError}}" class="hint">{{entryError}}</view>
-      <view wx:elif="{{entries.length < plan.count}}" class="load-more" bindtap="loadMoreEntries">加载更多组合</view>
+      <view wx:elif="{{entryCount < plan.count}}" class="load-more" bindtap="loadMoreEntries">加载更多组合</view>
       <view class="hint">逐注参考金额按保存的赔率、倍数及限额计算，不能视为兑奖结果。</view>
     </view>
   </block>

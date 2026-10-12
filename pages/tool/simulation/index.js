@@ -1,4 +1,4 @@
-const { simulationTools, readPlans, removePlan, formatTime } = require('../../../utils/simulation-plans')
+const { simulationTools, readPlans, removePlan, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 
 Page({
   data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, plans: [] },
@@ -7,7 +7,7 @@ Page({
   refreshPlans() {
     try {
       const plans = readPlans().filter((plan) => plan.toolId === this.data.selectedToolId)
-        .map((plan) => ({ ...plan, createdTime: formatTime(plan.createdAt) }))
+        .map(formatPlanForDisplay)
       this.setData({ plans })
     } catch (error) {
       wx.showToast({ title: '读取方案失败，请重试', icon: 'none' })

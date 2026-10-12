@@ -1,5 +1,5 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
-const { savePlan, formatTime } = require('../../../../utils/simulation-plans')
+const { savePlan, formatTime, formatSelectionRows } = require('../../../../utils/simulation-plans')
 
 Page({
   data: {
@@ -41,7 +41,7 @@ Page({
   expandMatch(event) { const id = event.currentTarget.dataset.id; this.setData({ expandedMatchId: this.data.expandedMatchId === id ? '' : id }, () => this.updateView()) },
   toggleOption(event) {
     if (!this.feed || this.data.loading) return
-    const { key, match, pool } = event.currentTarget.dataset
+    const { key, match } = event.currentTarget.dataset
     const game = this.feed.matches.find((item) => item.id === match)
     if (!game || !game.pools.some((item) => item.options.some((option) => `${match}:${item.id}:${option.key}` === key))) return
     const selections = { ...this.data.selections }
@@ -49,18 +49,14 @@ Page({
     else {
       const selected = selectedMatches(this.feed.matches, selections)
       if (selected.length >= 8 && !selected.some((item) => item.id === match)) { wx.showToast({ title: '最多选择 8 场比赛', icon: 'none' }); return }
-      if (pool === 'had' || pool === 'hhad') {
-        // One match can use only one result market, including when switching to mixed play.
-        const other = pool === 'had' ? 'hhad' : 'had'
-        const removed = Object.keys(selections).filter((value) => value.startsWith(`${match}:${other}:`))
-        removed.forEach((value) => { delete selections[value] })
-        if (removed.length) wx.showToast({ title: '已切换该场胜平负玩法', icon: 'none' })
-      }
       selections[key] = true
     }
     this.setData({ selections, saved: false }, () => this.updateView())
   },
-  clearSelections() { this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, saved: false }, () => this.updateView()) },
+  clearSelections() {
+    if (!this.data.selectedCount || this.data.loading) return
+    this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false }, () => this.updateView())
+  },
   togglePass(event) {
     const id = event.currentTarget.dataset.id
     if (!this.data.passes.some((pass) => pass.id === id)) return
@@ -117,8 +113,8 @@ Page({
       businessDate: match.businessDate, date: match.date, time: match.time, league: match.league,
       home: match.home, away: match.away,
       selections: match.options.map(({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt }) => ({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt })),
-      briefText: match.options.map((option) => `${option.name}${option.goalLine ? '[' + option.goalLine + ']' : ''}(${option.odds})`).join('、'),
-      selectionText: match.options.map((option) => `${option.poolName}${option.goalLine ? `(${option.goalLine})` : ''} ${option.name} @${option.odds}${option.single ? ' [可单关]' : ' [仅串关]'}`).join(' · ')
+      selectionRows: formatSelectionRows(match.options),
+      selectionText: match.options.map((option) => `${option.name}${option.goalLine ? `(${option.goalLine})` : ''} @${option.odds}`).join(' · ')
     }))
     const preview = {
       toolId: 'football', source: 'sporttery-live', sourceUrl: 'https://m.sporttery.cn/mjc/jsq/zqspf/',
@@ -126,7 +122,7 @@ Page({
       matches, multiplier: Number(this.data.multiplier), passes: this.data.passes.filter((pass) => pass.selected).map(({ id, label, sizes }) => ({ id, label, sizes })),
       passMode: 'free', passLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.label).join(' + '),
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
-      briefHeight: Math.min(550, matches.reduce((height, match) => height + 72 + Math.ceil(match.briefText.length / 26) * 36 + Math.max(0, Math.ceil(match.label.length / 26) - 1) * 38, 0)), ...this.data.summary
+      briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0), 0)), ...this.data.summary
     }
     this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
   },

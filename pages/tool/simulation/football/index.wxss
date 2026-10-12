@@ -1,3 +1,4 @@
+@import "../choices.wxss";
 .football-page { padding: 24rpx 22rpx calc(340rpx + env(safe-area-inset-bottom)); }
 .source-head { display: flex; gap: 14rpx; justify-content: space-between; align-items: center; }
 .heading { font-size: 36rpx; font-weight: 700; }
@@ -8,7 +9,6 @@
 .market { flex-shrink: 0; padding: 14rpx 22rpx; border-radius: 99rpx; color: #77849a; background: #eaf0f6; font-size: 23rpx; }
 .market.active { color: #fff; background: #25866a; }
 .selection-heading { display: flex; justify-content: space-between; margin: 16rpx 4rpx 20rpx; color: #8b97a9; font-size: 21rpx; }
-.selection-heading text:last-child { color: #25866a; }
 .state { padding: 54rpx 26rpx; color: #8793a8; font-size: 25rpx; text-align: center; line-height: 1.7; }
 .retry { margin-top: 20rpx; color: #25866a; background: #e9f5ef; font-size: 24rpx; }
 .match-card { padding: 22rpx; margin-bottom: 20rpx; }
@@ -55,6 +55,11 @@
 .pass-trigger text:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pass-trigger.active { border-color: #71b99e; background: #e3f5ed; }
 .bottom-total { display: flex; justify-content: space-between; align-items: center; margin-top: 12rpx; height: 68rpx; }
+.total-money { flex: 1; min-width: 0; }
+.bottom-actions { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+.clear-button { flex: 0 0 100rpx; width: 100rpx; min-width: 0; box-sizing: border-box; margin: 0; padding: 17rpx 0; border: 1rpx solid #cce2d8; border-radius: 16rpx; background: #edf7f2; color: #25866a; font-size: 24rpx; line-height: 1.4; }
+.clear-button::after { border: none; }
+.clear-button[disabled] { border-color: #edf0f4; background: #f1f3f6; color: #b6bfcb; }
 .count { display: block; color: #8b97a9; font-size: 20rpx; }
 .cost { display: block; margin-top: 2rpx; color: #25866a; font-size: 29rpx; font-weight: 700; }
 .preview-button { padding: 17rpx 32rpx; border-radius: 16rpx; background: #25866a; color: #fff; font-size: 24rpx; }
@@ -76,7 +81,6 @@
 .preview-heading text:first-child { flex: 1; min-width: 0; word-break: break-all; }
 .brief-content { max-height: 55vh; }
 .brief-match { padding: 20rpx 22rpx; border-top: 1rpx solid #edf1f5; text-align: center; font-size: 25rpx; line-height: 1.5; word-break: break-all; }
-.brief-choices { margin-top: 6rpx; color: #8793a8; font-size: 24rpx; }
 .preview-actions { padding: 0 26rpx 24rpx; }
 .save-form { padding: 8rpx 26rpx 22rpx; }
 .back-preview { padding-top: 20rpx; text-align: center; color: #8793a8; font-size: 23rpx; }

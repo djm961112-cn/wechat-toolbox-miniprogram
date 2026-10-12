@@ -18,7 +18,7 @@
       <view class="plan-time">{{item.createdTime}}</view>
       <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 注</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
       <view class="amount-row"><view><text class="amount-label">投注金额</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">{{item.minReturn ? '理论金额区间' : '历史最高金额'}}</text><text class="amount return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
-      <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-title">{{match.label}}</view><view class="match-choice">{{match.selectionText}}</view></view></view>
+      <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-title">{{match.label}}</view><view wx:if="{{match.date || match.time}}" class="match-time">{{match.date}} {{match.time}}</view><view class="simulation-choice-box"><view wx:for="{{match.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row" style="grid-template-columns: repeat({{row.columns}}, minmax(0, 1fr));"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view></view>
       <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · 保存时赔率快照</view>
       <view wx:if="{{item.note}}" class="plan-note">{{item.note}}</view>
     </view>

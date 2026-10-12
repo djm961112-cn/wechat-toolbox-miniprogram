@@ -34,4 +34,26 @@ function formatTime(timestamp) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, formatTime }
+function formatSelectionRows(selections) {
+  const rows = []
+  selections.forEach((option) => {
+    let row = rows.find((item) => item.id === option.poolId)
+    if (!row) { row = { id: option.poolId, options: [] }; rows.push(row) }
+    const goal = Number(option.goalLine)
+    const handicap = option.poolId === 'hhad' && option.goalLine != null ? `[${goal > 0 ? '+' : ''}${goal}]` : ''
+    row.options.push({ key: option.key, text: `${option.name || option.key}${handicap}(${Number(option.odds).toFixed(2)})` })
+  })
+  return rows.map((row) => ({ ...row, columns: Math.min(3, row.options.length) }))
+}
+
+function formatPlanForDisplay(plan) {
+  // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
+  return { ...plan, createdTime: formatTime(plan.createdAt), matches: plan.matches.map((match) => {
+    const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
+    const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
+      : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]
+    return { ...match, selectionText, selectionRows }
+  }) }
+}
+
+module.exports = { simulationTools, readPlans, savePlan, removePlan, formatTime, formatSelectionRows, formatPlanForDisplay }

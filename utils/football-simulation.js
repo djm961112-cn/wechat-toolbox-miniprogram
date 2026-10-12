@@ -210,9 +210,17 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
           }
           const odds = selected.reduce((value, option) => value * option.odds, 1)
           const cap = size === 1 ? Infinity : size <= 3 ? 200000 : size <= 5 ? 500000 : 1000000
+          // Alternatives for one match remain one leg. Group the detail view by the
+          // chosen market on each leg, rather than combining two markets into one ticket.
+          const marketChoices = choices.map((options, i) => options.filter((option) => option.poolId === selected[i].poolId))
+          const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + option.goalLine + ']' : ''}(${Number(option.odds).toFixed(2)})`
           rows.push({
             id: String(skipped + index), label: `${size === 1 ? '单关' : `${size}串1`} · 第 ${skipped + index + 1} 注`,
-            choices: selected.map((option, i) => `${group[i].number || group[i].id} ${option.poolName || option.poolId} ${option.name || option.key} @${option.odds}`).join(' × '),
+            choices: selected.map((option, i) => `${group[i].number || group[i].id} ${formatChoice(option)}`).join(' × '),
+            groupId: JSON.stringify([pass.id, size, group.map((match, i) => [match.id, selected[i].poolId])]),
+            groupLabel: size === 1 ? '单关' : `${size}串1`,
+            groupChoices: marketChoices.map((options, i) => `${group[i].number || group[i].id} ${options.map(formatChoice).join('、')}`).join(' ＋ '),
+            groupCount: marketChoices.reduce((value, options) => value * options.length, 1),
             returnAmount: (Math.min(roundPrize(odds * 2), cap) * multiplier).toFixed(2)
           })
           if (rows.length >= limit) return rows
