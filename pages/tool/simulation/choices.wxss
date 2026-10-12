@@ -1,3 +1,7 @@
-.simulation-choice-box { margin-top: 12rpx; display: flex; flex-direction: column; gap: 8rpx; }
-.simulation-choice-row { display: grid; grid-template-columns: repeat(3, minmax(0, 176rpx)) !important; gap: 8rpx; }
+.simulation-choice-box { width: 544rpx; max-width: 100%; margin: 12rpx auto 0; display: flex; flex-direction: column; gap: 8rpx; }
+.simulation-choice-box.columns-1 { width: 176rpx; }
+.simulation-choice-box.columns-2 { width: 360rpx; }
+.simulation-choice-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8rpx; }
+.columns-1 .simulation-choice-row { grid-template-columns: minmax(0, 1fr); }
+.columns-2 .simulation-choice-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .simulation-choice-cell { box-sizing: border-box; min-width: 0; padding: 12rpx 8rpx; border: 1rpx solid #dce8e2; border-radius: 10rpx; background: #f7fbf9; color: #608578; text-align: center; font-size: 22rpx; line-height: 1.6; word-break: break-all; }

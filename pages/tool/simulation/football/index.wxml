@@ -46,7 +46,7 @@
       <view class="preview-heading"><text>{{saveFormVisible ? '保存方案' : '过关方式：' + preview.briefPassLabel}}</text><text class="close" catchtap="closePreview">×</text></view>
       <block wx:if="{{!saveFormVisible}}">
         <scroll-view class="brief-content" scroll-y="true" style="height: {{preview.briefHeight}}rpx;">
-          <view wx:for="{{preview.matches}}" wx:key="id" class="brief-match"><view>{{item.label}}</view><view class="simulation-choice-box"><view wx:for="{{item.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view>
+          <view wx:for="{{preview.matches}}" wx:key="id" class="brief-match"><view>{{item.label}}</view><view class="simulation-choice-box columns-{{item.selectionRows[0].columns}}"><view wx:for="{{item.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view>
         </scroll-view>
         <view class="preview-actions"><button class="save-button" catchtap="openSaveForm">保存方案</button></view>
       </block>

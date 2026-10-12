@@ -43,7 +43,9 @@ function formatSelectionRows(selections) {
     const handicap = option.poolId === 'hhad' && option.goalLine != null ? `[${goal > 0 ? '+' : ''}${goal}]` : ''
     row.options.push({ key: option.key, text: `${option.name || option.key}${handicap}(${Number(option.odds).toFixed(2)})` })
   })
-  return rows.map((row) => ({ ...row, columns: Math.min(3, row.options.length) }))
+  // All markets of one match share the widest row, so a shorter row keeps its column alignment.
+  const columns = Math.min(3, Math.max(1, ...rows.map((row) => row.options.length)))
+  return rows.map((row) => ({ ...row, columns }))
 }
 
 function formatPlanForDisplay(plan) {

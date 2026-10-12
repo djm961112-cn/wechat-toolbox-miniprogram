@@ -37,7 +37,14 @@ Page({
     })
   },
   showFeedError(error) { this.feed = null; this.setData({ loading: false, error, matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] }) },
-  selectMarket(event) { this.setData({ market: event.currentTarget.dataset.id, expandedMatchId: '' }, () => this.updateView()) },
+  selectMarket(event) {
+    const market = event.currentTarget.dataset.id
+    if (market === this.data.market) return
+    // A different top-level market starts a new selection; hidden choices must not enter its preview.
+    this.setData({ market, expandedMatchId: '', selections: {}, selectedCount: 0, chosenPassIds: [], passSelectionEdited: false,
+      passes: [], passLabel: '', passVisible: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false,
+      summary: null, calculationError: '' }, () => this.updateView())
+  },
   expandMatch(event) { const id = event.currentTarget.dataset.id; this.setData({ expandedMatchId: this.data.expandedMatchId === id ? '' : id }, () => this.updateView()) },
   toggleOption(event) {
     if (!this.feed || this.data.loading) return
