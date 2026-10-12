@@ -33,6 +33,7 @@
 .amount { display: block; margin-top: 5rpx; font-size: 31rpx; font-weight: 700; }
 .amount.return { color: #25866a; font-size: 25rpx; word-break: break-all; }
 .match-list { border-top: 1rpx solid #edf0f5; }
+.plan-card .simulation-choice-box { margin-left: 0; margin-right: 0; }
 .match-row { padding-top: 18rpx; }
 .match-title { font-size: 23rpx; word-break: break-all; }
 .match-time { margin-top: 6rpx; color: #99a4b5; font-size: 20rpx; }
