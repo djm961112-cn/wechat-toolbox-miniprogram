@@ -3,7 +3,8 @@ Component({
     selected: 0,
     list: [
       { pagePath: '/pages/index/index', text: '首页', icon: '⌂' },
-      { pagePath: '/pages/market/index', text: '工具市场', icon: '▣' }
+      { pagePath: '/pages/market/index', text: '工具市场', icon: '▣' },
+      { pagePath: '/pages/mine/index', text: '我的', icon: '◉' }
     ]
   },
   attached() { this.updateSelected() },

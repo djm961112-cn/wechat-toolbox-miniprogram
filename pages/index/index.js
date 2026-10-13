@@ -1,4 +1,4 @@
-const { tools } = require('../../utils/tool-data')
+const { tools, resolveToolUrl } = require('../../utils/tool-data')
 
 Page({
   onShow() {
@@ -15,7 +15,7 @@ Page({
   },
   openTool(event) {
     const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
-    if (tool) wx.navigateTo({ url: tool.url })
+    if (tool) wx.navigateTo({ url: resolveToolUrl(tool) })
   },
   openMarket() { wx.switchTab({ url: '/pages/market/index' }) }
 })

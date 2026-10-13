@@ -34,27 +34,41 @@
 .empty-symbol { color: #8ebbaa; font-size: 62rpx; }
 .empty-title { margin-top: 16rpx; font-size: 28rpx; font-weight: 650; }
 .empty-description { margin-top: 12rpx; color: #8793a8; font-size: 22rpx; }
-.plan-card { margin-bottom: 20rpx; padding: 26rpx; }
+.plan-card { margin-bottom: 20rpx; padding: 26rpx; border-radius: 24rpx; box-shadow: 0 10rpx 30rpx rgba(39,63,82,.055); }
 .plan-head { display: flex; gap: 18rpx; align-items: center; justify-content: space-between; }
-.plan-title { flex: 1; min-width: 0; word-break: break-all; font-size: 29rpx; font-weight: 650; }
+.plan-title { flex: 1; min-width: 0; word-break: break-all; color: #172a43; font-size: 30rpx; font-weight: 750; }
 .delete-link { color: #9ba6b6; font-size: 22rpx; flex-shrink: 0; }
 .detail-link { color: #25866a; font-size: 22rpx; flex-shrink: 0; }
 .plan-time { margin-top: 8rpx; color: #99a4b5; font-size: 20rpx; }
+.plan-subline { display: flex; align-items: center; flex-wrap: wrap; gap: 8rpx 16rpx; margin-top: 9rpx; color: #99a4b5; font-size: 20rpx; }
 .plan-source { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 12rpx; color: #78869b; font-size: 22rpx; }
 .plan-source text:first-child { min-width: 0; word-break: break-all; }
 .source-edit { flex-shrink: 0; color: #25866a; }
-.plan-metrics { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 22rpx 0; }
-.plan-metrics text { padding: 7rpx 15rpx; background: #eff5f3; border-radius: 10rpx; color: #608578; font-size: 21rpx; }
-.amount-row { display: flex; gap: 24rpx; padding-bottom: 22rpx; }
-.amount-row > view { flex: 1; }
-.amount-label { display: block; color: #96a2b2; font-size: 20rpx; }
-.amount { display: block; margin-top: 5rpx; font-size: 31rpx; font-weight: 700; }
-.amount.return { color: #25866a; font-size: 25rpx; word-break: break-all; }
-.match-list { border-top: 1rpx solid #edf0f5; }
+.plan-overview { margin: 22rpx 0; padding: 22rpx; border-radius: 18rpx; background: linear-gradient(135deg,#fafcfb,#f1f7f4); }
+.overview-money { display: flex; gap: 22rpx; align-items: flex-start; justify-content: space-between; }
+.overview-money > view { flex: 1; min-width: 0; }
+.return-overview { text-align: right; }
+.overview-label { display: block; color: #8795a7; font-size: 20rpx; }
+.overview-value { display: block; margin-top: 7rpx; color: #d8443e; font-size: 31rpx; font-weight: 800; word-break: break-all; }
+.overview-value.return { color: #cf3f3a; font-size: 27rpx; }
+.overview-facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12rpx 24rpx; margin-top: 20rpx; padding-top: 17rpx; border-top: 1rpx solid #dfeae5; color: #718075; font-size: 20rpx; }
+.fact-value { margin-right: 5rpx; color: #20384a; font-size: 27rpx; font-weight: 750; }
+.fact-value.warm { color: #e48031; }
+.match-list { border-top: 1rpx solid #e7ecef; }
 .plan-card .simulation-choice-box { margin-left: 0; margin-right: 0; }
-.match-row { padding-top: 18rpx; }
+.plan-card .simulation-choice-cell { border-color: #ffd1cd; background: #fff4f2; color: #d94941; font-weight: 700; }
+.match-row { padding: 22rpx 0 4rpx; }
+.match-row + .match-row { margin-top: 12rpx; border-top: 1rpx solid #edf0f2; }
+.match-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
+.match-identity { display: flex; flex-shrink: 0; flex-direction: column; gap: 4rpx; }
+.league-name { color: #426b9d; font-size: 21rpx; font-weight: 750; }
+.match-number { color: #8390a0; font-size: 20rpx; }
+.match-versus { display: grid; min-width: 0; flex: 1; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 10rpx; color: #22354c; font-size: 23rpx; font-weight: 700; text-align: center; }
+.match-versus text:first-child { text-align: right; }
+.match-versus text:last-child { text-align: left; }
+.match-kickoff { color: #9aa4b1; font-size: 19rpx; font-weight: 400; }
 .match-title { font-size: 23rpx; word-break: break-all; }
-.match-time { margin-top: 6rpx; color: #99a4b5; font-size: 20rpx; }
+.match-date { margin-top: 5rpx; color: #a1abb7; font-size: 18rpx; text-align: right; }
 .plan-note { margin-top: 20rpx; padding: 16rpx; border-radius: 12rpx; background: #f7f9fc; color: #78869b; font-size: 22rpx; white-space: pre-wrap; }
 .local-note { margin-top: 26rpx; color: #99a4b5; font-size: 20rpx; line-height: 1.6; text-align: center; }
 .source-mask { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; background: rgba(20,35,50,.42); }

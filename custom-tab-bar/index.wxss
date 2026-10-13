@@ -2,3 +2,7 @@
 .tab-item { display: flex; min-width: 140rpx; flex-direction: column; align-items: center; color: #77849a; font-size: 21rpx; line-height: 1.5; }
 .tab-item.active { color: #1677ff; font-weight: 600; }
 .tab-icon { height: 42rpx; font-size: 34rpx; line-height: 42rpx; }
+.tab-person { display: flex; height: 42rpx; flex-direction: column; align-items: center; justify-content: center; }
+.tab-person-head { width: 13rpx; height: 13rpx; border: 3rpx solid #77849a; border-radius: 50%; }
+.tab-person-body { width: 30rpx; height: 13rpx; margin-top: 2rpx; border: 3rpx solid #77849a; border-radius: 16rpx 16rpx 5rpx 5rpx; }
+.tab-item.active .tab-person-head, .tab-item.active .tab-person-body { border-color: #1677ff; }

@@ -1,4 +1,4 @@
-const { tools } = require('../../utils/tool-data')
+const { tools, resolveToolUrl } = require('../../utils/tool-data')
 const marketCategories = [
   { name: '办公效率', icon: '/assets/icons/security-check.png' },
   { name: '个人日常', icon: '/assets/icons/password-vault.png' },
@@ -22,6 +22,6 @@ Page({
   },
   openTool(event) {
     const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
-    if (tool) wx.navigateTo({ url: tool.url })
+    if (tool) wx.navigateTo({ url: resolveToolUrl(tool) })
   }
 })

@@ -1,5 +1,5 @@
 <view class="tab-bar">
   <view wx:for="{{list}}" wx:key="pagePath" class="tab-item {{selected === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchTab">
-    <text class="tab-icon">{{item.icon}}</text><text>{{item.text}}</text>
+    <view wx:if="{{item.pagePath === '/pages/mine/index'}}" class="tab-person"><view class="tab-person-head"></view><view class="tab-person-body"></view></view><text wx:else class="tab-icon">{{item.icon}}</text><text>{{item.text}}</text>
   </view>
 </view>
