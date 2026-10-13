@@ -36,9 +36,16 @@
       <view class="pass-done" bindtap="closePasses">完成</view>
     </view>
   </view>
+  <view wx:if="{{multiplierVisible}}" class="multiplier-mask" catchtap="closeMultiplier">
+    <view class="multiplier-sheet" catchtap="stopPropagation">
+      <view class="multiplier-heading"><view><text>选择倍率</text><text class="multiplier-draft">{{multiplierDraft || '请输入'}} 倍</text></view><text class="close" catchtap="closeMultiplier">×</text></view>
+      <view class="multiplier-quick"><view wx:for="{{quickMultipliers}}" wx:key="*this" class="quick-item {{multiplierDraft == item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseQuickMultiplier">{{item}}倍</view></view>
+      <view class="multiplier-keypad"><view wx:for="{{multiplierKeys}}" wx:key="*this" class="multiplier-key {{item === 'delete' || item === 'confirm' ? 'key-action' : ''}} {{item === 'confirm' ? 'key-confirm' : ''}}" data-key="{{item}}" bindtap="tapMultiplierKey">{{item === 'delete' ? '⌫' : item === 'confirm' ? '确定' : item}}</view></view>
+    </view>
+  </view>
   <view class="bottom-bar">
-    <view class="bottom-controls"><text class="selected-badge">已选 {{selectedCount}} 场</text><view class="pass-trigger {{passVisible ? 'active' : ''}}" bindtap="configurePasses"><text>{{passLabel || '过关选择'}}</text><text>{{passVisible ? '⌄' : '⌃'}}</text></view><view class="multiplier"><input type="number" maxlength="4" value="{{multiplier}}" bindinput="setMultiplier" /><text>倍</text></view></view>
-    <view class="bottom-total"><view class="total-money"><text class="count">{{summary ? summary.count : 0}} 注 · 投注金额</text><text class="cost">¥{{summary ? summary.cost : '0.00'}}</text></view><view class="bottom-actions"><button class="clear-button" disabled="{{!selectedCount || loading}}" bindtap="clearSelections">清空</button><view wx:if="{{saved}}" class="preview-button" bindtap="viewPlans">查看我的方案</view><view wx:else class="preview-button" bindtap="openPreview">方案预览</view></view></view>
+    <view class="bottom-controls"><text class="selected-badge">已选 {{selectedCount}} 场</text><view class="pass-trigger {{passVisible ? 'active' : ''}}" bindtap="configurePasses"><text>{{passLabel || '过关选择'}}</text><text>{{passVisible ? '⌄' : '⌃'}}</text></view><view class="multiplier" bindtap="openMultiplier"><text>{{multiplier}} 倍</text><text class="multiplier-arrow">⌃</text></view></view>
+    <view class="bottom-total"><view class="total-money"><text class="count">{{summary ? summary.count : 0}} 注 · 投注金额</text><text class="cost">¥{{summary ? summary.cost : '0.00'}}</text></view><view class="bottom-actions"><button class="clear-button" disabled="{{(!selectedCount && multiplier === '1') || loading}}" bindtap="clearSelections">清空</button><view wx:if="{{saved}}" class="preview-button" bindtap="viewPlans">查看我的方案</view><view wx:else class="preview-button" bindtap="openPreview">方案预览</view></view></view>
     <view class="prize-range"><text>理论金额区间</text><text wx:if="{{summary}}">¥{{summary.minReturn}} ～ ¥{{summary.maxReturn}}</text><text wx:else>{{calculationError || (selectedCount ? '请选择可用过关方式' : '选择后实时计算')}}</text></view>
   </view>
   <view class="floating-save" bindtap="openPreview">{{saved ? '已保存' : '保存'}}<text>方案</text></view>
@@ -53,6 +60,8 @@
       </block>
       <view wx:else class="save-form">
         <view class="form-label">方案名称</view><input class="form-input" maxlength="60" value="{{planTitle}}" bindinput="setTitle" />
+        <view class="form-label">方案来源（选填）</view><scroll-view class="source-options" scroll-x="true"><view class="source-options-inner"><view class="source-option {{!planSourceId ? 'active' : ''}}" data-id="" bindtap="selectPlanSource">未关联</view><view wx:for="{{sources}}" wx:key="id" class="source-option {{planSourceId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPlanSource">{{item.name}}</view></view></scroll-view>
+        <view wx:if="{{!sources.length}}" class="form-tip">可先保存方案，再到“我的方案 → 来源管理”添加并关联。</view>
         <view class="form-label">备注（选填）</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />
         <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : '保存到我的方案'}}</button>
         <view class="back-preview" catchtap="backToPreview">返回预览</view>

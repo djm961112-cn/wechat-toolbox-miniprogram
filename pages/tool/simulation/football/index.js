@@ -1,13 +1,14 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
-const { savePlan, formatTime, formatSelectionRows, matchNumber } = require('../../../../utils/simulation-plans')
+const { savePlan, readSources, formatTime, formatSelectionRows, matchNumber } = require('../../../../utils/simulation-plans')
 
 Page({
   data: {
     loading: true, error: '', updatedAt: '', fetchedAt: '', market: 'had',
     markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
-    multiplier: '1', summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
-    planTitle: '', planNote: '', saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
+    multiplier: '1', multiplierVisible: false, multiplierDraft: '1', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
+    summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
+    planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
   },
   onShow() { this.refreshFeed() },
   onUnload() { this.unloaded = true; if (this.requestTask) this.requestTask.abort() },
@@ -61,8 +62,8 @@ Page({
     this.setData({ selections, saved: false }, () => this.updateView())
   },
   clearSelections() {
-    if (!this.data.selectedCount || this.data.loading) return
-    this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false }, () => this.updateView())
+    if ((!this.data.selectedCount && this.data.multiplier === '1') || this.data.loading) return
+    this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, multiplier: '1', multiplierDraft: '1', multiplierVisible: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false }, () => this.updateView())
   },
   togglePass(event) {
     const id = event.currentTarget.dataset.id
@@ -72,7 +73,23 @@ Page({
     else ids.push(id)
     this.setData({ chosenPassIds: ids, passSelectionEdited: true, saved: false }, () => this.updateView())
   },
-  setMultiplier(event) { this.setData({ multiplier: event.detail.value, saved: false }, () => this.updateView()) },
+  openMultiplier() { this.setData({ multiplierVisible: true, multiplierDraft: this.data.multiplier, passVisible: false }) },
+  closeMultiplier() { this.setData({ multiplierVisible: false }) },
+  chooseQuickMultiplier(event) {
+    this.setData({ multiplier: String(event.currentTarget.dataset.value), multiplierVisible: false, saved: false }, () => this.updateView())
+  },
+  tapMultiplierKey(event) {
+    const key = event.currentTarget.dataset.key
+    if (key === 'confirm') {
+      const multiplier = Number(this.data.multiplierDraft)
+      if (!Number.isInteger(multiplier) || multiplier < 1 || multiplier > 9999) { wx.showToast({ title: '倍率需为 1 至 9999', icon: 'none' }); return }
+      this.setData({ multiplier: String(multiplier), multiplierVisible: false, saved: false }, () => this.updateView())
+      return
+    }
+    if (key === 'delete') { this.setData({ multiplierDraft: this.data.multiplierDraft.slice(0, -1) }); return }
+    const draft = this.data.multiplierDraft === '0' ? key : this.data.multiplierDraft + key
+    if (draft.length <= 4) this.setData({ multiplierDraft: draft })
+  },
   configurePasses() { this.setData({ passVisible: !this.data.passVisible }) },
   closePasses() { this.setData({ passVisible: false }) },
   updateView() {
@@ -132,24 +149,28 @@ Page({
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
       briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0) + (match.selectionRows.length - 1) * 24, 0)), ...this.data.summary
     }
-    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '' })
+    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '', planSourceId: '' })
   },
-  openSaveForm() { this.setData({ saveFormVisible: true }) },
+  openSaveForm() {
+    try { this.setData({ sources: readSources(), saveFormVisible: true }) }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+  },
   backToPreview() { if (!this.data.saving) this.setData({ saveFormVisible: false }) },
   closePreview() { if (!this.data.saving) this.setData({ previewVisible: false }) },
   stopPropagation() {},
   setTitle(event) { this.setData({ planTitle: event.detail.value }) },
   setNote(event) { this.setData({ planNote: event.detail.value }) },
+  selectPlanSource(event) { this.setData({ planSourceId: event.currentTarget.dataset.id || '' }) },
   savePreview() {
     if (this.data.saving || this.data.saved || !this.data.previewVisible || !this.data.saveFormVisible || !this.data.preview) return
     const title = this.data.planTitle.trim()
     if (!title) { wx.showToast({ title: '请输入方案名称', icon: 'none' }); return }
     this.setData({ saving: true })
     try {
-      savePlan({ ...this.data.preview, title, note: this.data.planNote.trim() })
+      savePlan({ ...this.data.preview, title, note: this.data.planNote.trim(), planSourceId: this.data.planSourceId })
       this.setData({ saved: true, saving: false, previewVisible: false })
       wx.showToast({ title: '已保存到我的方案', icon: 'success' })
-    } catch (error) { this.setData({ saving: false }); wx.showToast({ title: '保存失败，请检查本机空间', icon: 'none' }) }
+    } catch (error) { this.setData({ saving: false }); wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
   },
   viewPlans() {
     const pages = getCurrentPages()

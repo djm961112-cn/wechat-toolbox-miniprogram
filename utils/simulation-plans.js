@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'simulation-plans-v1'
+const SOURCE_STORAGE_KEY = 'simulation-plan-sources-v1'
 const simulationTools = [
   { id: 'football', name: '足球', description: '官方赛事 · 多玩法计算 · 保存方案', symbol: '⚽', url: '/pages/tool/simulation/football/index', sourceUrl: 'https://m.sporttery.cn/mjc/jsq/zqspf/' }
 ]
@@ -10,19 +11,55 @@ function readPlans() {
   return records.slice().sort((left, right) => right.createdAt - left.createdAt)
 }
 
+function readSources() {
+  const sources = wx.getStorageSync(SOURCE_STORAGE_KEY)
+  if (!sources) return []
+  if (!Array.isArray(sources)) throw new Error('方案来源数据格式异常')
+  return sources.slice()
+}
+
+function createSource(name) {
+  const value = String(name || '').trim()
+  if (!value || value.length > 40) throw new Error('来源名称需为 1 至 40 个字')
+  const sources = readSources()
+  if (sources.some((source) => source.name === value)) throw new Error('该来源名称已存在')
+  let id
+  do { id = `src_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` }
+  while (sources.some((source) => source.id === id))
+  const source = { id, name: value, createdAt: Date.now() }
+  wx.setStorageSync(SOURCE_STORAGE_KEY, [...sources, source])
+  return source
+}
+
+function sourceFields(sourceId) {
+  if (!sourceId) return { planSourceId: '', planSourceName: '' }
+  const source = readSources().find((item) => item.id === sourceId)
+  if (!source) throw new Error('方案来源不存在，请重新选择')
+  return { planSourceId: source.id, planSourceName: source.name }
+}
+
 function savePlan(snapshot) {
   if (!simulationTools.some((tool) => tool.id === snapshot.toolId)) throw new Error('不支持的模拟工具')
   if (!snapshot.title || !Array.isArray(snapshot.matches) || !snapshot.matches.length) throw new Error('请填写方案名称和比赛选择')
   const now = Date.now()
   const plan = {
     ...snapshot,
-    version: 2,
+    ...sourceFields(snapshot.planSourceId),
+    version: 3,
     periodIds: planPeriods(snapshot),
     id: `${now}-${Math.random().toString(36).slice(2, 10)}`,
     createdAt: now
   }
   wx.setStorageSync(STORAGE_KEY, [plan, ...readPlans()])
   return plan
+}
+
+function setPlanSource(id, sourceId) {
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('方案已删除，请刷新后重试')
+  plans[index] = { ...plans[index], ...sourceFields(sourceId), version: 3 }
+  wx.setStorageSync(STORAGE_KEY, plans)
 }
 
 function matchPeriod(match) {
@@ -78,7 +115,7 @@ function formatSelectionRows(selections) {
 function formatPlanForDisplay(plan) {
   // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
   const periodIds = planPeriods(plan)
-  return { ...plan, periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
+  return { ...plan, planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
     const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
     const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
       : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]
@@ -86,4 +123,4 @@ function formatPlanForDisplay(plan) {
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }

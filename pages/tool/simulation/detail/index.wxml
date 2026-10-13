@@ -6,6 +6,7 @@
       <view class="metrics">{{plan.matches.length}} 场 · {{plan.count}} 注 · {{plan.multiplier}} 倍</view>
       <view class="pass-label">过关方式：{{plan.passLabel}}</view>
       <view class="pass-label">所属期号：{{plan.periodLabel || '未记录'}}</view>
+      <view class="pass-label">方案来源：{{plan.planSourceName || '未关联'}}<text wx:if="{{plan.planSourceId}}">（{{plan.planSourceId}}）</text></view>
       <view class="money"><view>投注金额<text>¥{{plan.cost}}</text></view><view>{{plan.minReturn ? '理论金额区间' : '历史最高金额'}}<text>{{plan.minReturn ? '¥' + plan.minReturn + ' ～ ' : ''}}¥{{plan.maxReturn}}</text></view></view>
       <view class="hint">区间为至少中一注时的税前总奖金，未计逐注舍入、限额及税费。</view>
       <view wx:if="{{plan.capped}}" class="hint">包含可能触及奖金限额的组合，实际奖金可能低于理论金额。</view>

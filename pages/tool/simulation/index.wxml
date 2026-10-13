@@ -10,7 +10,7 @@
     </view>
   </block>
   <block wx:else>
-    <view class="tool-tabs"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view>
+    <view class="plan-toolbar"><view class="tool-tabs"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view><view class="source-manage" bindtap="openSources">来源管理</view></view>
     <input class="period-search" value="{{periodQuery}}" maxlength="20" placeholder="搜索期号，如 261012" bindinput="searchPeriod" />
     <view class="list-heading"><text>{{planGroups.length}} 期 · {{planCount}} 个方案</text><text>期号及方案时间倒序</text></view>
     <view wx:if="{{!planGroups.length}}" class="empty card"><view class="empty-symbol">▤</view><view class="empty-title">{{periodQuery ? '没有匹配的期号' : '还没有保存的方案'}}</view><view class="empty-description">在模拟工具中保存后，可以在这里回看</view></view>
@@ -20,6 +20,7 @@
     <view wx:for="{{periodGroup.plans}}" wx:key="id" class="plan-card card">
       <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '核对中…' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
       <view class="plan-time">{{item.createdTime}}</view>
+      <view class="plan-source"><text>来源：{{item.planSourceName || '未关联'}}</text><text class="source-edit" data-id="{{item.id}}" catchtap="openPlanSource">设置来源</text></view>
       <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 注</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
       <view class="amount-row"><view><text class="amount-label">投注金额</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">{{item.minReturn ? '理论金额区间' : '历史最高金额'}}</text><text class="amount return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
       <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">跨期方案：{{item.periodLabel}}</view>
@@ -32,4 +33,16 @@
     </view>
   </block>
   <view class="local-note">方案保存在当前设备，清理缓存或删除小程序可能导致记录丢失。</view>
+  <view wx:if="{{sourceVisible}}" class="source-mask" catchtap="closeSources">
+    <view class="source-dialog" catchtap="stopPropagation">
+      <view class="source-heading"><text>{{editingPlanId ? '设置方案来源' : '来源管理'}}</text><text class="source-close" catchtap="closeSources">×</text></view>
+      <view class="source-hint">每个来源都有独立 ID，关联到方案后便于后续统计。</view>
+      <scroll-view class="source-list {{sources.length ? '' : 'empty-list'}}" scroll-y="true">
+        <view wx:if="{{editingPlanId}}" class="source-item {{!currentSourceId ? 'chosen' : ''}}" data-id="" catchtap="chooseSource"><text>不关联来源</text></view>
+        <view wx:for="{{sources}}" wx:key="id" class="source-item {{editingPlanId && currentSourceId === item.id ? 'chosen' : ''}}" data-id="{{item.id}}" catchtap="chooseSource"><view><view class="source-name">{{item.name}}</view><view class="source-id">ID：{{item.id}}</view></view><text wx:if="{{editingPlanId}}" class="source-choice">{{currentSourceId === item.id ? '已关联' : '选择'}}</text></view>
+        <view wx:if="{{!sources.length}}" class="source-empty">还没有来源，可在下方添加。</view>
+      </scroll-view>
+      <view class="source-add"><input maxlength="40" value="{{newSourceName}}" placeholder="输入来源名称" bindinput="setNewSourceName" /><button bindtap="addSource">添加</button></view>
+    </view>
+  </view>
 </view>

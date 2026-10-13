@@ -1,10 +1,10 @@
-const { simulationTools, readPlans, removePlan, savePlanCheck, formatPlanForDisplay } = require('../../../utils/simulation-plans')
+const { simulationTools, readPlans, removePlan, savePlanCheck, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 const { checkPlan } = require('../../../utils/football-results')
 
 Page({
-  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '' },
+  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '' },
   onLoad(options = {}) { if (options.tab === 'plans') this.setData({ activeTab: 'plans' }) },
-  onShow() { this.refreshPlans() },
+  onShow() { this.refreshPlans(); this.refreshSources() },
   onUnload() { this.unloaded = true },
   refreshPlans() {
     try {
@@ -14,6 +14,44 @@ Page({
     } catch (error) {
       wx.showToast({ title: '读取方案失败，请重试', icon: 'none' })
     }
+  },
+  refreshSources() {
+    try { this.setData({ sources: readSources() }) }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+  },
+  openSources() {
+    this.refreshSources()
+    this.setData({ sourceVisible: true, editingPlanId: '', newSourceName: '' })
+  },
+  openPlanSource(event) {
+    this.refreshSources()
+    const id = event.currentTarget.dataset.id
+    const plan = (this.plans || []).find((item) => item.id === id)
+    this.setData({ sourceVisible: true, editingPlanId: id, currentSourceId: plan ? plan.planSourceId : '', newSourceName: '' })
+  },
+  closeSources() { this.setData({ sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '' }) },
+  stopPropagation() {},
+  setNewSourceName(event) { this.setData({ newSourceName: event.detail.value }) },
+  addSource() {
+    try {
+      const source = createSource(this.data.newSourceName)
+      this.refreshSources()
+      if (this.data.editingPlanId) {
+        setPlanSource(this.data.editingPlanId, source.id)
+        this.refreshPlans()
+        this.closeSources()
+      } else this.setData({ newSourceName: '' })
+      wx.showToast({ title: '来源已添加', icon: 'success' })
+    } catch (error) { wx.showToast({ title: error.message || '添加失败，请重试', icon: 'none' }) }
+  },
+  chooseSource(event) {
+    if (!this.data.editingPlanId) return
+    try {
+      setPlanSource(this.data.editingPlanId, event.currentTarget.dataset.id || '')
+      this.refreshPlans()
+      this.closeSources()
+      wx.showToast({ title: '方案来源已更新', icon: 'success' })
+    } catch (error) { wx.showToast({ title: error.message || '关联失败，请重试', icon: 'none' }) }
   },
   rebuildGroups() {
     const groups = new Map()

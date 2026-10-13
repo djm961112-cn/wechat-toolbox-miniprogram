@@ -4,7 +4,7 @@
 .title { font-size: 32rpx; font-weight: 650; word-break: break-all; }
 .meta { margin-top: 8rpx; font-size: 20rpx; }
 .metrics { margin-top: 24rpx; color: #608578; font-size: 24rpx; }
-.pass-label { margin-top: 12rpx; color: #78869b; font-size: 23rpx; }
+.pass-label { margin-top: 12rpx; color: #78869b; font-size: 23rpx; word-break: break-all; }
 .money { display: flex; gap: 20rpx; margin-top: 22rpx; padding: 20rpx; border-radius: 16rpx; background: #edf7f2; }
 .money view { flex: 1; color: #7b889a; font-size: 20rpx; }
 .money text { display: block; margin-top: 8rpx; color: #25866a; font-size: 26rpx; font-weight: 650; word-break: break-all; }

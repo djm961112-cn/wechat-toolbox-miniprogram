@@ -12,6 +12,8 @@
 .entry-description { margin-top: 8rpx; color: #8793a8; font-size: 22rpx; }
 .entry-arrow { color: #a0acbc; font-size: 42rpx; }
 .tool-tabs { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.source-manage { flex-shrink: 0; padding: 14rpx 20rpx; border: 1rpx solid #cce2d8; border-radius: 99rpx; color: #25866a; background: #fff; font-size: 22rpx; }
 .tool-tab { padding: 14rpx 24rpx; border-radius: 99rpx; background: #edf1f7; color: #78869b; font-size: 24rpx; }
 .tool-tab.selected { color: #25866a; background: #dff3eb; }
 .list-heading { display: flex; justify-content: space-between; margin: 24rpx 4rpx 16rpx; color: #8793a8; font-size: 21rpx; }
@@ -37,6 +39,9 @@
 .delete-link { color: #9ba6b6; font-size: 22rpx; flex-shrink: 0; }
 .detail-link { color: #25866a; font-size: 22rpx; flex-shrink: 0; }
 .plan-time { margin-top: 8rpx; color: #99a4b5; font-size: 20rpx; }
+.plan-source { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 12rpx; color: #78869b; font-size: 22rpx; }
+.plan-source text:first-child { min-width: 0; word-break: break-all; }
+.source-edit { flex-shrink: 0; color: #25866a; }
 .plan-metrics { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 22rpx 0; }
 .plan-metrics text { padding: 7rpx 15rpx; background: #eff5f3; border-radius: 10rpx; color: #608578; font-size: 21rpx; }
 .amount-row { display: flex; gap: 24rpx; padding-bottom: 22rpx; }
@@ -51,3 +56,20 @@
 .match-time { margin-top: 6rpx; color: #99a4b5; font-size: 20rpx; }
 .plan-note { margin-top: 20rpx; padding: 16rpx; border-radius: 12rpx; background: #f7f9fc; color: #78869b; font-size: 22rpx; white-space: pre-wrap; }
 .local-note { margin-top: 26rpx; color: #99a4b5; font-size: 20rpx; line-height: 1.6; text-align: center; }
+.source-mask { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; background: rgba(20,35,50,.42); }
+.source-dialog { width: 100%; box-sizing: border-box; padding: 26rpx 26rpx calc(28rpx + env(safe-area-inset-bottom)); border-radius: 28rpx 28rpx 0 0; background: #fff; }
+.source-heading { display: flex; align-items: center; justify-content: space-between; font-size: 31rpx; font-weight: 650; }
+.source-close { padding: 0 8rpx; color: #98a3b3; font-size: 42rpx; }
+.source-hint { margin: 10rpx 0 20rpx; color: #98a3b3; font-size: 21rpx; }
+.source-list { height: 360rpx; max-height: 40vh; }
+.source-list.empty-list { height: 150rpx; }
+.source-item { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 18rpx 20rpx; margin-bottom: 10rpx; border: 1rpx solid #e7edf1; border-radius: 14rpx; color: #25344a; font-size: 24rpx; }
+.source-item.chosen { border-color: #72b9a0; background: #eaf7f2; color: #25866a; }
+.source-name { font-weight: 600; }
+.source-id { margin-top: 6rpx; color: #99a4b5; font-size: 18rpx; word-break: break-all; }
+.source-choice { flex-shrink: 0; color: #25866a; font-size: 21rpx; }
+.source-empty { padding: 48rpx 0; text-align: center; color: #99a4b5; font-size: 22rpx; }
+.source-add { display: flex; align-items: center; gap: 12rpx; margin-top: 18rpx; }
+.source-add input { flex: 1; min-width: 0; height: 74rpx; padding: 0 18rpx; border-radius: 14rpx; background: #f4f7fa; font-size: 24rpx; }
+.source-add button { flex-shrink: 0; margin: 0; padding: 0 28rpx; border-radius: 14rpx; background: #25866a; color: #fff; font-size: 23rpx; line-height: 74rpx; }
+.source-add button::after { border: none; }
