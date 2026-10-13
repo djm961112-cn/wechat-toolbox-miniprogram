@@ -17,6 +17,7 @@
 .teams text { max-width: 45%; word-break: break-all; }
 .versus { color: #a8b3c2; font-size: 21rpx; font-weight: 400; }
 .selected-note { margin-bottom: 14rpx; color: #25866a; font-size: 20rpx; }
+.readonly-note { margin-bottom: 14rpx; color: #a0a9b8; font-size: 21rpx; text-align: center; }
 .pool + .pool { margin-top: 24rpx; }
 .pool-body { display: flex; align-items: center; gap: 12rpx; }
 .pool-body .options { flex: 1; min-width: 0; }

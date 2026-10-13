@@ -1,5 +1,5 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
-const { savePlan, formatTime, formatSelectionRows } = require('../../../../utils/simulation-plans')
+const { savePlan, formatTime, formatSelectionRows, matchNumber } = require('../../../../utils/simulation-plans')
 
 Page({
   data: {
@@ -18,7 +18,7 @@ Page({
     if (this.requestTask) this.requestTask.abort()
     this.setData({ loading: true, error: '', passVisible: false, previewVisible: false, summary: null, passes: [], chosenPassIds: [], passSelectionEdited: false, passLabel: '' })
     this.requestTask = wx.request({
-      url: API_URL, data: { channel: 'c' }, timeout: 15000,
+      url: API_URL, data: { channel: 'c', _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
       success: (res) => {
         if (this.unloaded || version !== this.requestVersion) return
         try {
@@ -26,7 +26,7 @@ Page({
           const feed = normalizeFeed(res.data)
           this.feed = feed
           // Re-entering the page always refreshes data and clears old selections to prevent mixing historical odds.
-          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now()), selections: {}, chosenPassIds: [], saved: false }, () => this.updateView())
+          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now(), true), selections: {}, chosenPassIds: [], saved: false }, () => this.updateView())
         } catch (error) { this.showFeedError(error.message) }
       },
       fail: (error) => {
@@ -36,7 +36,7 @@ Page({
       complete: () => { wx.stopPullDownRefresh() }
     })
   },
-  showFeedError(error) { this.feed = null; this.setData({ loading: false, error, matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] }) },
+  showFeedError(error) { this.feed = null; this.setData({ loading: false, error, updatedAt: '', fetchedAt: '', matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] }) },
   selectMarket(event) {
     const market = event.currentTarget.dataset.id
     if (market === this.data.market) return
@@ -50,7 +50,7 @@ Page({
     if (!this.feed || this.data.loading) return
     const { key, match } = event.currentTarget.dataset
     const game = this.feed.matches.find((item) => item.id === match)
-    if (!game || !game.pools.some((item) => item.options.some((option) => `${match}:${item.id}:${option.key}` === key))) return
+    if (!game || !game.pools.some((item) => item.selectable && item.options.some((option) => !option.disabled && `${match}:${item.id}:${option.key}` === key))) return
     const selections = { ...this.data.selections }
     if (selections[key]) delete selections[key]
     else {
@@ -93,17 +93,18 @@ Page({
         const pool = match.pools.find((item) => item.id === definition.id)
         if (!pool && !['had', 'hhad'].includes(definition.id)) return null
         const goalLine = definition.id === 'had' ? '0' : pool && pool.goalLine
-        return { ...definition, ...pool, missing: !pool, goalLine, goalLabel: goalLine == null ? '—' : Number(goalLine) > 0 ? `+${Number(goalLine)}` : String(goalLine), options: definition.options.map(([optionKey, name]) => {
+        return { ...definition, ...pool, missing: !pool || pool.missing, goalLine, goalLabel: goalLine == null ? '—' : Number(goalLine) > 0 ? `+${Number(goalLine)}` : String(goalLine), options: definition.options.map(([optionKey, name]) => {
           const option = pool && pool.options.find((item) => item.key === optionKey)
           const key = `${match.id}:${definition.id}:${optionKey}`
-          return { ...option, key: optionKey, name, disabled: !option, oddsText: option ? option.oddsText : '-', selectionKey: key, selected: Boolean(option && this.data.selections[key]) }
+          const disabled = !option || option.disabled || pool.selectable === false
+          return { ...option, key: optionKey, name, disabled, oddsText: option ? option.oddsText : '-', selectionKey: key, selected: Boolean(!disabled && this.data.selections[key]) }
         }) }
       }).filter(Boolean)
       const allSelected = allPools.reduce((count, pool) => count + pool.options.filter((option) => option.selected).length, 0)
       const pools = allPools.filter((pool) => this.data.market === 'mixed' || (this.data.market === 'had' ? ['had', 'hhad'].includes(pool.id) : pool.id === this.data.market))
       const expanded = this.data.expandedMatchId === match.id
       return { ...match, selectedOptions: allSelected, expanded, pools: this.data.market === 'mixed' && !expanded ? pools.filter((pool) => ['had','hhad'].includes(pool.id)) : pools }
-    }).filter((match) => this.data.market === 'mixed' || match.pools.some((pool) => !pool.missing))
+    }).filter((match) => this.data.market === 'mixed' || match.pools.length)
     let summary = null
     let calculationError = ''
     if (selected.length && chosenPassIds.length) {
@@ -116,7 +117,7 @@ Page({
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及过关方式', icon: 'none' }); return }
     const selected = selectedMatches(this.feed.matches, this.data.selections)
     const matches = selected.map((match) => ({
-      id: match.id, label: `${match.number} ${match.home} vs ${match.away}`, number: match.number,
+      id: match.id, label: `${match.number} ${match.home} vs ${match.away}`, number: match.number, period: match.period, numberCode: matchNumber(match),
       businessDate: match.businessDate, date: match.date, time: match.time, league: match.league,
       home: match.home, away: match.away,
       selections: match.options.map(({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt }) => ({ poolId, poolName, key, name, odds, single, allUp, goalLine, updatedAt })),

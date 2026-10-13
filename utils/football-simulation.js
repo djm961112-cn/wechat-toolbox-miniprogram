@@ -23,29 +23,31 @@ const COMPOUND = {
 function normalizeFeed(response) {
   if (!response || String(response.errorCode) !== '0' || !response.value || !Array.isArray(response.value.matchInfoList)) throw new Error('官方赛事数据格式异常')
   const value = response.value
-  const matches = value.matchInfoList.reduce((all, group) => all.concat(group.subMatchList || []), [])
-    .filter((match) => !Number(match.isHide) && match.matchStatus === 'Selling')
+  const matches = value.matchInfoList.reduce((all, group) => all.concat((group.subMatchList || []).map((match) => ({ ...match, matchNumDate: match.matchNumDate || group.matchNumDate }))), [])
+    .filter((match) => !Number(match.isHide))
     .map((match) => {
       const pools = POOLS.map((definition) => {
         const flags = (match.poolList || []).find((pool) => String(pool.poolCode).toLowerCase() === definition.id)
-        if (!flags || flags.poolStatus !== 'Selling') return null
         const odds = match[definition.id] || {}
-        const single = Number(flags.single) === 1 && permittedSingle(definition.id, value.allUpList || {})
-        const allUp = Number(flags.allUp) === 1
-        if (!single && !allUp) return null
+        const single = Boolean(flags && Number(flags.single) === 1 && permittedSingle(definition.id, value.allUpList || {}))
+        const allUp = Boolean(flags && Number(flags.allUp) === 1)
+        const goalLine = definition.id === 'hhad' && odds.goalLine != null && odds.goalLine !== '' ? String(odds.goalLine) : null
+        const selectable = Boolean(match.matchStatus === 'Selling' && flags && flags.poolStatus === 'Selling' && (single || allUp) && (definition.id !== 'hhad' || goalLine !== null && Number.isFinite(Number(goalLine))))
         const options = definition.options.map(([key, name]) => ({ key, name, odds: Number(odds[key]), oddsText: String(odds[key] || ''), selected: false }))
           .filter((option) => Number.isFinite(option.odds) && option.odds > 0)
-        if (!options.length) return null
-        return { id: definition.id, name: definition.name, maxLegs: definition.maxLegs, single, allUp, goalLine: definition.id === 'hhad' ? String(odds.goalLine || '0') : '', updatedAt: `${odds.updateDate || ''} ${odds.updateTime || ''}`.trim(), options }
-      }).filter(Boolean)
-      return { id: String(match.matchId), number: match.matchNumStr, businessDate: match.businessDate, date: match.matchDate, time: String(match.matchTime).slice(0,5), league: match.leagueAbbName, home: match.homeTeamAbbName, away: match.awayTeamAbbName, pools }
-    }).filter((match) => match.pools.length)
+          .map((option) => ({ ...option, disabled: !selectable }))
+        return { id: definition.id, name: definition.name, maxLegs: definition.maxLegs, single, allUp, selectable, missing: !flags && !options.length, goalLine: definition.id === 'hhad' ? goalLine : '', updatedAt: `${odds.updateDate || ''} ${odds.updateTime || ''}`.trim(), options }
+      })
+      return { id: String(match.matchId), number: match.matchNumStr, period: String(match.matchNumDate || groupPeriod(match.businessDate)), businessDate: match.businessDate, date: match.matchDate, time: String(match.matchTime || '').slice(0,5), league: match.leagueAbbName, home: match.homeTeamAbbName, away: match.awayTeamAbbName, selectable: pools.some((pool) => pool.selectable && pool.options.length), statusLabel: match.matchStatus === 'Selling' ? '暂未开放选择' : match.matchStatus === 'Closed' ? '已停售' : '暂不可选择', pools }
+    })
   return { matches, rules: value.allUpList || {}, updatedAt: value.lastUpdateTime || '' }
 }
 
+function groupPeriod(date) { const value = String(date || ''); return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.slice(2).replace(/-/g, '') : '' }
+
 function selectedMatches(matches, selections) {
   return matches.map((match) => {
-    const options = match.pools.reduce((all, pool) => all.concat(pool.options.filter((option) => selections[`${match.id}:${pool.id}:${option.key}`]).map((option) => ({ ...option, poolId: pool.id, poolName: pool.name, goalLine: pool.goalLine, single: pool.single, allUp: pool.allUp, maxLegs: pool.maxLegs, updatedAt: pool.updatedAt }))), [])
+    const options = match.pools.reduce((all, pool) => all.concat(pool.options.filter((option) => pool.selectable !== false && !option.disabled && selections[`${match.id}:${pool.id}:${option.key}`]).map((option) => ({ ...option, poolId: pool.id, poolName: pool.name, goalLine: pool.goalLine, single: pool.single, allUp: pool.allUp, maxLegs: pool.maxLegs, updatedAt: pool.updatedAt }))), [])
     return { ...match, options }
   }).filter((match) => match.options.length)
 }
@@ -221,6 +223,7 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
             groupLabel: size === 1 ? '单关' : `${size}串1`,
             groupChoices: marketChoices.map((options, i) => `${group[i].number || group[i].id} ${options.map(formatChoice).join('、')}`).join(' ＋ '),
             groupCount: marketChoices.reduce((value, options) => value * options.length, 1),
+            legs: selected.map((option, i) => ({ ...option, matchId: group[i].id })),
             returnAmount: (Math.min(roundPrize(odds * 2), cap) * multiplier).toFixed(2)
           })
           if (rows.length >= limit) return rows
@@ -232,4 +235,4 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
   return rows
 }
 
-module.exports = { API_URL, POOLS, COMPOUND, normalizeFeed, selectedMatches, availablePasses, calculate, previewEntries }
+module.exports = { API_URL, POOLS, COMPOUND, normalizeFeed, selectedMatches, availablePasses, calculate, previewEntries, combinations, roundPrize }

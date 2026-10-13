@@ -16,7 +16,8 @@ function savePlan(snapshot) {
   const now = Date.now()
   const plan = {
     ...snapshot,
-    version: 1,
+    version: 2,
+    periodIds: planPeriods(snapshot),
     id: `${now}-${Math.random().toString(36).slice(2, 10)}`,
     createdAt: now
   }
@@ -24,14 +25,40 @@ function savePlan(snapshot) {
   return plan
 }
 
+function matchPeriod(match) {
+  const explicit = String(match.period || match.matchNumDate || '')
+  if (/^\d{6}$/.test(explicit)) return explicit
+  const date = String(match.businessDate || '')
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.slice(2).replace(/-/g, '') : ''
+}
+
+function matchNumber(match) {
+  const number = String(match.numberCode || match.number || match.matchNumStr || '')
+  const found = number.match(/(\d{3})$/)
+  return found ? found[1] : ''
+}
+
+function planPeriods(plan) {
+  return [...new Set(plan.matches.map(matchPeriod).filter(Boolean))].sort().reverse()
+}
+
+function savePlanCheck(id, check) {
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('方案已删除，核对结果未保存')
+  plans[index] = { ...plans[index], check }
+  try { wx.setStorageSync(STORAGE_KEY, plans) }
+  catch (error) { throw new Error('核对结果保存失败，请检查本机空间') }
+}
+
 function removePlan(id) {
   wx.setStorageSync(STORAGE_KEY, readPlans().filter((plan) => plan.id !== id))
 }
 
-function formatTime(timestamp) {
+function formatTime(timestamp, includeSeconds = false) {
   const date = new Date(timestamp)
   const pad = (value) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}${includeSeconds ? ':' + pad(date.getSeconds()) : ''}`
 }
 
 function formatSelectionRows(selections) {
@@ -50,12 +77,13 @@ function formatSelectionRows(selections) {
 
 function formatPlanForDisplay(plan) {
   // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
-  return { ...plan, createdTime: formatTime(plan.createdAt), matches: plan.matches.map((match) => {
+  const periodIds = planPeriods(plan)
+  return { ...plan, periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
     const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
     const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
       : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]
-    return { ...match, selectionText, selectionRows }
+    return { ...match, period: matchPeriod(match), numberCode: matchNumber(match), selectionText, selectionRows }
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }

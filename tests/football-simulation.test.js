@@ -45,9 +45,9 @@ const response = {errorCode:'0',value:{allUpList:rules,matchInfoList:[{subMatchL
   {matchId:2,matchStatus:'Closed',poolList:[]}
 ] }]}}
 const feed = normalizeFeed(response)
-assert.strictEqual(feed.matches.length,1)
+assert.strictEqual(feed.matches.length,2)
 assert.strictEqual(feed.matches[0].pools[0].single,false)
-assert.strictEqual(feed.matches[0].pools[1].single,true)
+assert.strictEqual(feed.matches[0].pools.find(pool=>pool.id==='ttg').single,true)
 assert.strictEqual(feed.matches[0].pools[0].options.length,1)
 const selected = selectedMatches(feed.matches,{'1:had:h':true,'1:ttg:s2':true})
 assert.strictEqual(selected.length,1) // Different pools are one match.

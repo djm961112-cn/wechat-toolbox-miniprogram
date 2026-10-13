@@ -1,5 +1,5 @@
 <view class="page football-page">
-  <view class="source-head"><view><view class="heading">足球模拟</view><view class="source-note">数据来自中国竞彩网 · {{updatedAt || '等待刷新'}}</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
+  <view class="source-head"><view><view class="heading">足球模拟</view><view class="source-note">本次查询：{{loading ? '查询中…' : fetchedAt || '等待查询'}}</view><view class="source-note">官方数据更新：{{updatedAt || '等待刷新'}} · 中国竞彩网</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
   <scroll-view class="market-scroll" scroll-x="true"><view class="markets"><view wx:for="{{markets}}" wx:key="id" class="market {{market === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectMarket">{{item.name}}</view></view></scroll-view>
   <view class="selection-heading"><text>已选 {{selectedCount}} 场 · 同场可选多个玩法</text></view>
   <view wx:if="{{loading}}" class="state card">正在查询官方最新赛事…</view>
@@ -7,11 +7,12 @@
   <view wx:elif="{{!matches.length}}" class="state card">当前玩法暂无可用赛事</view>
   <block wx:else>
     <view wx:for="{{matches}}" wx:key="id" class="match-card card">
-      <view class="match-meta"><text>{{item.number}} · {{item.league}}</text><text>{{item.date}} {{item.time}}</text></view>
+      <view class="match-meta"><text>{{item.period}}期 · {{item.number}} · {{item.league}}</text><text>{{item.date}} {{item.time}}</text></view>
       <view class="teams"><text>{{item.home}}</text><text class="versus">vs</text><text>{{item.away}}</text></view>
+      <view wx:if="{{!item.selectable}}" class="readonly-note">{{item.statusLabel}} · 仅展示，不可选择</view>
       <view wx:if="{{item.selectedOptions}}" class="selected-note">已选择 {{item.selectedOptions}} 项</view>
       <view wx:for="{{item.pools}}" wx:for-item="pool" wx:key="id" class="pool {{pool.id === 'had' || pool.id === 'hhad' ? 'result-pool' : ''}}">
-        <view class="pool-heading"><text>{{pool.name}}</text><view><text wx:if="{{pool.missing}}" class="eligibility">暂未开放</text><block wx:else><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '可单关' : '仅串关'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单关</text></block></view></view>
+        <view class="pool-heading"><text>{{pool.name}}</text><view><text wx:if="{{pool.missing}}" class="eligibility">暂未开放</text><text wx:elif="{{!pool.selectable}}" class="eligibility">暂不可选</text><block wx:else><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '可单关' : '仅串关'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单关</text></block></view></view>
         <view class="pool-body">
           <view wx:if="{{pool.id === 'had' || pool.id === 'hhad'}}" class="handicap {{pool.id === 'hhad' ? 'adjusted' : ''}}"><text>[{{pool.goalLabel}}]</text><text class="handicap-note">{{pool.id === 'had' ? '普通' : '让球'}}</text></view>
           <view class="options {{pool.id === 'crs' ? 'scores' : pool.id === 'ttg' ? 'goals' : ''}}">

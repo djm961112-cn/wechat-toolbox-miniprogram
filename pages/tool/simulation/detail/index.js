@@ -1,5 +1,6 @@
 const { readPlans, formatPlanForDisplay } = require('../../../../utils/simulation-plans')
 const { previewEntries } = require('../../../../utils/football-simulation')
+const { gradeEntry } = require('../../../../utils/football-results')
 
 Page({
   data: { plan: null, entryCount: 0, entryGroups: [], error: '', entryError: '' },
@@ -30,7 +31,8 @@ Page({
           entryGroups.push(group)
         }
         const { id, label, choices, returnAmount } = entry
-        group.entries.push({ id, label, choices, returnAmount })
+        const verdict = this.data.plan.check ? gradeEntry(entry.legs, this.data.plan.check.results, this.data.plan.multiplier) : {}
+        group.entries.push({ id, label, choices, returnAmount, ...verdict })
       })
       this.entries = entries
       this.setData({ entryCount: entries.length, entryGroups })

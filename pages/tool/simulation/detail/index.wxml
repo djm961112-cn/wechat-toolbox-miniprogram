@@ -5,9 +5,11 @@
       <view class="title">{{plan.title}}</view><view class="muted meta">{{plan.createdTime}}</view>
       <view class="metrics">{{plan.matches.length}} 场 · {{plan.count}} 注 · {{plan.multiplier}} 倍</view>
       <view class="pass-label">过关方式：{{plan.passLabel}}</view>
+      <view class="pass-label">所属期号：{{plan.periodLabel || '未记录'}}</view>
       <view class="money"><view>投注金额<text>¥{{plan.cost}}</text></view><view>{{plan.minReturn ? '理论金额区间' : '历史最高金额'}}<text>{{plan.minReturn ? '¥' + plan.minReturn + ' ～ ' : ''}}¥{{plan.maxReturn}}</text></view></view>
       <view class="hint">区间为至少中一注时的税前总奖金，未计逐注舍入、限额及税费。</view>
       <view wx:if="{{plan.capped}}" class="hint">包含可能触及奖金限额的组合，实际奖金可能低于理论金额。</view>
+      <view wx:if="{{plan.check}}" class="settlement-summary"><view>{{plan.check.statusLabel}} · 中奖 {{plan.check.wonCount}} 注</view><view>已确认税前奖金 <text>¥{{plan.check.prizeAmount}}</text></view><view wx:if="{{plan.check.refundCount}}">退本金 ¥{{plan.check.refundAmount}} · {{plan.check.refundCount}} 注</view><view wx:if="{{plan.check.pendingCount}}">{{plan.check.pendingCount}} 注待赛果</view><view wx:if="{{plan.check.pendingReason}}" class="hint">{{plan.check.pendingReason}}</view><view class="hint">核对时间：{{plan.checkedTime}}</view></view>
     </view>
     <view class="section card">
       <view class="section-title">比赛选择</view>
@@ -16,10 +18,24 @@
       <view wx:if="{{plan.note}}" class="note">{{plan.note}}</view>
     </view>
     <view class="section card">
+      <view class="section-title">赛果</view>
+      <view wx:if="{{!plan.check}}" class="hint">请在「我的方案」点击「核对」，查询并保存比赛赛果。</view>
+      <block wx:else>
+        <view wx:for="{{plan.check.results}}" wx:key="matchId" class="result-card">
+          <view class="result-meta"><text>{{item.league}} · {{item.period}}期 · {{item.number}}</text><text>{{item.statusLabel}}</text></view>
+          <view class="result-teams"><text>{{item.home}}</text><view class="result-score">{{item.fullScore}}<text>半场 {{item.halfScore}}</text></view><text>{{item.away}}</text></view>
+          <view class="result-pools"><view wx:for="{{item.pools}}" wx:for-item="pool" wx:key="id" class="result-pool"><view class="result-pool-name">{{pool.name}}</view><view class="result-outcome {{pool.state === 'settled' ? 'published' : ''}}">{{pool.resultText}}</view><view class="result-odds">{{pool.odds}}</view></view></view>
+          <view wx:if="{{item.fromCache}}" class="hint">本次未取得新赛果，沿用此前已缓存赛果。</view>
+          <view wx:if="{{item.lookupBySavedId}}" class="hint">按保存的历史比赛信息取得赛果，未返回的比分显示为「—」。</view>
+        </view>
+        <view class="hint">赛果栏为官方公布赔率；奖金核对使用保存时的赔率、倍数和过关方式，金额为税前参考值。</view>
+      </block>
+    </view>
+    <view class="section card">
       <view class="section-title">逐注组合（{{entryCount}} / {{plan.count}} 注）</view>
       <view wx:for="{{entryGroups}}" wx:for-item="group" wx:key="id" class="entry-group">
         <view class="group-title">{{group.title}} · {{group.count}} 注</view><view class="group-choices">{{group.choices}}</view>
-        <view wx:for="{{group.entries}}" wx:key="id" class="ticket"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view class="ticket-choices">{{item.choices}}</view></view>
+        <view wx:for="{{group.entries}}" wx:key="id" class="ticket {{item.status === 'won' ? 'won' : ''}}"><view class="ticket-title">{{item.label}} · 参考 ¥{{item.returnAmount}}</view><view wx:if="{{item.statusLabel}}" class="ticket-verdict">{{item.statusLabel}}{{item.prize !== null && item.prize ? ' · ¥' + item.prize : ''}}</view><view class="ticket-choices">{{item.choices}}</view></view>
         <view wx:if="{{group.entries.length < group.count}}" class="hint">本组已显示 {{group.entries.length}} / {{group.count}} 注，点击下方加载更多继续展开。</view>
       </view>
       <view wx:if="{{entryError}}" class="hint">{{entryError}}</view>

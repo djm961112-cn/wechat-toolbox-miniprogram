@@ -11,16 +11,24 @@
   </block>
   <block wx:else>
     <view class="tool-tabs"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view>
-    <view class="list-heading"><text>{{plans.length}} 个方案</text><text>按创建时间倒序</text></view>
-    <view wx:if="{{!plans.length}}" class="empty card"><view class="empty-symbol">▤</view><view class="empty-title">还没有保存的方案</view><view class="empty-description">在模拟工具中保存后，可以在这里回看</view></view>
-    <view wx:for="{{plans}}" wx:key="id" class="plan-card card">
-      <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
+    <input class="period-search" value="{{periodQuery}}" maxlength="20" placeholder="搜索期号，如 261012" bindinput="searchPeriod" />
+    <view class="list-heading"><text>{{planGroups.length}} 期 · {{planCount}} 个方案</text><text>期号及方案时间倒序</text></view>
+    <view wx:if="{{!planGroups.length}}" class="empty card"><view class="empty-symbol">▤</view><view class="empty-title">{{periodQuery ? '没有匹配的期号' : '还没有保存的方案'}}</view><view class="empty-description">在模拟工具中保存后，可以在这里回看</view></view>
+    <view wx:for="{{planGroups}}" wx:for-item="periodGroup" wx:key="id" class="period-group">
+      <view class="period-heading card" data-id="{{periodGroup.id}}" bindtap="togglePeriod"><view><text class="period-name">{{periodGroup.label}}</text><text class="period-count">{{periodGroup.plans.length}} 个方案</text></view><text class="period-arrow">{{periodGroup.expanded ? '收起 ⌃' : '展开 ⌄'}}</text></view>
+      <block wx:if="{{periodGroup.expanded}}">
+    <view wx:for="{{periodGroup.plans}}" wx:key="id" class="plan-card card">
+      <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '核对中…' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
       <view class="plan-time">{{item.createdTime}}</view>
       <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 注</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
       <view class="amount-row"><view><text class="amount-label">投注金额</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">{{item.minReturn ? '理论金额区间' : '历史最高金额'}}</text><text class="amount return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
+      <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">跨期方案：{{item.periodLabel}}</view>
+      <view wx:if="{{item.check}}" class="check-summary"><view>{{item.check.statusLabel}} · 中奖 {{item.check.wonCount}} 注</view><view>已确认税前奖金 <text>¥{{item.check.prizeAmount}}</text><text wx:if="{{item.check.refundCount}}" class="refund-text"> · 退本金 ¥{{item.check.refundAmount}}</text></view><view wx:if="{{item.check.pendingCount}}" class="plan-time">{{item.check.pendingCount}} 注待赛果</view><view wx:if="{{item.check.pendingReason}}" class="plan-time">{{item.check.pendingReason}}</view><view class="plan-time">核对时间：{{item.checkedTime}}</view></view>
       <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-title">{{match.label}}</view><view wx:if="{{match.date || match.time}}" class="match-time">{{match.date}} {{match.time}}</view><view class="simulation-choice-box columns-{{match.selectionRows[0].columns}}"><view wx:for="{{match.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view></view>
       <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · 保存时赔率快照</view>
       <view wx:if="{{item.note}}" class="plan-note">{{item.note}}</view>
+    </view>
+      </block>
     </view>
   </block>
   <view class="local-note">方案保存在当前设备，清理缓存或删除小程序可能导致记录丢失。</view>
