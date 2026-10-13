@@ -6,7 +6,7 @@
 
     <view class="section">
       <view class="section-title">一、服务内容</view>
-      <text class="section-text">本小程序提供无需服务器的本地工具，包括动态验证码计算与非微信平台凭据的本地整理。当前数据均在用户设备的微信本地环境中处理。</text>
+      <text class="section-text">本小程序提供无需服务器的本地工具，包括动态验证码计算、非微信平台凭据整理和单网址收藏。当前数据均在用户设备的微信本地环境中处理。</text>
     </view>
 
     <view class="section">

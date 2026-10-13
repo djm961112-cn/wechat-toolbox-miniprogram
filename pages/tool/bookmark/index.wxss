@@ -1,0 +1,14 @@
+.bookmark-page { padding-top: 30rpx; }
+.bookmark-heading { margin: 0 4rpx 24rpx; }
+.bookmark-title { color: #1d2d45; font-size: 38rpx; font-weight: 750; }
+.bookmark-subtitle { margin-top: 8rpx; color: #8995a8; font-size: 22rpx; }
+.bookmark-card { padding: 30rpx; border-radius: 24rpx; }
+.form-title, .saved-label { color: #283950; font-size: 27rpx; font-weight: 650; }
+.url-input { width: 100%; height: 86rpx; box-sizing: border-box; margin-top: 24rpx; padding: 0 20rpx; border: 1rpx solid #e2e9ef; border-radius: 16rpx; background: #f8fafc; color: #203149; font-size: 24rpx; }
+.form-hint { margin-top: 14rpx; color: #98a4b4; font-size: 20rpx; line-height: 1.6; }
+.primary-button { margin-top: 28rpx; border: 0; border-radius: 16rpx; background: #25866a; color: #fff; font-size: 25rpx; }
+.primary-button::after { border: 0; }
+.saved-url { margin-top: 22rpx; padding: 20rpx; border-radius: 16rpx; background: #f3f7f6; color: #25866a; font-size: 24rpx; line-height: 1.6; word-break: break-all; }
+.saved-actions { display: flex; justify-content: center; gap: 70rpx; margin-top: 28rpx; color: #758397; font-size: 22rpx; }
+.cancel-edit { margin-top: 22rpx; color: #8995a8; font-size: 22rpx; text-align: center; }
+.local-hint { margin: 28rpx 18rpx; color: #98a4b4; font-size: 20rpx; line-height: 1.6; text-align: center; }

@@ -1,0 +1,17 @@
+<view class="page bookmark-page">
+  <view class="bookmark-heading"><view class="bookmark-title">收藏夹</view><view class="bookmark-subtitle">保存一个常用网址，随时查看和复制</view></view>
+  <view wx:if="{{!bookmark || editing}}" class="bookmark-card card">
+    <view class="form-title">{{editing ? '更换网址' : '新增网址'}}</view>
+    <input class="url-input" type="text" maxlength="2048" value="{{inputUrl}}" placeholder="例如 https://example.com" bindinput="onInput" />
+    <view class="form-hint">只保存 http 或 https 网址；未填写协议时默认使用 https。</view>
+    <button class="primary-button" bindtap="saveBookmark">保存网址</button>
+    <view wx:if="{{editing}}" class="cancel-edit" bindtap="cancelEdit">取消</view>
+  </view>
+  <view wx:else class="bookmark-card card">
+    <view class="saved-label">已保存的网址</view>
+    <view class="saved-url">{{bookmark.url}}</view>
+    <button class="primary-button" bindtap="copyBookmark">复制网址</button>
+    <view class="saved-actions"><text bindtap="editBookmark">更换网址</text><text bindtap="deleteBookmark">删除</text></view>
+  </view>
+  <view class="local-hint">当前仅保存在本机。小程序尚未配置网页业务域名，复制后可在浏览器中打开；服务器同步将在域名配置完成后接入。</view>
+</view>
