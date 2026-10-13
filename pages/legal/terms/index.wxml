@@ -1,12 +1,12 @@
 <view class="page legal-page">
   <view class="legal-card card">
     <view class="legal-title">用户服务协议</view>
-    <view class="legal-date">生效日期：2026年10月12日</view>
+    <view class="legal-date">生效日期：2026年10月13日</view>
     <view class="legal-intro">欢迎使用本小程序。使用相关功能前，请完整阅读并理解本协议。继续使用即表示您同意遵守本协议。</view>
 
     <view class="section">
       <view class="section-title">一、服务内容</view>
-      <text class="section-text">本小程序提供无需服务器的本地工具，包括动态验证码计算、非微信平台凭据整理、单网址收藏和个人评分。当前数据均在用户设备的微信本地环境中处理。</text>
+      <text class="section-text">本小程序提供动态验证码计算、非微信平台凭据整理、单网址收藏、个人评分和可选微信登录。未登录时本地工具可继续使用；登录用于建立服务器用户身份，当前不会自动同步本地工具数据。</text>
     </view>
 
     <view class="section">

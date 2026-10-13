@@ -1,6 +1,8 @@
 <view class="page mine-page">
-  <view class="profile-card card"><view class="avatar">我</view><view class="profile-copy"><view class="profile-name">个人中心</view><view class="profile-status">本地模式</view></view></view>
-  <view class="profile-hint">当前无需登录。账号与个人资料功能将在后续接入。</view>
+  <view class="profile-card card"><view class="avatar">{{user ? '微' : '我'}}</view><view class="profile-copy"><view class="profile-name">{{user ? user.displayName : '未登录'}}</view><view class="profile-status">{{user ? '已登录 · 用户 #' + user.id : '本地模式'}}</view></view><button wx:if="{{!user}}" class="login-button" loading="{{loginLoading}}" disabled="{{loginLoading}}" bindtap="login">微信登录</button><text wx:else class="logout-button" bindtap="logout">退出</text></view>
+  <view class="profile-hint">{{user ? '登录状态来自 OpenOTools 服务器，本机工具数据暂未自动同步。' : '登录后可逐步启用云端同步；未登录也可以继续使用本地工具。'}}</view>
+  <view wx:if="{{authLoading}}" class="auth-message">正在校验登录状态…</view>
+  <view wx:if="{{authError}}" class="auth-message error">{{authError}}</view>
 
   <view class="score-card card">
     <view class="score-heading"><view><view class="section-title">给工具箱打分</view><view class="section-subtitle">选择 1 至 10 分，记录你的使用感受</view></view><view class="current-score">{{savedScore === null ? '未评分' : savedScore + '分'}}</view></view>

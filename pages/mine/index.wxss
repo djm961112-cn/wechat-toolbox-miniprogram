@@ -4,7 +4,13 @@
 .profile-copy { min-width: 0; }
 .profile-name { color: #1d2e43; font-size: 32rpx; font-weight: 700; }
 .profile-status { display: inline-block; margin-top: 10rpx; padding: 5rpx 13rpx; border-radius: 99rpx; background: #eaf5f0; color: #25866a; font-size: 20rpx; }
+.login-button { flex-shrink: 0; margin: 0 0 0 auto; padding: 0 24rpx; border: 0; border-radius: 14rpx; background: #25866a; color: #fff; font-size: 22rpx; line-height: 62rpx; }
+.login-button::after { border: 0; }
+.login-button[disabled] { background: #9fcbbd; color: #fff; opacity: 1; }
+.logout-button { flex-shrink: 0; margin-left: auto; padding: 14rpx 4rpx 14rpx 18rpx; color: #8795a7; font-size: 21rpx; }
 .profile-hint { margin: 16rpx 10rpx 24rpx; color: #8795a7; font-size: 21rpx; line-height: 1.6; }
+.auth-message { margin: -10rpx 10rpx 22rpx; color: #25866a; font-size: 20rpx; }
+.auth-message.error { color: #c26055; }
 .score-card { padding: 28rpx; }
 .score-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12rpx; }
 .section-title { color: #203149; font-size: 29rpx; font-weight: 700; }
