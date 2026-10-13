@@ -93,7 +93,7 @@ Page({
       savePlanCheck(id, check)
       if (!this.unloaded) {
         this.refreshPlans()
-        wx.showToast({ title: check.status === 'complete' ? '核对完成' : '已核对，部分结果待确认', icon: 'none' })
+        wx.showToast({ title: check.status === 'complete' ? '核对完成' : '结果还未公示或未查到，请稍后再试', icon: 'none', duration: 3000 })
       }
     } catch (error) { if (!this.unloaded) wx.showToast({ title: error.message || '核对失败，请重试', icon: 'none', duration: 3000 }) }
     finally { if (!this.unloaded) this.setData({ checkingId: '' }) }

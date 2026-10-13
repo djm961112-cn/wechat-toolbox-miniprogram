@@ -4,6 +4,7 @@ const { matchPeriod, matchNumber } = require('./simulation-plans')
 const LIST_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchDataPageListV1.qry'
 const DETAIL_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchGeneral.qry'
 const RESULT_POOLS = ['had', 'hhad', 'crs', 'ttg', 'hafu'].map((id) => POOLS.find((pool) => pool.id === id))
+const RESULT_UNAVAILABLE_MESSAGE = '结果还未公示或未查到，请稍后再试'
 
 function requestValue(url, data) {
   return new Promise((resolve, reject) => wx.request({
@@ -77,6 +78,10 @@ function normalizeResult(snapshot, candidate, detail = {}) {
   }
 }
 
+function hasCheckableResult(results) {
+  return Array.isArray(results) && results.some((result) => ['published', 'cancelled'].includes(result.status))
+}
+
 async function checkPlan(plan) {
   if (!Array.isArray(plan.matches) || !plan.matches.length || !Array.isArray(plan.passes)) throw new Error('方案缺少完整选择数据，无法核对')
   const byDate = new Map()
@@ -90,7 +95,12 @@ async function checkPlan(plan) {
     if (!candidate) {
       // An issue/number/ID binding was captured at save time. Use its stable ID for
       // rescheduled matches; the detail API echoes matchStatus, so only real winning keys establish publication.
-      const detail = await requestValue(DETAIL_URL, { matchId: match.id, matchStatus: '11' })
+      let detail
+      try { detail = await requestValue(DETAIL_URL, { matchId: match.id, matchStatus: '11' }) }
+      catch (error) {
+        if (/合法域名|网络/.test(error.message || '')) throw error
+        throw new Error(RESULT_UNAVAILABLE_MESSAGE)
+      }
       if (String(detail.matchId) !== String(match.id)) throw new Error('历史比赛赛果身份不一致，请稍后重试')
       const published = Array.isArray(detail.matchResultList) && detail.matchResultList.some((pool) => resultKey(String(pool.poolCode).toLowerCase(), pool.combination, pool.combinationDesc))
       const previous = (plan.check && plan.check.results || []).find((item) => item.matchId === String(match.id) && item.period === matchPeriod(match) && item.number === matchNumber(match) && item.status === 'published')
@@ -103,6 +113,7 @@ async function checkPlan(plan) {
     if (String(detail.matchId) !== String(candidate.matchId)) throw new Error('官方赛果详情身份不一致，请稍后重试')
     results.push(normalizeResult(match, candidate, detail))
   }
+  if (!hasCheckableResult(results)) throw new Error(RESULT_UNAVAILABLE_MESSAGE)
   return { version: 1, checkedAt: Date.now(), results, ...settlePlan(plan, results) }
 }
 
@@ -181,4 +192,4 @@ function settlePlan(plan, results) {
     lostCount: totalCount - wonCount - pendingCount - refundCount, prizeAmount: (prizeCents / 100).toFixed(2), refundAmount: (refundCents / 100).toFixed(2), returnAmount: ((prizeCents + refundCents) / 100).toFixed(2) }
 }
 
-module.exports = { checkPlan, gradeEntry }
+module.exports = { checkPlan, gradeEntry, hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE }

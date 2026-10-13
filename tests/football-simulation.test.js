@@ -1,5 +1,6 @@
 const assert = require('assert')
 const { POOLS, COMPOUND, normalizeFeed, selectedMatches, availablePasses, calculate, previewEntries } = require('../utils/football-simulation')
+const { hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE } = require('../utils/football-results')
 const { readPlans, savePlan, removePlan } = require('../utils/simulation-plans')
 
 function option(poolId, key, odds, single = true, allUp = true) {
@@ -53,6 +54,10 @@ const selected = selectedMatches(feed.matches,{'1:had:h':true,'1:ttg:s2':true})
 assert.strictEqual(selected.length,1) // Different pools are one match.
 assert.deepStrictEqual(availablePasses(selected,rules,'free').map(p=>p.id),['Single'])
 assert.throws(()=>normalizeFeed({errorCode:1}))
+assert.strictEqual(RESULT_UNAVAILABLE_MESSAGE, '结果还未公示或未查到，请稍后再试')
+assert.strictEqual(hasCheckableResult([{status:'pending'},{status:'suspended'}]), false)
+assert.strictEqual(hasCheckableResult([{status:'pending'},{status:'published'}]), true)
+assert.strictEqual(hasCheckableResult([{status:'cancelled'}]), true)
 
 const memory = new Map()
 global.wx = {getStorageSync:key=>memory.get(key),setStorageSync:(key,value)=>memory.set(key,JSON.parse(JSON.stringify(value)))}
