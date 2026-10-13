@@ -1,6 +1,7 @@
 <view class="page football-page">
   <view class="source-head"><view><view class="heading">足球模拟</view><view class="source-note">本次查询：{{loading ? '查询中…' : fetchedAt || '等待查询'}}</view><view class="source-note">官方数据更新：{{updatedAt || '等待刷新'}} · 中国竞彩网</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
   <view class="simulation-notice">仅供个人方案模拟与赛后复盘。金额是本地计算的参考值；本小程序不提供真实投注、支付、出票或兑奖。</view>
+  <view wx:if="{{draftRecovered}}" class="draft-notice">已从本机恢复上次页面，赛事和赔率按上次查询快照展示。点击「刷新」会清空当前选择并重新查询。</view>
   <scroll-view class="market-scroll" scroll-x="true"><view class="markets"><view wx:for="{{markets}}" wx:key="id" class="market {{market === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectMarket">{{item.name}}</view></view></scroll-view>
   <view class="selection-heading"><text>已选 {{selectedCount}} 场 · 同场可选多个玩法</text></view>
   <view wx:if="{{loading}}" class="state card">正在查询官方最新赛事…</view>

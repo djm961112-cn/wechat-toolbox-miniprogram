@@ -1,23 +1,75 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
 const { savePlan, readSources, formatTime, formatSelectionRows, matchNumber } = require('../../../../utils/simulation-plans')
+const DRAFT_KEY = 'simulation-football-draft-v1'
+const FEED_KEY = 'simulation-football-feed-v1'
 
 Page({
   data: {
-    loading: true, error: '', updatedAt: '', fetchedAt: '', market: 'had',
+    loading: true, error: '', updatedAt: '', fetchedAt: '', draftRecovered: false, market: 'had',
     markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
     multiplier: '1', multiplierVisible: false, multiplierDraft: '1', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
     summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
     planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
   },
-  onShow() { this.refreshFeed() },
-  onUnload() { this.unloaded = true; if (this.requestTask) this.requestTask.abort() },
+  onLoad() { this.restoreDraft() },
+  onShow() {
+    if (!this.feed && !this.initialFetchStarted) { this.initialFetchStarted = true; this.refreshFeed() }
+  },
+  onHide() { this.persistDraft() },
+  onUnload() { this.persistDraft(); this.unloaded = true; if (this.requestTask) this.requestTask.abort() },
   onPullDownRefresh() { this.refreshFeed() },
+  restoreDraft() {
+    try {
+      const draft = wx.getStorageSync(DRAFT_KEY)
+      const cached = wx.getStorageSync(FEED_KEY)
+      if (!draft || draft.version !== 1 || !cached || cached.version !== 1 || draft.feedToken !== cached.token || !cached.feed || !Array.isArray(cached.feed.matches)) return
+      let sources = []
+      try { sources = readSources() } catch (error) {}
+      const multiplier = Number(draft.multiplier)
+      const selections = draft.selections && typeof draft.selections === 'object' && !Array.isArray(draft.selections) ? draft.selections : {}
+      const selectedCount = selectedMatches(cached.feed.matches, selections).length
+      this.feed = cached.feed
+      this.feedToken = cached.token
+      this.setData({
+        loading: false, updatedAt: cached.updatedAt || '', fetchedAt: cached.fetchedAt || '', draftRecovered: true,
+        market: this.data.markets.some((item) => item.id === draft.market) ? draft.market : 'had',
+        selections, selectedCount,
+        chosenPassIds: Array.isArray(draft.chosenPassIds) ? draft.chosenPassIds : [],
+        passSelectionEdited: Boolean(draft.passSelectionEdited), multiplier: Number.isInteger(multiplier) && multiplier >= 1 && multiplier <= 9999 ? String(multiplier) : '1',
+        expandedMatchId: draft.expandedMatchId || '', preview: draft.preview || null,
+        previewVisible: Boolean(draft.previewVisible && draft.preview), saveFormVisible: Boolean(draft.saveFormVisible && draft.previewVisible && draft.preview),
+        planTitle: draft.planTitle || '', planNote: draft.planNote || '', planSourceId: draft.planSourceId || '', sources
+      }, () => this.updateView())
+    } catch (error) { wx.showToast({ title: '读取草稿失败，请重新选择', icon: 'none' }) }
+  },
+  persistDraft() {
+    if (!this.feed) return
+    try {
+      const data = this.data
+      const hasDraft = Object.keys(data.selections || {}).length || data.preview || data.multiplier !== '1'
+      if (data.saved || !hasDraft) { wx.removeStorageSync(DRAFT_KEY); return }
+      wx.setStorageSync(DRAFT_KEY, {
+        version: 1, feedToken: this.feedToken, market: data.market, selections: data.selections, chosenPassIds: data.chosenPassIds,
+        passSelectionEdited: data.passSelectionEdited, multiplier: data.multiplier, expandedMatchId: data.expandedMatchId,
+        preview: data.preview, previewVisible: data.previewVisible, saveFormVisible: data.saveFormVisible,
+        planTitle: data.planTitle, planNote: data.planNote, planSourceId: data.planSourceId
+      })
+    } catch (error) {
+      if (!this.draftSaveFailed) { this.draftSaveFailed = true; wx.showToast({ title: '草稿自动保存失败，请检查空间', icon: 'none' }) }
+    }
+  },
+  cacheFeed(feed, fetchedAt, token) {
+    try { wx.setStorageSync(FEED_KEY, { version: 1, feed, updatedAt: feed.updatedAt, fetchedAt, token }) }
+    catch (error) {
+      if (!this.draftSaveFailed) { this.draftSaveFailed = true; wx.showToast({ title: '草稿自动保存失败，请检查空间', icon: 'none' }) }
+    }
+  },
   refreshFeed() {
     const version = (this.requestVersion || 0) + 1
     this.requestVersion = version
     if (this.requestTask) this.requestTask.abort()
-    this.setData({ loading: true, error: '', passVisible: false, previewVisible: false, summary: null, passes: [], chosenPassIds: [], passSelectionEdited: false, passLabel: '' })
+    this.setData({ loading: true, error: '' })
     this.requestTask = wx.request({
       url: API_URL, data: { channel: 'c', _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
       success: (res) => {
@@ -25,9 +77,13 @@ Page({
         try {
           if (res.statusCode !== 200) throw new Error('官方接口暂时不可用')
           const feed = normalizeFeed(res.data)
+          const fetchedAtMs = Date.now()
+          const fetchedAt = formatTime(fetchedAtMs, true)
+          this.feedToken = String(fetchedAtMs)
+          this.cacheFeed(feed, fetchedAt, this.feedToken)
           this.feed = feed
-          // Re-entering the page always refreshes data and clears old selections to prevent mixing historical odds.
-          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now(), true), selections: {}, chosenPassIds: [], saved: false }, () => this.updateView())
+          // Explicit refresh starts a fresh calculation; returning from the background never reaches this path.
+          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false, selections: {}, chosenPassIds: [], passSelectionEdited: false, preview: null, previewVisible: false, saveFormVisible: false, planTitle: '', planNote: '', planSourceId: '', saved: false }, () => this.updateView())
         } catch (error) { this.showFeedError(error.message) }
       },
       fail: (error) => {
@@ -37,7 +93,10 @@ Page({
       complete: () => { wx.stopPullDownRefresh() }
     })
   },
-  showFeedError(error) { this.feed = null; this.setData({ loading: false, error, updatedAt: '', fetchedAt: '', matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] }) },
+  showFeedError(error) {
+    if (this.feed) { this.setData({ loading: false }); wx.showToast({ title: error, icon: 'none' }); return }
+    this.setData({ loading: false, error, updatedAt: '', fetchedAt: '', matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] })
+  },
   selectMarket(event) {
     const market = event.currentTarget.dataset.id
     if (market === this.data.market) return
@@ -59,7 +118,7 @@ Page({
       if (selected.length >= 8 && !selected.some((item) => item.id === match)) { wx.showToast({ title: '最多选择 8 场比赛', icon: 'none' }); return }
       selections[key] = true
     }
-    this.setData({ selections, saved: false }, () => this.updateView())
+    this.setData({ selections, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())
   },
   clearSelections() {
     if ((!this.data.selectedCount && this.data.multiplier === '1') || this.data.loading) return
@@ -71,19 +130,19 @@ Page({
     let ids = this.data.chosenPassIds.slice()
     if (ids.includes(id)) ids = ids.filter((value) => value !== id)
     else ids.push(id)
-    this.setData({ chosenPassIds: ids, passSelectionEdited: true, saved: false }, () => this.updateView())
+    this.setData({ chosenPassIds: ids, passSelectionEdited: true, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())
   },
   openMultiplier() { this.setData({ multiplierVisible: true, multiplierDraft: this.data.multiplier, passVisible: false }) },
   closeMultiplier() { this.setData({ multiplierVisible: false }) },
   chooseQuickMultiplier(event) {
-    this.setData({ multiplier: String(event.currentTarget.dataset.value), multiplierVisible: false, saved: false }, () => this.updateView())
+    this.setData({ multiplier: String(event.currentTarget.dataset.value), multiplierVisible: false, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())
   },
   tapMultiplierKey(event) {
     const key = event.currentTarget.dataset.key
     if (key === 'confirm') {
       const multiplier = Number(this.data.multiplierDraft)
       if (!Number.isInteger(multiplier) || multiplier < 1 || multiplier > 9999) { wx.showToast({ title: '倍率需为 1 至 9999', icon: 'none' }); return }
-      this.setData({ multiplier: String(multiplier), multiplierVisible: false, saved: false }, () => this.updateView())
+      this.setData({ multiplier: String(multiplier), multiplierVisible: false, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())
       return
     }
     if (key === 'delete') { this.setData({ multiplierDraft: this.data.multiplierDraft.slice(0, -1) }); return }
@@ -128,7 +187,7 @@ Page({
       try { summary = calculate(selected, available.filter((pass) => chosenPassIds.includes(pass.id)), Number(this.data.multiplier)) }
       catch (error) { calculationError = error.message }
     }
-    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passSelectionEdited, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError })
+    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passSelectionEdited, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError }, () => this.persistDraft())
   },
   openPreview() {
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及组合方式', icon: 'none' }); return }
@@ -149,18 +208,18 @@ Page({
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单场' : `${pass.sizes[0]}场`).join('、'),
       briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0) + (match.selectionRows.length - 1) * 24, 0)), ...this.data.summary
     }
-    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '', planSourceId: '' })
+    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '', planSourceId: '' }, () => this.persistDraft())
   },
   openSaveForm() {
-    try { this.setData({ sources: readSources(), saveFormVisible: true }) }
+    try { this.setData({ sources: readSources(), saveFormVisible: true }, () => this.persistDraft()) }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },
-  backToPreview() { if (!this.data.saving) this.setData({ saveFormVisible: false }) },
-  closePreview() { if (!this.data.saving) this.setData({ previewVisible: false }) },
+  backToPreview() { if (!this.data.saving) this.setData({ saveFormVisible: false }, () => this.persistDraft()) },
+  closePreview() { if (!this.data.saving) this.setData({ previewVisible: false }, () => this.persistDraft()) },
   stopPropagation() {},
-  setTitle(event) { this.setData({ planTitle: event.detail.value }) },
-  setNote(event) { this.setData({ planNote: event.detail.value }) },
-  selectPlanSource(event) { this.setData({ planSourceId: event.currentTarget.dataset.id || '' }) },
+  setTitle(event) { this.setData({ planTitle: event.detail.value }, () => this.persistDraft()) },
+  setNote(event) { this.setData({ planNote: event.detail.value }, () => this.persistDraft()) },
+  selectPlanSource(event) { this.setData({ planSourceId: event.currentTarget.dataset.id || '' }, () => this.persistDraft()) },
   savePreview() {
     if (this.data.saving || this.data.saved || !this.data.previewVisible || !this.data.saveFormVisible || !this.data.preview) return
     const title = this.data.planTitle.trim()
@@ -168,6 +227,7 @@ Page({
     this.setData({ saving: true })
     try {
       savePlan({ ...this.data.preview, title, note: this.data.planNote.trim(), planSourceId: this.data.planSourceId })
+      try { wx.removeStorageSync(DRAFT_KEY) } catch (error) {}
       this.setData({ saved: true, saving: false, previewVisible: false })
       wx.showToast({ title: '已保存到我的方案', icon: 'success' })
     } catch (error) { this.setData({ saving: false }); wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
