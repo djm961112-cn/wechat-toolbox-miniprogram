@@ -14,7 +14,7 @@
       <view wx:if="{{!item.selectable}}" class="readonly-note">{{item.statusLabel}} · 仅展示，不可选择</view>
       <view wx:if="{{item.selectedOptions}}" class="selected-note">已选择 {{item.selectedOptions}} 项</view>
       <view wx:for="{{item.pools}}" wx:for-item="pool" wx:key="id" class="pool {{pool.id === 'had' || pool.id === 'hhad' ? 'result-pool' : ''}}">
-        <view class="pool-heading"><text>{{pool.name}}</text><view><text wx:if="{{pool.missing}}" class="eligibility">暂未开放</text><text wx:elif="{{!pool.selectable}}" class="eligibility">暂不可选</text><block wx:else><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '支持单场' : '仅多场组合'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单场</text></block></view></view>
+        <view class="pool-heading"><text>{{pool.name}}</text><view><text wx:if="{{pool.missing}}" class="eligibility">暂未开放</text><text wx:elif="{{!pool.selectable}}" class="eligibility">暂不可选</text><block wx:else><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '可单关' : '仅串关'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单关</text></block></view></view>
         <view class="pool-body">
           <view wx:if="{{pool.id === 'had' || pool.id === 'hhad'}}" class="handicap {{pool.id === 'hhad' ? 'adjusted' : ''}}"><text>[{{pool.goalLabel}}]</text><text class="handicap-note">{{pool.id === 'had' ? '普通' : '让球'}}</text></view>
           <view class="options {{pool.id === 'crs' ? 'scores' : pool.id === 'ttg' ? 'goals' : ''}}">
@@ -30,9 +30,9 @@
     <view class="pass-sheet" catchtap="stopPropagation">
       <view class="sheet-heading"><text>组合方式</text><text class="close" catchtap="closePasses">×</text></view>
       <scroll-view class="pass-content" scroll-y="true" style="height: {{passPanelHeight}}rpx;">
-        <view class="pass-hint">组合场数可多选。增减比赛会自动选择最高可用场数；同一场数下保留手动选择。单场只包含支持单场的选项。</view>
+        <view class="pass-hint">过关方式可多选。增减比赛会自动选择最高可用关数；同一场数下保留手动选择。单关只包含有单关资格的选项。</view>
         <view class="pass-options"><view wx:for="{{passes}}" wx:key="id" class="pass {{item.selected ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="togglePass">{{item.label}}</view></view>
-        <view wx:if="{{!passes.length}}" class="pass-hint">请先选择比赛。仅支持多场组合的选项至少需要两场。</view>
+        <view wx:if="{{!passes.length}}" class="pass-hint">请先选择比赛。仅串关的选项至少需要两场。</view>
         <view wx:if="{{calculationError}}" class="calculation-error">{{calculationError}}</view>
       </scroll-view>
       <view class="pass-done" bindtap="closePasses">完成</view>

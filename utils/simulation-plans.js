@@ -115,7 +115,7 @@ function formatSelectionRows(selections) {
 function formatPlanForDisplay(plan) {
   // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
   const periodIds = planPeriods(plan)
-  return { ...plan, passLabel: String(plan.passLabel || '').replace(/单关/g, '单场').replace(/(\d+)串1/g, '$1场组合'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
+  return { ...plan, passLabel: String(plan.passLabel || '').replace(/单场/g, '单关').replace(/(\d+)场组合/g, '$1串1'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
     const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
     const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
       : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]

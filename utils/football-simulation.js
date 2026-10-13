@@ -59,7 +59,7 @@ function availablePasses(matches, rules, mode) {
   const permitted = (formula, type) => pools.every((pool) => (rules[pool.toUpperCase()] || []).some((rule) => Number(rule.fValue) === 1 && rule.formula === formula && Number(rule.formulaType) === type))
   const passes = []
   // Single entries are eligible per option; a mixed record may contain both single and parlay-only choices.
-  if (options.some((option) => option.single && permittedSingle(option.poolId, rules))) passes.push({ id: 'Single', label: '单场', sizes: [1] })
+  if (options.some((option) => option.single && permittedSingle(option.poolId, rules))) passes.push({ id: 'Single', label: '单关', sizes: [1] })
   const limit = Math.min(8, ...options.map((option) => option.maxLegs))
   if (options.every((option) => option.allUp)) {
     if (mode === 'compound') {
@@ -69,7 +69,7 @@ function availablePasses(matches, rules, mode) {
         candidates.forEach((id) => { if (permitted(id, 1)) passes.push({ id, label: id.replace('x', '串'), sizes: COMPOUND[id] || [n] }) })
       }
     } else {
-      for (let n = 2; n <= Math.min(matches.length, limit); n += 1) if (permitted(`${n}x1`, 2)) passes.push({ id: `${n}x1`, label: `${n}场组合`, sizes: [n] })
+      for (let n = 2; n <= Math.min(matches.length, limit); n += 1) if (permitted(`${n}x1`, 2)) passes.push({ id: `${n}x1`, label: `${n}串1`, sizes: [n] })
     }
   }
   return passes
@@ -217,10 +217,10 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
           const marketChoices = choices.map((options, i) => options.filter((option) => option.poolId === selected[i].poolId))
           const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + option.goalLine + ']' : ''}(${Number(option.odds).toFixed(2)})`
           rows.push({
-            id: String(skipped + index), label: `${size === 1 ? '单场' : `${size}场组合`} · 第 ${skipped + index + 1} 组`,
+            id: String(skipped + index), label: `${size === 1 ? '单关' : `${size}串1`} · 第 ${skipped + index + 1} 组`,
             choices: selected.map((option, i) => `${group[i].number || group[i].id} ${formatChoice(option)}`).join(' × '),
             groupId: JSON.stringify([pass.id, size, group.map((match, i) => [match.id, selected[i].poolId])]),
-            groupLabel: size === 1 ? '单场' : `${size}场组合`,
+            groupLabel: size === 1 ? '单关' : `${size}串1`,
             groupChoices: marketChoices.map((options, i) => `${group[i].number || group[i].id} ${options.map(formatChoice).join('、')}`).join(' ＋ '),
             groupCount: marketChoices.reduce((value, options) => value * options.length, 1),
             legs: selected.map((option, i) => ({ ...option, matchId: group[i].id })),
