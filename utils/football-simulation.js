@@ -59,7 +59,7 @@ function availablePasses(matches, rules, mode) {
   const permitted = (formula, type) => pools.every((pool) => (rules[pool.toUpperCase()] || []).some((rule) => Number(rule.fValue) === 1 && rule.formula === formula && Number(rule.formulaType) === type))
   const passes = []
   // Single entries are eligible per option; a mixed record may contain both single and parlay-only choices.
-  if (options.some((option) => option.single && permittedSingle(option.poolId, rules))) passes.push({ id: 'Single', label: '单关', sizes: [1] })
+  if (options.some((option) => option.single && permittedSingle(option.poolId, rules))) passes.push({ id: 'Single', label: '单场', sizes: [1] })
   const limit = Math.min(8, ...options.map((option) => option.maxLegs))
   if (options.every((option) => option.allUp)) {
     if (mode === 'compound') {
@@ -69,7 +69,7 @@ function availablePasses(matches, rules, mode) {
         candidates.forEach((id) => { if (permitted(id, 1)) passes.push({ id, label: id.replace('x', '串'), sizes: COMPOUND[id] || [n] }) })
       }
     } else {
-      for (let n = 2; n <= Math.min(matches.length, limit); n += 1) if (permitted(`${n}x1`, 2)) passes.push({ id: `${n}x1`, label: `${n}串1`, sizes: [n] })
+      for (let n = 2; n <= Math.min(matches.length, limit); n += 1) if (permitted(`${n}x1`, 2)) passes.push({ id: `${n}x1`, label: `${n}场组合`, sizes: [n] })
     }
   }
   return passes
@@ -161,9 +161,9 @@ function prizeRange(matches, sizes, multiplier) {
 
 function calculate(matches, passes, multiplier) {
   if (!Number.isInteger(multiplier) || multiplier < 1 || multiplier > 9999) throw new Error('倍数应为 1 至 9999 的整数')
-  if (!matches.length || !passes.length) throw new Error('请选择比赛及可用的过关方式')
+  if (!matches.length || !passes.length) throw new Error('请选择比赛及可用的组合方式')
   if (matches.length > 8) throw new Error('最多选择 8 场比赛')
-  if (new Set(matches.map((match) => match.id)).size !== matches.length) throw new Error('同场比赛不能重复作为串关场次')
+  if (new Set(matches.map((match) => match.id)).size !== matches.length) throw new Error('同场比赛不能重复作为组合场次')
   let count = 0
   let capped = false
   passes.forEach((pass) => pass.sizes.forEach((size) => {
@@ -171,7 +171,7 @@ function calculate(matches, passes, multiplier) {
       matches.forEach((match) => { count += match.options.filter((option) => option.single).length })
       return
     }
-    if (matches.some((match) => match.options.some((option) => !option.allUp || size > option.maxLegs))) throw new Error('所选玩法不支持该串关方式')
+    if (matches.some((match) => match.options.some((option) => !option.allUp || size > option.maxLegs))) throw new Error('所选玩法不支持该组合方式')
     combinations(matches, size).forEach((group) => {
       const entries = group.reduce((n, match) => n * match.options.length, 1)
       count += entries
@@ -180,7 +180,7 @@ function calculate(matches, passes, multiplier) {
       if (estimate > perEntryCap) capped = true
     })
   }))
-  if (!count) throw new Error('所选记录不支持当前过关方式')
+  if (!count) throw new Error('所选记录不支持当前组合方式')
   if (!Number.isSafeInteger(count * 2 * multiplier)) throw new Error('组合金额过大，请减少选项或倍数')
   return { count, cost: (count * 2 * multiplier).toFixed(2), ...prizeRange(matches, passes.reduce((all, pass) => all.concat(pass.sizes), []), multiplier), capped }
 }
@@ -217,10 +217,10 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
           const marketChoices = choices.map((options, i) => options.filter((option) => option.poolId === selected[i].poolId))
           const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + option.goalLine + ']' : ''}(${Number(option.odds).toFixed(2)})`
           rows.push({
-            id: String(skipped + index), label: `${size === 1 ? '单关' : `${size}串1`} · 第 ${skipped + index + 1} 注`,
+            id: String(skipped + index), label: `${size === 1 ? '单场' : `${size}场组合`} · 第 ${skipped + index + 1} 组`,
             choices: selected.map((option, i) => `${group[i].number || group[i].id} ${formatChoice(option)}`).join(' × '),
             groupId: JSON.stringify([pass.id, size, group.map((match, i) => [match.id, selected[i].poolId])]),
-            groupLabel: size === 1 ? '单关' : `${size}串1`,
+            groupLabel: size === 1 ? '单场' : `${size}场组合`,
             groupChoices: marketChoices.map((options, i) => `${group[i].number || group[i].id} ${options.map(formatChoice).join('、')}`).join(' ＋ '),
             groupCount: marketChoices.reduce((value, options) => value * options.length, 1),
             legs: selected.map((option, i) => ({ ...option, matchId: group[i].id })),

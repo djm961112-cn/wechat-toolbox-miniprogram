@@ -62,7 +62,7 @@ function normalizeResult(snapshot, candidate, detail = {}) {
     const line = String(raw.combinationDesc || '').trim().match(/^[（(]([+-]?\d+(?:\.\d+)?)[）)]/)
     const goalLine = line ? line[1] : null
     const name = pool.id === 'hhad' ? `让球${goalLine !== null ? '(' + goalLine + ')' : ''}` : pool.name
-    let resultText = status === 'cancelled' ? '无效场次' : status === 'suspended' ? '暂停兑奖' : key ? String(raw.combinationDesc || raw.combination).trim().replace(/^[（(][^）)]*[）)]/, '') : '待公布'
+    let resultText = status === 'cancelled' ? '无效场次' : status === 'suspended' ? '结果暂不可核对' : key ? String(raw.combinationDesc || raw.combination).trim().replace(/^[（(][^）)]*[）)]/, '') : '待公布'
     if (pool.id === 'hafu' && key) resultText = resultText.length === 2 ? resultText[0] + '-' + resultText[1] : resultText
     return { id: pool.id, name, key, goalLine, resultText, odds: key && Number(raw.odds) > 0 ? Number(raw.odds).toFixed(2) : '-', state: status === 'cancelled' ? 'void' : key ? 'settled' : 'pending' }
   })
@@ -72,7 +72,7 @@ function normalizeResult(snapshot, candidate, detail = {}) {
     home: candidate && candidate.homeTeamAbbName || snapshot.home, away: candidate && candidate.awayTeamAbbName || snapshot.away,
     fullScore: candidate && candidate.sectionsNo999 || detail.sectionsNo999 || resultScore || '—',
     halfScore: candidate && candidate.sectionsNo1 || detail.sectionsNo1 || '—',
-    status, statusLabel: detail.matchStatusName || candidate && candidate.matchStatusName || '暂未查询到赛果', pools,
+    status, statusLabel: status === 'suspended' ? '结果暂不可核对' : detail.matchStatusName || candidate && candidate.matchStatusName || '暂未查询到赛果', pools,
     fetchedAt: Date.now()
   }
 }
@@ -107,7 +107,7 @@ async function checkPlan(plan) {
 }
 
 function gradeOption(option, result) {
-  if (!result || result.status === 'suspended') return { state: 'pending', odds: 0, reason: result && result.status === 'suspended' ? '暂停兑奖' : '未查询到完整赛果' }
+  if (!result || result.status === 'suspended') return { state: 'pending', odds: 0, reason: result && result.status === 'suspended' ? '结果暂不可核对' : '未查询到完整赛果' }
   const pool = result.pools.find((item) => item.id === option.poolId)
   if (!pool || pool.state === 'pending') return { state: 'pending', odds: 0, reason: '未查询到完整赛果' }
   if (pool.state === 'void') return { state: 'void', odds: 1 }
@@ -123,11 +123,11 @@ function prizeAmount(odds, validLegs, multiplier) {
 
 function gradeEntry(legs, results, multiplier) {
   const grades = legs.map((option) => gradeOption(option, results.find((result) => result.matchId === String(option.matchId))))
-  if (grades.some((grade) => grade.state === 'lost')) return { status: 'lost', statusLabel: '未中奖', prize: '0.00' }
+  if (grades.some((grade) => grade.state === 'lost')) return { status: 'lost', statusLabel: '与赛果不匹配', prize: '0.00' }
   if (grades.some((grade) => grade.state === 'pending')) return { status: 'pending', statusLabel: grades.find((grade) => grade.state === 'pending').reason || '待确认赛果', prize: null }
   const validLegs = grades.filter((grade) => grade.state !== 'void').length
   const prize = prizeAmount(grades.reduce((value, grade) => value * grade.odds, 1), validLegs, multiplier)
-  return { status: validLegs ? 'won' : 'void', statusLabel: validLegs ? '已中奖' : '退本金', prize: prize.toFixed(2) }
+  return { status: validLegs ? 'won' : 'void', statusLabel: validLegs ? '与赛果匹配' : '无效组合模拟返还', prize: prize.toFixed(2) }
 }
 
 function settlePlan(plan, results) {
@@ -144,7 +144,7 @@ function settlePlan(plan, results) {
     return { ...match, options }
   })
   for (const pass of plan.passes) {
-    if (!Array.isArray(pass.sizes) || pass.sizes.some((size) => !Number.isInteger(size) || size < 1 || size > matches.length)) throw new Error('方案过关方式异常，无法核对')
+    if (!Array.isArray(pass.sizes) || pass.sizes.some((size) => !Number.isInteger(size) || size < 1 || size > matches.length)) throw new Error('方案组合方式异常，无法核对')
     for (const size of pass.sizes) {
       for (const group of combinations(matches, size)) {
         const choices = group.map((match) => match.options.filter((option) => size !== 1 || option.single))
@@ -175,7 +175,7 @@ function settlePlan(plan, results) {
       }
     }
   }
-  if (totalCount !== Number(plan.count)) throw new Error('方案注数与选择快照不一致，无法核对')
+  if (totalCount !== Number(plan.count)) throw new Error('方案组合数与选择快照不一致，无法核对')
   if (!Number.isSafeInteger(prizeCents) || !Number.isSafeInteger(refundCents) || !Number.isSafeInteger(prizeCents + refundCents)) throw new Error('核对金额过大，无法准确计算')
   return { status: allPublished ? 'complete' : 'partial', statusLabel: allPublished ? '核对完成' : '部分结果待确认', pendingReason: [...pendingReasons].join('、'), totalCount, wonCount, pendingCount, refundCount,
     lostCount: totalCount - wonCount - pendingCount - refundCount, prizeAmount: (prizeCents / 100).toFixed(2), refundAmount: (refundCents / 100).toFixed(2), returnAmount: ((prizeCents + refundCents) / 100).toFixed(2) }

@@ -36,6 +36,6 @@ Page({
       })
       this.entries = entries
       this.setData({ entryCount: entries.length, entryGroups })
-    } catch (error) { this.setData({ entryError: '历史方案缺少完整组合数据，无法展开逐注明细' }) }
+    } catch (error) { this.setData({ entryError: '历史方案缺少完整组合数据，无法展开逐项明细' }) }
   }
 })

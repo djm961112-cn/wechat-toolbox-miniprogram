@@ -1,5 +1,6 @@
 @import "../choices.wxss";
 .detail-page { padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
+.simulation-notice { margin-bottom: 18rpx; padding: 16rpx 20rpx; border-radius: 14rpx; background: #eaf5f0; color: #4d7868; font-size: 20rpx; line-height: 1.5; }
 .summary, .section { padding: 26rpx; margin-bottom: 22rpx; }
 .title { font-size: 32rpx; font-weight: 650; word-break: break-all; }
 .meta { margin-top: 8rpx; font-size: 20rpx; }

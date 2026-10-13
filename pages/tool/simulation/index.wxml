@@ -1,5 +1,5 @@
 <view class="page simulation-page">
-  <view class="intro"><view class="intro-title">模拟计算</view><view class="intro-subtitle">留下每次选择，积累自己的方案记录</view></view>
+  <view class="intro"><view class="intro-title">模拟计算</view><view class="intro-subtitle">记录自己的赛事选择，结合赛果复盘</view></view>
   <view class="tabs card">
     <view class="tab {{activeTab === 'collection' ? 'active' : ''}}" data-tab="collection" bindtap="selectTab">模拟集合</view>
     <view class="tab {{activeTab === 'plans' ? 'active' : ''}}" data-tab="plans" bindtap="selectTab">我的方案</view>
@@ -10,6 +10,7 @@
     </view>
   </block>
   <block wx:else>
+    <view class="simulation-notice">方案仅保存在本机，用于个人模拟与赛后复盘。金额为模拟参考值，不提供真实投注、支付、出票或兑奖。</view>
     <view class="plan-toolbar"><view class="tool-tabs"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view><view class="source-manage" bindtap="openSources">来源管理</view></view>
     <input class="period-search" value="{{periodQuery}}" maxlength="20" placeholder="搜索期号，如 261012" bindinput="searchPeriod" />
     <view class="list-heading"><text>{{planGroups.length}} 期 · {{planCount}} 个方案</text><text>期号及方案时间倒序</text></view>
@@ -21,10 +22,10 @@
       <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '核对中…' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
       <view class="plan-time">{{item.createdTime}}</view>
       <view class="plan-source"><text>来源：{{item.planSourceName || '未关联'}}</text><text class="source-edit" data-id="{{item.id}}" catchtap="openPlanSource">设置来源</text></view>
-      <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 注</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
-      <view class="amount-row"><view><text class="amount-label">投注金额</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">{{item.minReturn ? '理论金额区间' : '历史最高金额'}}</text><text class="amount return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
+      <view class="plan-metrics"><text>{{item.matches.length}} 场比赛</text><text>{{item.count}} 组</text><text>{{item.passLabel}}</text><text>{{item.multiplier}} 倍</text></view>
+      <view class="amount-row"><view><text class="amount-label">模拟投入</text><text class="amount">¥{{item.cost}}</text></view><view><text class="amount-label">{{item.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}</text><text class="amount return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
       <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">跨期方案：{{item.periodLabel}}</view>
-      <view wx:if="{{item.check}}" class="check-summary"><view>{{item.check.statusLabel}} · 中奖 {{item.check.wonCount}} 注</view><view>已确认税前奖金 <text>¥{{item.check.prizeAmount}}</text><text wx:if="{{item.check.refundCount}}" class="refund-text"> · 退本金 ¥{{item.check.refundAmount}}</text></view><view wx:if="{{item.check.pendingCount}}" class="plan-time">{{item.check.pendingCount}} 注待赛果</view><view wx:if="{{item.check.pendingReason}}" class="plan-time">{{item.check.pendingReason}}</view><view class="plan-time">核对时间：{{item.checkedTime}}</view></view>
+      <view wx:if="{{item.check}}" class="check-summary"><view>{{item.check.statusLabel}} · 匹配赛果 {{item.check.wonCount}} 组</view><view>已确认模拟回报 <text>¥{{item.check.prizeAmount}}</text><text wx:if="{{item.check.refundCount}}" class="refund-text"> · 无效组合模拟返还 ¥{{item.check.refundAmount}}</text></view><view wx:if="{{item.check.pendingCount}}" class="plan-time">{{item.check.pendingCount}} 组待赛果</view><view wx:if="{{item.check.pendingReason}}" class="plan-time">{{item.check.pendingReason}}</view><view class="plan-time">核对时间：{{item.checkedTime}}</view></view>
       <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-title">{{match.label}}</view><view wx:if="{{match.date || match.time}}" class="match-time">{{match.date}} {{match.time}}</view><view class="simulation-choice-box columns-{{match.selectionRows[0].columns}}"><view wx:for="{{match.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view></view>
       <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · 保存时赔率快照</view>
       <view wx:if="{{item.note}}" class="plan-note">{{item.note}}</view>
