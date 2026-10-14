@@ -1,15 +1,12 @@
 .settings-page { padding-top: 28rpx; padding-bottom: calc(50rpx + env(safe-area-inset-bottom)); background: linear-gradient(180deg,#eaf4f0 0,#f4f7fc 420rpx); }
 .settings-intro { padding: 4rpx 4rpx 24rpx; }
 .settings-title { color: #1d3043; font-size: 39rpx; font-weight: 750; }
-.settings-subtitle { margin-top: 8rpx; color: #8392a3; font-size: 22rpx; }
 .preference-card { padding: 8rpx 26rpx; }
 .preference-heading { padding: 22rpx 0 18rpx; }
 .section-title { color: #203149; font-size: 29rpx; font-weight: 700; }
-.section-subtitle { margin-top: 8rpx; color: #8895a7; font-size: 21rpx; }
 .preference-row { display: flex; min-height: 106rpx; align-items: center; border-top: 1rpx solid #edf1f3; }
 .preference-icon { width: 64rpx; height: 64rpx; flex-shrink: 0; margin-right: 18rpx; }
 .preference-copy { flex: 1; min-width: 0; }
 .preference-name { color: #2a3c50; font-size: 25rpx; font-weight: 650; }
 .preference-category { margin-top: 5rpx; color: #98a4b2; font-size: 19rpx; }
 .settings-error { padding: 30rpx 0; border-top: 1rpx solid #edf1f3; color: #bd665b; font-size: 22rpx; text-align: center; }
-.settings-note { margin: 22rpx 12rpx 0; color: #8e9cab; font-size: 20rpx; line-height: 1.65; }

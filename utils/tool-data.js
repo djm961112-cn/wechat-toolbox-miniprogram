@@ -9,7 +9,7 @@ const tools = [
 
 function resolveToolUrl(tool) {
   if (tool.id !== 'simulation') return tool.url
-  try { return readScore() === 99 ? tool.url : '/pages/tool/bookmark/index' }
+  try { return readScore() === 10 ? tool.url : '/pages/tool/bookmark/index' }
   catch (error) { return '/pages/tool/bookmark/index' }
 }
 

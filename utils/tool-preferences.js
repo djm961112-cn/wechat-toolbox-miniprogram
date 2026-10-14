@@ -27,7 +27,10 @@ function readToolPreferences() {
   return availableTools().map((tool) => ({ ...tool, enabled: isEnabled(tool, overrides) }))
 }
 
-function readEnabledTools() { return readToolPreferences().filter((tool) => tool.enabled) }
+function readEnabledTools() {
+  const overrides = readOverrides()
+  return tools.filter((tool) => isEnabled(tool, overrides)).map((tool) => ({ ...tool, enabled: true }))
+}
 
 function setToolEnabled(id, enabled) {
   if (typeof enabled !== 'boolean') throw new Error('工具喜好状态无效')

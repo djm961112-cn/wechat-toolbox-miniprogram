@@ -57,7 +57,7 @@ Page({
       const value = this.data.manualScore ? Number(this.data.manualScore) : this.data.draftScore
       const record = saveLocalScore(value)
       this.setData({ savedScore: record.value, draftScore: record.value <= 10 ? record.value : null, manualScore: record.value === 99 ? '99' : '', savedAt: formatTime(record.updatedAt) })
-      wx.showToast({ title: '评分已保存', icon: 'success' })
+      wx.showToast({ title: '已保存到本机', icon: 'success' })
     } catch (error) { wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
   },
   openSettings() { wx.navigateTo({ url: '/pages/settings/index' }) },
