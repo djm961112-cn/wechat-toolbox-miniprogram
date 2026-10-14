@@ -25,5 +25,7 @@
 .links-card { margin-top: 20rpx; padding: 0 25rpx; }
 .link-row { display: flex; min-height: 94rpx; align-items: center; justify-content: space-between; color: #425268; font-size: 24rpx; }
 .link-row + .link-row { border-top: 1rpx solid #edf1f3; }
-.link-row text:last-child { color: #a0adba; font-size: 36rpx; }
+.link-arrow { color: #a0adba; font-size: 36rpx; }
+.link-name { display: flex; align-items: center; gap: 14rpx; }
+.link-symbol { color: #6d8090; font-size: 28rpx; }
 .local-note { margin: 26rpx 14rpx; color: #9aa6b2; font-size: 20rpx; line-height: 1.6; text-align: center; }

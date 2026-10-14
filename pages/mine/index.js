@@ -55,6 +55,7 @@ Page({
       wx.showToast({ title: '评分已保存', icon: 'success' })
     } catch (error) { wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
   },
+  openSettings() { wx.navigateTo({ url: '/pages/settings/index' }) },
   openPrivacy() { wx.navigateTo({ url: '/pages/legal/privacy/index' }) },
   openTerms() { wx.navigateTo({ url: '/pages/legal/terms/index' }) }
 })

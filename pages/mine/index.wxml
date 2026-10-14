@@ -11,6 +11,6 @@
     <view wx:if="{{savedAt}}" class="saved-time">上次保存：{{savedAt}}</view>
   </view>
 
-  <view class="links-card card"><view class="link-row" bindtap="openPrivacy"><text>隐私政策</text><text>›</text></view><view class="link-row" bindtap="openTerms"><text>用户服务协议</text><text>›</text></view></view>
-  <view class="local-note">评分仅保存在当前设备，清理缓存或删除小程序可能导致记录丢失。</view>
+  <view class="links-card card"><view class="link-row" bindtap="openSettings"><view class="link-name"><text class="link-symbol">⚙</text><text>设置</text></view><text class="link-arrow">›</text></view><view class="link-row" bindtap="openPrivacy"><text>隐私政策</text><text class="link-arrow">›</text></view><view class="link-row" bindtap="openTerms"><text>用户服务协议</text><text class="link-arrow">›</text></view></view>
+  <view class="local-note">评分和工具喜好仅保存在当前设备，清理缓存或删除小程序可能导致记录丢失。</view>
 </view>

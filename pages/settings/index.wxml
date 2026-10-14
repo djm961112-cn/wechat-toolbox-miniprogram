@@ -1,0 +1,14 @@
+<view class="page settings-page">
+  <view class="settings-intro"><view class="settings-title">设置</view><view class="settings-subtitle">管理工具箱在当前设备上的使用喜好</view></view>
+  <view class="preference-card card">
+    <view class="preference-heading"><view class="section-title">喜好设置</view><view class="section-subtitle">开启后，工具会显示在首页和工具市场</view></view>
+    <view wx:if="{{error}}" class="settings-error">{{error}}</view>
+    <view wx:for="{{preferences}}" wx:key="id" class="preference-row">
+      <image class="preference-icon" src="{{item.icon}}" mode="aspectFit" />
+      <view class="preference-copy"><view class="preference-name">{{item.name}}</view><view class="preference-category">{{item.category}}</view></view>
+      <switch checked="{{item.enabled}}" color="#25866a" data-id="{{item.id}}" bindchange="toggleTool" />
+    </view>
+  </view>
+  <view class="settings-note">新增工具会自动加入喜好设置并默认开启；“模拟计算”默认关闭，可按需手动开启。</view>
+  <view class="settings-note">工具喜好仅保存在当前设备，清理缓存或删除小程序可能导致设置丢失。</view>
+</view>

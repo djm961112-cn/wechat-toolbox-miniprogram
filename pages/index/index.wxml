@@ -10,12 +10,15 @@
     <view class="quick-grid">
       <view wx:for="{{quickTools}}" wx:key="id" class="tool-tile" data-id="{{item.id}}" bindtap="openTool"><view class="tool-icon-wrap"><image class="tool-icon" src="{{item.icon}}" mode="aspectFit" /></view><text class="tool-name">{{item.name}}</text></view>
     </view>
-    <view class="section-heading recommendation-heading"><text>推荐工具</text></view>
-    <view wx:for="{{recommendationGroups}}" wx:key="title" class="recommend-card card">
-      <view class="recommend-head"><text class="recommend-title">{{item.title}}</text><text class="section-more" bindtap="openMarket">更多 ›</text></view>
-      <view class="recommend-grid">
-        <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" data-id="{{tool.id}}" bindtap="openTool"><view class="tool-icon-wrap small"><image class="tool-icon" src="{{tool.icon}}" mode="aspectFit" /></view><text class="tool-name">{{tool.name}}</text></view>
+    <view wx:if="{{!quickTools.length}}" class="home-empty card">当前没有开启的工具，可到“我的 → 设置”中开启</view>
+    <block wx:if="{{recommendationGroups.length}}">
+      <view class="section-heading recommendation-heading"><text>推荐工具</text></view>
+      <view wx:for="{{recommendationGroups}}" wx:key="title" class="recommend-card card">
+        <view class="recommend-head"><text class="recommend-title">{{item.title}}</text><text class="section-more" bindtap="openMarket">更多 ›</text></view>
+        <view class="recommend-grid">
+          <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="recommend-tool" data-id="{{tool.id}}" bindtap="openTool"><view class="tool-icon-wrap small"><image class="tool-icon" src="{{tool.icon}}" mode="aspectFit" /></view><text class="tool-name">{{tool.name}}</text></view>
+        </view>
       </view>
-    </view>
+    </block>
   </view>
 </view>
