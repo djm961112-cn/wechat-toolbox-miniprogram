@@ -39,10 +39,10 @@
       <view class="period-heading card" data-id="{{periodGroup.id}}" bindtap="togglePeriod"><view><text class="period-name">{{periodGroup.label}}</text><text class="period-count">{{periodGroup.plans.length}} 个方案</text></view><text class="period-arrow">{{periodGroup.expanded ? '收起 ⌃' : '展开 ⌄'}}</text></view>
       <block wx:if="{{periodGroup.expanded}}">
     <view wx:for="{{periodGroup.plans}}" wx:key="id" class="plan-card card">
-      <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '核对中…' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
+      <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '处理中…' : item.needsOdds ? '补赔率' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
       <view class="plan-subline"><text>{{item.createdTime}}</text><text>来源：{{item.planSourceName || '未关联'}}</text><text class="source-edit" data-id="{{item.id}}" catchtap="openPlanSource">设置</text></view>
       <view class="plan-overview">
-        <view class="overview-money"><view><text class="overview-label">模拟投入</text><text class="overview-value accent">¥{{item.cost}}</text></view><view class="return-overview"><text class="overview-label">{{item.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}</text><text class="overview-value return">{{item.minReturn ? '¥' + item.minReturn + ' ～ ' : ''}}¥{{item.maxReturn}}</text></view></view>
+        <view class="overview-money"><view><text class="overview-label">模拟投入</text><text class="overview-value accent">¥{{item.cost}}</text></view><view class="return-overview"><text class="overview-label">{{item.needsOdds ? '模拟回报区间' : item.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}</text><text class="overview-value return">{{item.needsOdds ? '待赔率 / 让球数' : (item.minReturn ? '¥' + item.minReturn + ' ～ ' : '') + '¥' + item.maxReturn}}</text></view></view>
         <view class="overview-facts"><text><text class="fact-value warm">{{item.multiplier}}倍</text> 倍率</text><text class="fact-value">{{item.passLabel}}</text><text><text class="fact-value">{{item.count}}组</text> 组合</text></view>
       </view>
       <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">跨期方案：{{item.periodLabel}}</view>
@@ -54,7 +54,7 @@
         <view class="plan-time">核对时间：{{item.checkedTime}}</view>
       </view>
       <view class="match-list"><view wx:for="{{item.matches}}" wx:for-item="match" wx:key="id" class="match-row"><view class="match-heading"><view class="match-identity"><text wx:if="{{match.league}}" class="league-name">{{match.league}}</text><text class="match-number">{{match.number || match.numberCode}}</text></view><view wx:if="{{match.home || match.away}}" class="match-versus"><text>{{match.home}}</text><text class="match-kickoff">{{match.time || 'vs'}}</text><text>{{match.away}}</text></view></view><view wx:if="{{!match.home && !match.away}}" class="match-title">{{match.label}}</view><view wx:if="{{match.date}}" class="match-date">{{match.date}}</view><view class="simulation-choice-box columns-{{match.selectionRows[0].columns}}"><view wx:for="{{match.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view></view>
-      <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · 保存时赔率快照</view>
+      <view class="plan-time">官方数据更新：{{item.sourceUpdatedAt}} · {{item.needsOdds ? '部分赔率或让球数待公布，可随后补全' : item.pricingNote || '保存时赔率快照'}}</view>
       <view wx:if="{{item.note}}" class="plan-note">{{item.note}}</view>
     </view>
       </block>

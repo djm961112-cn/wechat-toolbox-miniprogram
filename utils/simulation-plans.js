@@ -88,6 +88,32 @@ function savePlanCheck(id, check) {
   catch (error) { throw new Error('核对结果保存失败，请检查本机空间') }
 }
 
+function completePlanOdds(id, feed) {
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('方案已删除，请刷新后重试')
+  const plan = plans[index]
+  const matches = plan.matches.map((saved) => {
+    const current = feed.matches.find((match) => match.id === String(saved.id) && matchPeriod(match) === matchPeriod(saved) && matchNumber(match) === matchNumber(saved))
+    if (!current) throw new Error(`${matchPeriod(saved)}期 ${matchNumber(saved)}场未查到同一场比赛，无法补赔率`)
+    const selections = saved.selections.map((option) => {
+      const pool = current.pools.find((item) => item.id === option.poolId)
+      const latest = pool && pool.options.find((item) => item.key === option.key)
+      const odds = Number(option.odds) > 0 ? Number(option.odds) : latest && latest.odds
+      const goalLine = option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '') ? pool && pool.goalLine : option.goalLine
+      if (!(Number(odds) > 0) || option.poolId === 'hhad' && (goalLine == null || goalLine === '' || !Number.isFinite(Number(goalLine)))) throw new Error(`${matchNumber(saved)}场仍有赔率或让球数未公布，请稍后重试`)
+      return { ...option, odds, goalLine, updatedAt: Number(option.odds) > 0 ? option.updatedAt : pool.updatedAt }
+    })
+    return { ...saved, selections }
+  })
+  const { calculate } = require('./football-simulation')
+  const summary = calculate(matches.map((match) => ({ id: String(match.id), options: match.selections })), plan.passes, Number(plan.multiplier))
+  if (summary.count !== Number(plan.count) || summary.needsOdds) throw new Error('补赔率后组合数量不一致，已停止更新')
+  plans[index] = { ...plan, ...summary, matches, sourceUpdatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now(), true), pricingNote: '缺失赔率按后续官方查询值补全' }
+  wx.setStorageSync(STORAGE_KEY, plans)
+  return plans[index]
+}
+
 function removePlan(id) {
   wx.setStorageSync(STORAGE_KEY, readPlans().filter((plan) => plan.id !== id))
 }
@@ -104,8 +130,8 @@ function formatSelectionRows(selections) {
     let row = rows.find((item) => item.id === option.poolId)
     if (!row) { row = { id: option.poolId, options: [] }; rows.push(row) }
     const goal = Number(option.goalLine)
-    const handicap = option.poolId === 'hhad' && option.goalLine != null ? `[${goal > 0 ? '+' : ''}${goal}]` : ''
-    row.options.push({ key: option.key, text: `${option.name || option.key}${handicap}(${Number(option.odds).toFixed(2)})` })
+    const handicap = option.poolId === 'hhad' ? option.goalLine != null && option.goalLine !== '' ? `[${goal > 0 ? '+' : ''}${goal}]` : '[待让球数]' : ''
+    row.options.push({ key: option.key, text: `${option.name || option.key}${handicap}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})` })
   })
   // All markets of one match share the widest row, so a shorter row keeps its column alignment.
   const columns = Math.min(3, Math.max(1, ...rows.map((row) => row.options.length)))
@@ -115,7 +141,7 @@ function formatSelectionRows(selections) {
 function formatPlanForDisplay(plan) {
   // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
   const periodIds = planPeriods(plan)
-  return { ...plan, passLabel: String(plan.passLabel || '').replace(/单场/g, '单关').replace(/(\d+)场组合/g, '$1串1'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
+  return { ...plan, needsOdds: plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0) || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine))))), passLabel: String(plan.passLabel || '').replace(/单场/g, '单关').replace(/(\d+)场组合/g, '$1串1'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
     const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
     const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
       : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]
@@ -123,4 +149,4 @@ function formatPlanForDisplay(plan) {
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, completePlanOdds, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }

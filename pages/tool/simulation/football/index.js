@@ -8,7 +8,7 @@ Page({
     loading: true, error: '', updatedAt: '', fetchedAt: '', draftRecovered: false, market: 'had',
     markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
-    multiplier: '1', multiplierVisible: false, multiplierDraft: '1', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
+    multiplier: '1', multiplierVisible: false, multiplierDraft: '', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
     summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
     planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
   },
@@ -122,7 +122,7 @@ Page({
   },
   clearSelections() {
     if ((!this.data.selectedCount && this.data.multiplier === '1') || this.data.loading) return
-    this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, multiplier: '1', multiplierDraft: '1', multiplierVisible: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false }, () => this.updateView())
+    this.setData({ selections: {}, chosenPassIds: [], passSelectionEdited: false, multiplier: '1', multiplierDraft: '', multiplierVisible: false, saved: false, previewVisible: false, preview: null, saveFormVisible: false }, () => this.updateView())
   },
   togglePass(event) {
     const id = event.currentTarget.dataset.id
@@ -132,7 +132,7 @@ Page({
     else ids.push(id)
     this.setData({ chosenPassIds: ids, passSelectionEdited: true, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())
   },
-  openMultiplier() { this.setData({ multiplierVisible: true, multiplierDraft: this.data.multiplier, passVisible: false }) },
+  openMultiplier() { this.setData({ multiplierVisible: true, multiplierDraft: '', passVisible: false }) },
   closeMultiplier() { this.setData({ multiplierVisible: false }) },
   chooseQuickMultiplier(event) {
     this.setData({ multiplier: String(event.currentTarget.dataset.value), multiplierVisible: false, saved: false, preview: null, previewVisible: false, saveFormVisible: false }, () => this.updateView())

@@ -1,8 +1,22 @@
-const { simulationTools, readPlans, removePlan, savePlanCheck, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
+const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 const { checkPlan } = require('../../../utils/football-results')
+const { API_URL, normalizeFeed } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
 
 const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
+
+function latestFeed() {
+  return new Promise((resolve, reject) => wx.request({
+    url: API_URL, data: { channel: 'c', _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
+    success: (response) => {
+      try {
+        if (response.statusCode !== 200) throw new Error('官方赛事接口暂时不可用')
+        resolve(normalizeFeed(response.data))
+      } catch (error) { reject(error) }
+    },
+    fail: () => reject(new Error('查询最新赔率失败，请检查网络后重试'))
+  }))
+}
 
 Page({
   data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
@@ -143,6 +157,11 @@ Page({
     try {
       const plan = readPlans().find((item) => item.id === id)
       if (!plan) throw new Error('方案已删除')
+      if (plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0) || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine)))))) {
+        completePlanOdds(id, await latestFeed())
+        if (!this.unloaded) { this.refreshPlans(); wx.showToast({ title: '赔率已补全，可点击核对', icon: 'none' }) }
+        return
+      }
       const check = await checkPlan(plan)
       savePlanCheck(id, check)
       if (!this.unloaded) {

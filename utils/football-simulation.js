@@ -29,16 +29,22 @@ function normalizeFeed(response) {
       const pools = POOLS.map((definition) => {
         const flags = (match.poolList || []).find((pool) => String(pool.poolCode).toLowerCase() === definition.id)
         const odds = match[definition.id] || {}
-        const single = Boolean(flags && Number(flags.single) === 1 && permittedSingle(definition.id, value.allUpList || {}))
-        const allUp = Boolean(flags && Number(flags.allUp) === 1)
+        const rules = value.allUpList || {}
+        const preOpen = match.matchStatus !== 'Selling' || Boolean(flags && flags.poolStatus !== 'Selling')
+        const single = Boolean(permittedSingle(definition.id, rules) && (flags && (Number(flags.single) === 1 || Number(flags.bettingSingle) === 1) || preOpen))
+        const allUp = Boolean(flags && (Number(flags.allUp) === 1 || Number(flags.bettingAllup) === 1) || preOpen && (rules[definition.id.toUpperCase()] || []).some((rule) => Number(rule.fValue) === 1 && Number(rule.formulaType) === 2))
         const goalLine = definition.id === 'hhad' && odds.goalLine != null && odds.goalLine !== '' ? String(odds.goalLine) : null
-        const selectable = Boolean(match.matchStatus === 'Selling' && flags && flags.poolStatus === 'Selling' && (single || allUp) && (definition.id !== 'hhad' || goalLine !== null && Number.isFinite(Number(goalLine))))
-        const options = definition.options.map(([key, name]) => ({ key, name, odds: Number(odds[key]), oddsText: String(odds[key] || ''), selected: false }))
-          .filter((option) => Number.isFinite(option.odds) && option.odds > 0)
-          .map((option) => ({ ...option, disabled: !selectable }))
-        return { id: definition.id, name: definition.name, maxLegs: definition.maxLegs, single, allUp, selectable, missing: !flags && !options.length, goalLine: definition.id === 'hhad' ? goalLine : '', updatedAt: `${odds.updateDate || ''} ${odds.updateTime || ''}`.trim(), options }
+        const closed = ['Closed', 'StopSelling', 'Stopped', 'Finished', 'Ended', 'End', 'Result', 'Cancelled', 'Canceled', 'Suspended']
+        const selectable = Boolean(!closed.includes(match.matchStatus) && (!flags || !closed.includes(flags.poolStatus)) && (flags || preOpen) && (single || allUp))
+        const options = definition.options.map(([key, name]) => {
+          const price = Number(odds[key])
+          const hasOdds = Number.isFinite(price) && price > 0
+          return { key, name, odds: hasOdds ? price : null, oddsText: hasOdds ? String(odds[key]) : '待赔率', selected: false, disabled: !selectable || !preOpen && !hasOdds }
+        })
+        const hasSelectableOption = selectable && options.some((option) => !option.disabled)
+        return { id: definition.id, name: definition.name, maxLegs: definition.maxLegs, single, allUp, selectable: hasSelectableOption, preOpen, missing: !flags && !hasSelectableOption, needsOdds: preOpen && options.some((option) => option.odds === null) || definition.id === 'hhad' && goalLine === null, goalLine: definition.id === 'hhad' ? goalLine : '', updatedAt: `${odds.updateDate || ''} ${odds.updateTime || ''}`.trim(), options }
       })
-      return { id: String(match.matchId), number: match.matchNumStr, period: String(match.matchNumDate || groupPeriod(match.businessDate)), businessDate: match.businessDate, date: match.matchDate, time: String(match.matchTime || '').slice(0,5), league: match.leagueAbbName, home: match.homeTeamAbbName, away: match.awayTeamAbbName, selectable: pools.some((pool) => pool.selectable && pool.options.length), statusLabel: match.matchStatus === 'Selling' ? '暂未开放选择' : match.matchStatus === 'Closed' ? '已停售' : '暂不可选择', pools }
+      return { id: String(match.matchId), number: match.matchNumStr, period: String(match.matchNumDate || groupPeriod(match.businessDate)), businessDate: match.businessDate, date: match.matchDate, time: String(match.matchTime || '').slice(0,5), league: match.leagueAbbName, home: match.homeTeamAbbName, away: match.awayTeamAbbName, preOpen: pools.some((pool) => pool.selectable && pool.preOpen), selectable: pools.some((pool) => pool.selectable), statusLabel: match.matchStatus === 'Closed' ? '已停售' : '暂无可选玩法', pools }
     })
   return { matches, rules: value.allUpList || {}, updatedAt: value.lastUpdateTime || '' }
 }
@@ -166,6 +172,7 @@ function calculate(matches, passes, multiplier) {
   if (new Set(matches.map((match) => match.id)).size !== matches.length) throw new Error('同场比赛不能重复作为组合场次')
   let count = 0
   let capped = false
+  const priced = matches.every((match) => match.options.every((option) => Number.isFinite(option.odds) && option.odds > 0 && (option.poolId !== 'hhad' || option.goalLine != null && option.goalLine !== '' && Number.isFinite(Number(option.goalLine)))))
   passes.forEach((pass) => pass.sizes.forEach((size) => {
     if (size === 1) {
       matches.forEach((match) => { count += match.options.filter((option) => option.single).length })
@@ -175,14 +182,16 @@ function calculate(matches, passes, multiplier) {
     combinations(matches, size).forEach((group) => {
       const entries = group.reduce((n, match) => n * match.options.length, 1)
       count += entries
-      const estimate = group.reduce((amount, match) => amount * Math.max(...match.options.map((option) => option.odds)), 2)
-      const perEntryCap = size <= 3 ? 200000 : size <= 5 ? 500000 : 1000000
-      if (estimate > perEntryCap) capped = true
+      if (priced) {
+        const estimate = group.reduce((amount, match) => amount * Math.max(...match.options.map((option) => option.odds)), 2)
+        const perEntryCap = size <= 3 ? 200000 : size <= 5 ? 500000 : 1000000
+        if (estimate > perEntryCap) capped = true
+      }
     })
   }))
   if (!count) throw new Error('所选记录不支持当前组合方式')
   if (!Number.isSafeInteger(count * 2 * multiplier)) throw new Error('组合金额过大，请减少选项或倍数')
-  return { count, cost: (count * 2 * multiplier).toFixed(2), ...prizeRange(matches, passes.reduce((all, pass) => all.concat(pass.sizes), []), multiplier), capped }
+  return { count, cost: (count * 2 * multiplier).toFixed(2), ...(priced ? prizeRange(matches, passes.reduce((all, pass) => all.concat(pass.sizes), []), multiplier) : { minReturn: null, maxReturn: null }), capped, needsOdds: !priced }
 }
 
 function roundPrize(value) {
@@ -210,12 +219,13 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
             selected[i] = choices[i][cursor % choices[i].length]
             cursor = Math.floor(cursor / choices[i].length)
           }
-          const odds = selected.reduce((value, option) => value * option.odds, 1)
+          const priced = selected.every((option) => Number.isFinite(option.odds) && option.odds > 0 && (option.poolId !== 'hhad' || option.goalLine != null && option.goalLine !== '' && Number.isFinite(Number(option.goalLine))))
+          const odds = priced ? selected.reduce((value, option) => value * option.odds, 1) : null
           const cap = size === 1 ? Infinity : size <= 3 ? 200000 : size <= 5 ? 500000 : 1000000
           // Alternatives for one match remain one leg. Group the detail view by the
           // chosen market on each leg, rather than combining two markets into one ticket.
           const marketChoices = choices.map((options, i) => options.filter((option) => option.poolId === selected[i].poolId))
-          const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + option.goalLine + ']' : ''}(${Number(option.odds).toFixed(2)})`
+          const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + (option.goalLine == null || option.goalLine === '' ? '待让球数' : option.goalLine) + ']' : ''}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})`
           rows.push({
             id: String(skipped + index), label: `${size === 1 ? '单关' : `${size}串1`} · 第 ${skipped + index + 1} 组`,
             choices: selected.map((option, i) => `${group[i].number || group[i].id} ${formatChoice(option)}`).join(' × '),
@@ -224,7 +234,7 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
             groupChoices: marketChoices.map((options, i) => `${group[i].number || group[i].id} ${options.map(formatChoice).join('、')}`).join(' ＋ '),
             groupCount: marketChoices.reduce((value, options) => value * options.length, 1),
             legs: selected.map((option, i) => ({ ...option, matchId: group[i].id })),
-            returnAmount: (Math.min(roundPrize(odds * 2), cap) * multiplier).toFixed(2)
+            returnAmount: priced ? (Math.min(roundPrize(odds * 2), cap) * multiplier).toFixed(2) : '待赔率'
           })
           if (rows.length >= limit) return rows
         }
