@@ -25,7 +25,7 @@
         <view class="stats-group-foot">盈利 ¥{{group.summary.profit}} · 亏损 ¥{{group.summary.loss}}</view>
         <view wx:if="{{statsDimension === 'period' && group.expanded}}" class="stats-sources"><view class="stats-sources-title">本期来源</view><view wx:for="{{group.sources}}" wx:for-item="source" wx:key="id" class="stats-source-row"><view><text class="stats-source-name">{{source.label}}</text><text class="stats-source-count">{{source.summary.planCount}} 个方案 · 命中 {{source.summary.wonCount}} 个<text wx:if="{{source.summary.pendingCount}}"> · 待核对 {{source.summary.pendingCount}} 个</text></text></view><view class="stats-source-money">投入 ¥{{source.summary.cost}} · 回报 ¥{{source.summary.returned}}<text class="{{source.summary.netPositive ? 'positive' : 'negative'}}">净额 {{source.summary.netPositive ? '+' : ''}}¥{{source.summary.net}}</text></view><view class="stats-source-gain">盈利 ¥{{source.summary.profit}} · 亏损 ¥{{source.summary.loss}}</view></view></view>
       </view>
-      <view wx:if="{{statsDimension === 'period'}}" class="stats-footnote">比赛按所属期号统计，不按开赛日期；一条方案涉及多个期号时，整条归入最早期号，不重复计算。点击期号查看各来源明细。</view>
+      <view wx:if="{{statsDimension === 'period'}}" class="stats-footnote">比赛按所属期号统计，不按开赛日期。新方案只允许同一期号；历史跨期记录按最早期号归档，不重复计算。</view>
       <view wx:else class="stats-footnote">点击来源，可按期号日期查看年、月、日及当天的每个方案。</view>
     </block>
   </block>
@@ -46,7 +46,7 @@
         <view class="overview-money"><view><text class="overview-label">模拟投入</text><text class="overview-value accent">¥{{item.cost}}</text></view><view class="return-overview"><text class="overview-label">{{item.needsOdds ? '模拟回报区间' : item.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}</text><text class="overview-value return">{{item.needsOdds ? '待赔率 / 让球数' : (item.minReturn ? '¥' + item.minReturn + ' ～ ' : '') + '¥' + item.maxReturn}}</text></view></view>
         <view class="overview-facts"><text><text class="fact-value warm">{{item.multiplier}}倍</text> 倍率</text><text class="fact-value">{{item.passLabel}}</text><text><text class="fact-value">{{item.count}}组</text> 组合</text></view>
       </view>
-      <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">跨期方案：{{item.periodLabel}}</view>
+      <view wx:if="{{item.periodIds.length > 1}}" class="plan-time">历史跨期方案：{{item.periodLabel}}</view>
       <view wx:if="{{item.check}}" class="check-summary {{item.check.status === 'complete' ? 'terminal' : 'waiting'}}">
         <block wx:if="{{item.check.status !== 'complete'}}"><view class="check-status">比赛未结束</view><view wx:for="{{item.check.pendingScores}}" wx:for-item="score" wx:key="*this" class="check-score">{{score}}</view><view wx:if="{{!item.check.pendingScores || !item.check.pendingScores.length}}" class="check-score">暂未查到最终赛果，请稍后再核对</view></block>
         <block wx:elif="{{item.check.outcome === 'won' || !item.check.outcome && item.check.prizeAmount !== '0.00'}}"><view class="check-status">已中奖 · 模拟回报</view><view class="check-prize">¥{{item.check.prizeAmount}}</view></block>

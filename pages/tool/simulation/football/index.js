@@ -1,5 +1,5 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
-const { savePlan, readSources, formatTime, formatSelectionRows, matchNumber } = require('../../../../utils/simulation-plans')
+const { savePlan, readSources, formatTime, formatSelectionRows, matchPeriod, matchNumber } = require('../../../../utils/simulation-plans')
 const DRAFT_KEY = 'simulation-football-draft-v1'
 const FEED_KEY = 'simulation-football-feed-v1'
 
@@ -115,6 +115,9 @@ Page({
     if (selections[key]) delete selections[key]
     else {
       const selected = selectedMatches(this.feed.matches, selections)
+      const period = matchPeriod(game)
+      if (!period) { wx.showToast({ title: '该比赛缺少期号，暂不能保存方案', icon: 'none' }); return }
+      if (selected.some((item) => matchPeriod(item) !== period)) { wx.showToast({ title: '同一方案只能选择同一期号的比赛', icon: 'none' }); return }
       if (selected.length >= 8 && !selected.some((item) => item.id === match)) { wx.showToast({ title: '最多选择 8 场比赛', icon: 'none' }); return }
       selections[key] = true
     }
@@ -192,6 +195,7 @@ Page({
   openPreview() {
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及组合方式', icon: 'none' }); return }
     const selected = selectedMatches(this.feed.matches, this.data.selections)
+    if (new Set(selected.map(matchPeriod)).size !== 1 || selected.some((match) => !matchPeriod(match))) { wx.showToast({ title: '同一方案只能保存同一期号的比赛', icon: 'none' }); return }
     const matches = selected.map((match) => ({
       id: match.id, label: `${match.number} ${match.home} vs ${match.away}`, number: match.number, period: match.period, numberCode: matchNumber(match),
       businessDate: match.businessDate, date: match.date, time: match.time, league: match.league,

@@ -41,6 +41,7 @@ function sourceFields(sourceId) {
 function savePlan(snapshot) {
   if (!simulationTools.some((tool) => tool.id === snapshot.toolId)) throw new Error('不支持的模拟工具')
   if (!snapshot.title || !Array.isArray(snapshot.matches) || !snapshot.matches.length) throw new Error('请填写方案名称和比赛选择')
+  if (snapshot.toolId === 'football' && (snapshot.matches.some((match) => !matchPeriod(match)) || planPeriods(snapshot).length !== 1)) throw new Error('一条足球方案只能保存同一期号的比赛')
   const now = Date.now()
   const plan = {
     ...snapshot,

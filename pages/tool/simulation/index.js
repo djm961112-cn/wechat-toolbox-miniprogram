@@ -82,12 +82,11 @@ Page({
   rebuildGroups() {
     const groups = new Map()
     for (const plan of this.plans || []) {
-      for (const period of plan.periodIds.length ? plan.periodIds : ['unknown']) {
-        const label = period === 'unknown' ? '未记录期号' : `${period}期`
-        if (this.data.periodQuery.trim() && !label.includes(this.data.periodQuery.trim())) continue
-        if (!groups.has(period)) groups.set(period, { id: period, label, expanded: Boolean(this.data.expandedPeriods[period]), plans: [] })
-        groups.get(period).plans.push(plan)
-      }
+      const period = plan.periodIds.length ? plan.periodIds[plan.periodIds.length - 1] : 'unknown'
+      const label = period === 'unknown' ? '未记录期号' : `${period}期`
+      if (this.data.periodQuery.trim() && !label.includes(this.data.periodQuery.trim())) continue
+      if (!groups.has(period)) groups.set(period, { id: period, label, expanded: Boolean(this.data.expandedPeriods[period]), plans: [] })
+      groups.get(period).plans.push(plan)
     }
     const planGroups = [...groups.values()].sort((a, b) => a.id === 'unknown' ? 1 : b.id === 'unknown' ? -1 : b.id.localeCompare(a.id))
     this.setData({ planGroups, planCount: new Set(planGroups.reduce((all, group) => all.concat(group.plans.map((plan) => plan.id)), [])).size })
