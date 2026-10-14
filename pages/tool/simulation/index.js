@@ -1,4 +1,4 @@
-const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
+const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 const { checkPlan } = require('../../../utils/football-results')
 const { API_URL, normalizeFeed } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
@@ -73,6 +73,12 @@ Page({
       wx.showToast({ title: '方案来源已更新', icon: 'success' })
     } catch (error) { wx.showToast({ title: error.message || '关联失败，请重试', icon: 'none' }) }
   },
+  togglePlanPurchased(event) {
+    try {
+      setPlanPurchased(event.currentTarget.dataset.id, event.detail.value === true)
+      this.refreshPlans()
+    } catch (error) { this.refreshPlans(); wx.showToast({ title: error.message || '保存购买状态失败', icon: 'none' }) }
+  },
   rebuildGroups() {
     const groups = new Map()
     for (const plan of this.plans || []) {
@@ -118,18 +124,15 @@ Page({
   refreshStats() {
     try {
       const rows = planRows(readPlans(), this.data.selectedToolId)
-      const dateField = this.data.statsDimension === 'period' ? 'periodDate' : 'createdDate'
+      const dateField = 'periodDate'
       const years = [...new Set(rows.map((row) => row[dateField].slice(0, 4)))].sort().reverse()
       const statsYearOptions = [{ label: '全部年份', value: '' }, ...years.map((value) => ({ label: `${value}年`, value }))]
       const statsYear = years.includes(this.data.statsYear) ? this.data.statsYear : ''
       const filtered = filterRows(rows, statsYear, this.data.statsMonth, dateField)
       let statsGroups
       if (this.data.statsDimension === 'period') {
-        statsGroups = groupRows(filtered, (row) => row.periodId, (row) => row.periodLabel)
-          .sort((left, right) => {
-            const rank = (id) => id === 'unknown' ? 2 : id.startsWith('multi:') ? 1 : 0
-            return rank(left.id) - rank(right.id) || right.id.localeCompare(left.id)
-          })
+        statsGroups = groupRows(filtered, (row) => row.periodId, (row) => row.periodGroupLabel)
+          .sort((left, right) => left.id === 'unknown' ? 1 : right.id === 'unknown' ? -1 : right.id.localeCompare(left.id))
           .map((group) => ({ id: group.id, label: group.label, summary: group.summary, expanded: Boolean(this.data.expandedStats[group.id]),
             sources: groupRows(group.rows, (row) => row.sourceId || 'unlinked', (row) => row.sourceName)
               .map((source) => ({ id: source.id, label: source.label, summary: source.summary })) }))

@@ -11,22 +11,22 @@
     </view>
   </block>
   <block wx:elif="{{activeTab === 'stats'}}">
-    <view class="stats-note">本机方案复盘统计 · 总投入包含待核对方案；盈亏仅按已完成核对的方案计算。</view>
+    <view class="stats-note">仅统计已标记“实际购买”的方案。总投入包含待核对方案；盈亏仅按已完成核对的方案计算。</view>
     <view class="tool-tabs stats-tools"><view wx:for="{{tools}}" wx:key="id" class="tool-tab {{selectedToolId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectTool">{{item.symbol}} {{item.name}}</view></view>
     <view class="stats-switch card"><view class="stats-switch-item {{statsDimension === 'period' ? 'selected' : ''}}" data-dimension="period" bindtap="selectStatsDimension">按期号</view><view class="stats-switch-item {{statsDimension === 'source' ? 'selected' : ''}}" data-dimension="source" bindtap="selectStatsDimension">按来源</view></view>
-    <view class="stats-filters"><picker mode="selector" range="{{statsYearOptions}}" range-key="label" value="{{statsYearIndex}}" bindchange="changeStatsYear"><view class="stats-filter">{{statsYearOptions[statsYearIndex].label}} ⌄</view></picker><picker mode="selector" range="{{statsMonthOptions}}" range-key="label" value="{{statsMonthIndex}}" bindchange="changeStatsMonth"><view class="stats-filter">{{statsMonthOptions[statsMonthIndex].label}} ⌄</view></picker><text class="stats-date-hint">{{statsDimension === 'period' ? '按期号日期' : '按方案保存日期'}}</text></view>
+    <view class="stats-filters"><picker mode="selector" range="{{statsYearOptions}}" range-key="label" value="{{statsYearIndex}}" bindchange="changeStatsYear"><view class="stats-filter">{{statsYearOptions[statsYearIndex].label}} ⌄</view></picker><picker mode="selector" range="{{statsMonthOptions}}" range-key="label" value="{{statsMonthIndex}}" bindchange="changeStatsMonth"><view class="stats-filter">{{statsMonthOptions[statsMonthIndex].label}} ⌄</view></picker><text class="stats-date-hint">按期号日期</text></view>
     <view wx:if="{{statsError}}" class="empty card">{{statsError}}</view>
     <block wx:elif="{{statsSummary}}">
       <view class="stats-overview card"><view class="stats-overview-title">{{statsDimension === 'period' ? '期号汇总' : '来源汇总'}} <text>{{statsSummary.planCount}} 个方案 · 已核对 {{statsSummary.checkedCount}} 个 · 命中 {{statsSummary.wonCount}} 个</text></view><view class="stats-amounts"><view><text>总投入</text><text class="stats-amount">¥{{statsSummary.cost}}</text></view><view><text>已核对回报</text><text class="stats-amount">¥{{statsSummary.returned}}</text></view><view><text>已核对净额</text><text class="stats-amount {{statsSummary.netPositive ? 'positive' : 'negative'}}">{{statsSummary.netPositive ? '+' : ''}}¥{{statsSummary.net}}</text></view></view><view class="stats-overview-foot">盈利 ¥{{statsSummary.profit}} · 亏损 ¥{{statsSummary.loss}}<text wx:if="{{statsSummary.pendingCount}}"> · 待核对 {{statsSummary.pendingCount}} 个 / ¥{{statsSummary.pendingCost}}</text></view></view>
-      <view wx:if="{{!statsGroups.length}}" class="empty card">当前筛选下还没有方案</view>
+      <view wx:if="{{!statsGroups.length}}" class="empty card">当前筛选下没有已标记实际购买的方案</view>
       <view wx:for="{{statsGroups}}" wx:for-item="group" wx:key="id" class="stats-group card">
         <view class="stats-group-head" data-id="{{group.id}}" data-source="{{group.sourceId}}" bindtap="openStatsGroup"><view><view class="stats-group-title">{{group.label}}</view><view class="stats-group-count">{{group.summary.planCount}} 个方案 · 命中 {{group.summary.wonCount}} 个<text wx:if="{{group.summary.pendingCount}}"> · 待核对 {{group.summary.pendingCount}} 个</text></view></view><text class="stats-arrow">{{statsDimension === 'period' ? group.expanded ? '收起 ⌃' : '来源明细 ⌄' : '日期明细 ›'}}</text></view>
         <view class="stats-group-money"><view><text>投入</text><text class="stats-amount">¥{{group.summary.cost}}</text></view><view><text>回报</text><text class="stats-amount">¥{{group.summary.returned}}</text></view><view><text>净额</text><text class="stats-amount {{group.summary.netPositive ? 'positive' : 'negative'}}">{{group.summary.netPositive ? '+' : ''}}¥{{group.summary.net}}</text></view></view>
         <view class="stats-group-foot">盈利 ¥{{group.summary.profit}} · 亏损 ¥{{group.summary.loss}}</view>
         <view wx:if="{{statsDimension === 'period' && group.expanded}}" class="stats-sources"><view class="stats-sources-title">本期来源</view><view wx:for="{{group.sources}}" wx:for-item="source" wx:key="id" class="stats-source-row"><view><text class="stats-source-name">{{source.label}}</text><text class="stats-source-count">{{source.summary.planCount}} 个方案 · 命中 {{source.summary.wonCount}} 个<text wx:if="{{source.summary.pendingCount}}"> · 待核对 {{source.summary.pendingCount}} 个</text></text></view><view class="stats-source-money">投入 ¥{{source.summary.cost}} · 回报 ¥{{source.summary.returned}}<text class="{{source.summary.netPositive ? 'positive' : 'negative'}}">净额 {{source.summary.netPositive ? '+' : ''}}¥{{source.summary.net}}</text></view><view class="stats-source-gain">盈利 ¥{{source.summary.profit}} · 亏损 ¥{{source.summary.loss}}</view></view></view>
       </view>
-      <view wx:if="{{statsDimension === 'period'}}" class="stats-footnote">跨期方案单列为“跨期”，不会在多个期号重复计入；跨期组按保存日期筛选。点击期号查看各来源的方案数和金额。</view>
-      <view wx:else class="stats-footnote">点击来源，可按保存日期查看年、月、日及当天的每个方案。</view>
+      <view wx:if="{{statsDimension === 'period'}}" class="stats-footnote">比赛按所属期号统计，不按开赛日期；一条方案涉及多个期号时，整条归入最早期号，不重复计算。点击期号查看各来源明细。</view>
+      <view wx:else class="stats-footnote">点击来源，可按期号日期查看年、月、日及当天的每个方案。</view>
     </block>
   </block>
   <block wx:else>
@@ -41,6 +41,7 @@
     <view wx:for="{{periodGroup.plans}}" wx:key="id" class="plan-card card">
       <view class="plan-head"><view class="plan-title">{{item.title}}</view><text class="check-link {{checkingId ? 'checking' : ''}}" data-id="{{item.id}}" catchtap="checkSavedPlan">{{checkingId === item.id ? '处理中…' : item.needsOdds ? '补赔率' : '核对'}}</text><text class="detail-link" data-id="{{item.id}}" catchtap="openDetail">明细</text><text class="delete-link" data-id="{{item.id}}" catchtap="deletePlan">删除</text></view>
       <view class="plan-subline"><text>{{item.createdTime}}</text><text>来源：{{item.planSourceName || '未关联'}}</text><text class="source-edit" data-id="{{item.id}}" catchtap="openPlanSource">设置</text></view>
+      <view class="plan-purchase"><view><text class="purchase-title">实际购买</text><text class="purchase-hint">开启后纳入盈亏统计</text></view><switch checked="{{item.purchased}}" color="#d6463f" data-id="{{item.id}}" bindchange="togglePlanPurchased" /></view>
       <view class="plan-overview">
         <view class="overview-money"><view><text class="overview-label">模拟投入</text><text class="overview-value accent">¥{{item.cost}}</text></view><view class="return-overview"><text class="overview-label">{{item.needsOdds ? '模拟回报区间' : item.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}</text><text class="overview-value return">{{item.needsOdds ? '待赔率 / 让球数' : (item.minReturn ? '¥' + item.minReturn + ' ～ ' : '') + '¥' + item.maxReturn}}</text></view></view>
         <view class="overview-facts"><text><text class="fact-value warm">{{item.multiplier}}倍</text> 倍率</text><text class="fact-value">{{item.passLabel}}</text><text><text class="fact-value">{{item.count}}组</text> 组合</text></view>

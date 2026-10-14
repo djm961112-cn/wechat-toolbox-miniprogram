@@ -78,6 +78,9 @@
 .detail-link { color: #25866a; font-size: 22rpx; flex-shrink: 0; }
 .plan-time { margin-top: 8rpx; color: #99a4b5; font-size: 20rpx; }
 .plan-subline { display: flex; align-items: center; flex-wrap: wrap; gap: 8rpx 16rpx; margin-top: 9rpx; color: #99a4b5; font-size: 20rpx; }
+.plan-purchase { display: flex; align-items: center; justify-content: space-between; margin-top: 18rpx; padding: 14rpx 18rpx; border-radius: 14rpx; background: #f8faf9; }
+.purchase-title { display: block; color: #334b5a; font-size: 23rpx; font-weight: 700; }
+.purchase-hint { display: block; margin-top: 4rpx; color: #9aa7b2; font-size: 19rpx; }
 .plan-source { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 12rpx; color: #78869b; font-size: 22rpx; }
 .plan-source text:first-child { min-width: 0; word-break: break-all; }
 .source-edit { flex-shrink: 0; color: #25866a; }

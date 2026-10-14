@@ -8,6 +8,7 @@
       <view class="pass-label">组合方式：{{plan.passLabel}}</view>
       <view class="pass-label">所属期号：{{plan.periodLabel || '未记录'}}</view>
       <view class="pass-label">方案来源：{{plan.planSourceName || '未关联'}}<text wx:if="{{plan.planSourceId}}">（{{plan.planSourceId}}）</text></view>
+      <view class="pass-label">实际购买：{{plan.purchased ? '是' : '否'}}</view>
       <view class="money"><view>模拟投入<text>¥{{plan.cost}}</text></view><view>{{plan.needsOdds ? '模拟回报区间' : plan.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}<text>{{plan.needsOdds ? '待赔率 / 让球数' : (plan.minReturn ? '¥' + plan.minReturn + ' ～ ' : '') + '¥' + plan.maxReturn}}</text></view></view>
       <view class="hint">区间为至少一组与赛果匹配时的模拟回报，未计逐项舍入、上限及税费，不代表实际收益。</view>
       <view wx:if="{{plan.capped}}" class="hint">包含可能触及计算上限的组合，实际模拟回报可能低于上述估算。</view>

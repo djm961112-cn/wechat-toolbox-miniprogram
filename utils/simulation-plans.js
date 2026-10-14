@@ -45,6 +45,7 @@ function savePlan(snapshot) {
   const plan = {
     ...snapshot,
     ...sourceFields(snapshot.planSourceId),
+    purchased: false,
     version: 3,
     periodIds: planPeriods(snapshot),
     id: `${now}-${Math.random().toString(36).slice(2, 10)}`,
@@ -59,6 +60,15 @@ function setPlanSource(id, sourceId) {
   const index = plans.findIndex((plan) => plan.id === id)
   if (index < 0) throw new Error('方案已删除，请刷新后重试')
   plans[index] = { ...plans[index], ...sourceFields(sourceId), version: 3 }
+  wx.setStorageSync(STORAGE_KEY, plans)
+}
+
+function setPlanPurchased(id, purchased) {
+  if (typeof purchased !== 'boolean') throw new Error('实际购买状态无效')
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('方案已删除，请刷新后重试')
+  plans[index] = { ...plans[index], purchased }
   wx.setStorageSync(STORAGE_KEY, plans)
 }
 
@@ -141,7 +151,7 @@ function formatSelectionRows(selections) {
 function formatPlanForDisplay(plan) {
   // Derive the compact view from snapshot fields; do not rewrite old records or fetch new odds.
   const periodIds = planPeriods(plan)
-  return { ...plan, needsOdds: plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0) || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine))))), passLabel: String(plan.passLabel || '').replace(/单场/g, '单关').replace(/(\d+)场组合/g, '$1串1'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
+  return { ...plan, purchased: plan.purchased === true, needsOdds: plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0) || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine))))), passLabel: String(plan.passLabel || '').replace(/单场/g, '单关').replace(/(\d+)场组合/g, '$1串1'), planSourceId: plan.planSourceId || '', planSourceName: plan.planSourceName || '', periodIds, periodLabel: periodIds.join('、'), createdTime: formatTime(plan.createdAt), checkedTime: plan.check ? formatTime(plan.check.checkedAt) : '', matches: plan.matches.map((match) => {
     const selectionText = String(match.selectionText || '').replace(/\s*\[(?:仅串关|可单关)\]/g, '').replace(/(?:让球胜平负|胜平负|总进球|半全场|比分)\s*/g, '')
     const selectionRows = Array.isArray(match.selections) && match.selections.length ? formatSelectionRows(match.selections)
       : [{ id: 'legacy', columns: 1, options: [{ key: 'legacy', text: selectionText }] }]
@@ -149,4 +159,4 @@ function formatPlanForDisplay(plan) {
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, completePlanOdds, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }

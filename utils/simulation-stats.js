@@ -17,19 +17,20 @@ function periodDate(period) {
 }
 
 function planRows(plans, toolId) {
-  return plans.filter((plan) => plan.toolId === toolId).map((plan) => {
+  return plans.filter((plan) => plan.toolId === toolId && plan.purchased === true).map((plan) => {
     const cost = cents(plan.cost, '投入金额')
     const createdAt = Number(plan.createdAt)
     if (!Number.isFinite(createdAt) || createdAt <= 0 || Number.isNaN(new Date(createdAt).getTime())) throw new Error('历史方案保存时间异常，无法统计')
     const createdDate = formatTime(createdAt).slice(0, 10)
     const periods = planPeriods(plan)
-    const periodId = periods.length === 1 ? periods[0] : periods.length ? `multi:${periods.join(',')}` : 'unknown'
-    const periodLabel = periods.length === 1 ? `${periods[0]}期` : periods.length ? `跨期 ${periods.join('、')}` : '未记录期号'
+    const periodId = periods.length ? periods[periods.length - 1] : 'unknown'
+    const periodGroupLabel = periodId === 'unknown' ? '未记录期号' : `${periodId}期`
+    const periodLabel = periods.length > 1 ? `${periodGroupLabel}（跨期含 ${periods.slice().reverse().join('、')}）` : periodGroupLabel
     const checked = plan.check && plan.check.status === 'complete'
     const returned = checked ? cents(plan.check.returnAmount, '核对回报金额') : 0
     const prize = checked ? cents(plan.check.prizeAmount, '中奖金额') : 0
     return { id: plan.id, title: plan.title, toolId, sourceId: plan.planSourceId || '', sourceName: plan.planSourceName || '未关联来源',
-      periodId, periodLabel, createdDate, createdTime: formatTime(createdAt), periodDate: periods.length === 1 ? periodDate(periods[0]) || createdDate : createdDate,
+      periodId, periodGroupLabel, periodLabel, createdDate, createdTime: formatTime(createdAt), periodDate: periodId === 'unknown' ? createdDate : periodDate(periodId) || createdDate,
       cost, returned, checked: Boolean(checked), won: Boolean(checked && prize > 0), profit: checked ? Math.max(returned - cost, 0) : 0,
       loss: checked ? Math.max(cost - returned, 0) : 0 }
   })

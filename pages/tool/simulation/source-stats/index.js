@@ -27,17 +27,17 @@ Page({
   refresh() {
     try {
       const sourceRows = planRows(readPlans(), this.data.toolId).filter((row) => row.sourceId === this.data.sourceId)
-      const years = [...new Set(sourceRows.map((row) => row.createdDate.slice(0, 4)))].sort().reverse()
+      const years = [...new Set(sourceRows.map((row) => row.periodDate.slice(0, 4)))].sort().reverse()
       const year = years.includes(this.data.year) ? this.data.year : ''
       const yearOptions = [{ label: '全部年份', value: '' }, ...years.map((value) => ({ label: `${value}年`, value }))]
-      const rows = filterRows(sourceRows, year, this.data.month, 'createdDate')
-      const months = groupRows(rows, (row) => row.createdDate.slice(0, 7), (row) => `${row.createdDate.slice(0, 4)}年${Number(row.createdDate.slice(5, 7))}月`)
+      const rows = filterRows(sourceRows, year, this.data.month, 'periodDate')
+      const months = groupRows(rows, (row) => row.periodDate.slice(0, 7), (row) => `${row.periodDate.slice(0, 4)}年${Number(row.periodDate.slice(5, 7))}月`)
         .sort((left, right) => right.id.localeCompare(left.id))
         .map((group) => ({ id: group.id, label: group.label, summary: group.summary,
-          days: groupRows(group.rows, (row) => row.createdDate, (row) => `${Number(row.createdDate.slice(5, 7))}月${Number(row.createdDate.slice(8, 10))}日`)
+          days: groupRows(group.rows, (row) => row.periodDate, (row) => `${Number(row.periodDate.slice(5, 7))}月${Number(row.periodDate.slice(8, 10))}日`)
             .sort((left, right) => right.id.localeCompare(left.id))
             .map((day) => ({ id: day.id, label: day.label, summary: day.summary, expanded: Boolean(this.data.expandedDays[day.id]),
-              plans: day.rows.map((row) => ({ id: row.id, title: row.title, periodLabel: row.periodLabel, time: row.createdTime.slice(11),
+              plans: day.rows.map((row) => ({ id: row.id, title: row.title, periodLabel: row.periodLabel, time: row.createdTime,
                 cost: money(row.cost), returned: row.checked ? money(row.returned) : '—', status: row.checked ? row.won ? '命中' : row.returned > 0 ? '已返还' : '未命中' : '待核对' })) })) }))
       this.setData({ title: sourceRows[0] ? sourceRows[0].sourceName : this.data.sourceId ? '来源记录' : '未关联来源', year, yearOptions,
         yearIndex: yearOptions.findIndex((item) => item.value === year), monthIndex: monthOptions.findIndex((item) => item.value === this.data.month),
