@@ -1,0 +1,38 @@
+.source-stats-page { padding-bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.source-intro { padding: 12rpx 4rpx 20rpx; }
+.source-kicker { color: #25866a; font-size: 21rpx; font-weight: 700; }
+.source-title { margin-top: 8rpx; color: #20384b; font-size: 37rpx; font-weight: 800; word-break: break-all; }
+.source-id { margin-top: 7rpx; color: #9aa6b2; font-size: 19rpx; word-break: break-all; }
+.source-note { padding: 17rpx 20rpx; border-radius: 14rpx; background: #eff6f3; color: #5d7a6d; font-size: 21rpx; line-height: 1.5; }
+.date-filters { display: flex; gap: 12rpx; margin: 19rpx 0; }
+.date-filter { padding: 14rpx 20rpx; min-width: 132rpx; border: 1rpx solid #dce6e1; border-radius: 12rpx; background: #fff; color: #30495c; text-align: center; font-size: 22rpx; }
+.source-overview { padding: 25rpx; border-radius: 20rpx; background: linear-gradient(135deg,#f9fcfa,#e8f6ee); }
+.source-overview-head { color: #183a32; font-size: 28rpx; font-weight: 750; }
+.source-overview-head text { display: block; margin-top: 8rpx; color: #82978b; font-size: 20rpx; font-weight: 400; }
+.source-metrics, .day-money { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12rpx; margin-top: 21rpx; }
+.source-metrics view > text:first-child, .day-money view > text:first-child { display: block; color: #8a99a5; font-size: 19rpx; }
+.source-metrics .value, .day-money .value { display: block; margin-top: 6rpx; color: #243b4a; font-size: 24rpx; font-weight: 750; word-break: break-all; }
+.source-metrics .positive, .day-money .positive { color: #16866a; }
+.source-metrics .negative, .day-money .negative { color: #d44d42; }
+.source-overview-foot, .day-foot { margin-top: 17rpx; padding-top: 13rpx; border-top: 1rpx solid #deebe4; color: #74897d; font-size: 20rpx; line-height: 1.5; }
+.month-section { margin-top: 28rpx; }
+.month-heading { display: flex; justify-content: space-between; gap: 12rpx; margin: 0 3rpx 14rpx; color: #233a4c; font-size: 28rpx; font-weight: 750; }
+.month-heading text { color: #94a1ad; font-size: 19rpx; font-weight: 400; }
+.month-amount { margin: -5rpx 3rpx 14rpx; color: #819388; font-size: 20rpx; }
+.day-card { padding: 24rpx; margin-bottom: 16rpx; border-radius: 20rpx; }
+.day-head { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.day-title { color: #20384b; font-size: 27rpx; font-weight: 750; }
+.day-sub { margin-top: 6rpx; color: #8f9dac; font-size: 20rpx; }
+.day-arrow { flex-shrink: 0; color: #25866a; font-size: 20rpx; }
+.day-money { margin-top: 16rpx; }
+.day-plans { margin-top: 17rpx; border-top: 1rpx solid #e9eeeb; }
+.day-plan { padding: 18rpx 0; border-bottom: 1rpx solid #edf1ef; }
+.day-plan:last-child { border-bottom: none; }
+.day-plan-top { display: flex; justify-content: space-between; gap: 14rpx; color: #293c4c; font-size: 23rpx; font-weight: 700; }
+.day-plan-top text:first-child { min-width: 0; word-break: break-all; }
+.plan-status { flex-shrink: 0; color: #8c9aab; font-size: 20rpx; }
+.plan-status.hit { color: #16866a; }
+.day-plan-meta, .day-plan-amount { margin-top: 6rpx; color: #8999a8; font-size: 20rpx; }
+.day-plan-amount text { color: #25866a; float: right; }
+.source-footer { margin: 24rpx 10rpx 0; color: #a0abba; font-size: 20rpx; line-height: 1.6; }
+.empty { padding: 50rpx 25rpx; color: #8793a8; text-align: center; font-size: 23rpx; }

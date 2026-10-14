@@ -6,6 +6,40 @@
 .tabs { display: flex; padding: 8rpx; margin-bottom: 24rpx; box-shadow: none; border-radius: 20rpx; }
 .tab { flex: 1; padding: 20rpx 0; color: #8793a8; font-size: 26rpx; text-align: center; border-radius: 14rpx; }
 .tab.active { background: #eaf7f3; color: #25866a; font-weight: 650; }
+.stats-note { padding: 18rpx 20rpx; border-radius: 16rpx; background: #eff6f3; color: #5c7a6d; font-size: 21rpx; line-height: 1.5; }
+.stats-tools { margin: 22rpx 0; }
+.stats-switch { display: flex; padding: 7rpx; margin-bottom: 18rpx; border-radius: 18rpx; box-shadow: none; }
+.stats-switch-item { flex: 1; padding: 17rpx 0; color: #8492a2; text-align: center; font-size: 24rpx; border-radius: 12rpx; }
+.stats-switch-item.selected { color: #25866a; background: #e8f5ef; font-weight: 700; }
+.stats-filters { display: flex; align-items: center; gap: 12rpx; margin-bottom: 18rpx; }
+.stats-filter { min-width: 132rpx; padding: 14rpx 18rpx; border: 1rpx solid #dce6e1; border-radius: 12rpx; background: #fff; color: #30495c; font-size: 22rpx; text-align: center; }
+.stats-date-hint { margin-left: auto; color: #9aa7b2; font-size: 19rpx; }
+.stats-overview { padding: 26rpx; margin-bottom: 20rpx; border-radius: 22rpx; background: linear-gradient(135deg,#f9fcfa,#e8f6ee); }
+.stats-overview-title { color: #183a32; font-size: 29rpx; font-weight: 750; }
+.stats-overview-title text { display: block; margin-top: 7rpx; color: #799285; font-size: 20rpx; font-weight: 400; }
+.stats-amounts, .stats-group-money { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10rpx; margin-top: 23rpx; }
+.stats-amounts view, .stats-group-money view { min-width: 0; }
+.stats-amounts view > text:first-child, .stats-group-money view > text:first-child { display: block; color: #8a99a5; font-size: 19rpx; }
+.stats-amount { display: block; margin-top: 7rpx; color: #233a4b; font-size: 25rpx; font-weight: 750; word-break: break-all; }
+.stats-amount.positive, .stats-source-money .positive { color: #16866a; }
+.stats-amount.negative, .stats-source-money .negative { color: #d44d42; }
+.stats-overview-foot, .stats-group-foot { margin-top: 19rpx; padding-top: 13rpx; border-top: 1rpx solid #deebe4; color: #738a7e; font-size: 20rpx; line-height: 1.5; }
+.stats-group { padding: 23rpx 26rpx; margin-bottom: 16rpx; border-radius: 20rpx; }
+.stats-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.stats-group-title { color: #20384b; font-size: 28rpx; font-weight: 750; word-break: break-all; }
+.stats-group-count { margin-top: 7rpx; color: #8d9aab; font-size: 20rpx; }
+.stats-arrow { flex-shrink: 0; color: #25866a; font-size: 20rpx; }
+.stats-group-money { margin-top: 17rpx; }
+.stats-sources { margin-top: 19rpx; padding-top: 17rpx; border-top: 1rpx solid #e7eeeb; }
+.stats-sources-title { color: #587267; font-size: 21rpx; font-weight: 700; }
+.stats-source-row { padding: 17rpx 0; border-bottom: 1rpx solid #edf1ef; }
+.stats-source-row:last-child { border-bottom: none; }
+.stats-source-name { color: #304b58; font-size: 23rpx; font-weight: 700; }
+.stats-source-count { margin-left: 12rpx; color: #8e9aa5; font-size: 19rpx; }
+.stats-source-money { margin-top: 7rpx; color: #6f8290; font-size: 20rpx; }
+.stats-source-money text { margin-left: 12rpx; font-weight: 700; }
+.stats-source-gain { margin-top: 5rpx; color: #90a0ac; font-size: 19rpx; }
+.stats-footnote { margin: 20rpx 12rpx 30rpx; color: #97a3b1; font-size: 20rpx; line-height: 1.6; }
 .tool-entry { display: flex; align-items: center; padding: 28rpx; }
 .tool-symbol { display: flex; width: 100rpx; height: 100rpx; align-items: center; justify-content: center; border-radius: 24rpx; background: #eaf7f3; font-size: 54rpx; }
 .entry-copy { flex: 1; margin-left: 24rpx; }

@@ -1,0 +1,19 @@
+<view class="page source-stats-page">
+  <view class="source-intro"><view class="source-kicker">方案来源 · 日期明细</view><view class="source-title">{{title}}</view><view class="source-id">ID：{{sourceId || '未关联'}}</view></view>
+  <view class="source-note">按方案保存日期统计。总投入包含待核对方案；回报和盈亏只使用已完成的核对结果。</view>
+  <view class="date-filters"><picker mode="selector" range="{{yearOptions}}" range-key="label" value="{{yearIndex}}" bindchange="changeYear"><view class="date-filter">{{yearOptions[yearIndex].label}} ⌄</view></picker><picker mode="selector" range="{{monthOptions}}" range-key="label" value="{{monthIndex}}" bindchange="changeMonth"><view class="date-filter">{{monthOptions[monthIndex].label}} ⌄</view></picker></view>
+  <view wx:if="{{error}}" class="empty card">{{error}}</view>
+  <block wx:elif="{{summary}}">
+    <view class="source-overview card"><view class="source-overview-head">{{summary.planCount}} 个方案 <text>命中 {{summary.wonCount}} 个 · 待核对 {{summary.pendingCount}} 个</text></view><view class="source-metrics"><view><text>投入</text><text class="value">¥{{summary.cost}}</text></view><view><text>回报</text><text class="value">¥{{summary.returned}}</text></view><view><text>已核对净额</text><text class="value {{summary.netPositive ? 'positive' : 'negative'}}">{{summary.netPositive ? '+' : ''}}¥{{summary.net}}</text></view></view><view class="source-overview-foot">盈利 ¥{{summary.profit}} · 亏损 ¥{{summary.loss}}<text wx:if="{{summary.pendingCount}}"> · 待核对投入 ¥{{summary.pendingCost}}</text></view></view>
+    <view wx:if="{{!months.length}}" class="empty card">当前日期范围还没有方案</view>
+    <view wx:for="{{months}}" wx:for-item="monthGroup" wx:key="id" class="month-section"><view class="month-heading">{{monthGroup.label}}<text>{{monthGroup.summary.planCount}} 个方案 · 命中 {{monthGroup.summary.wonCount}} 个</text></view><view class="month-amount">投入 ¥{{monthGroup.summary.cost}} · 回报 ¥{{monthGroup.summary.returned}} · 已核对净额 {{monthGroup.summary.netPositive ? '+' : ''}}¥{{monthGroup.summary.net}}</view>
+      <view wx:for="{{monthGroup.days}}" wx:for-item="day" wx:key="id" class="day-card card">
+        <view class="day-head" data-id="{{day.id}}" bindtap="toggleDay"><view><view class="day-title">{{day.label}}</view><view class="day-sub">{{day.summary.planCount}} 个方案 · 命中 {{day.summary.wonCount}} 个<text wx:if="{{day.summary.pendingCount}}"> · 待核对 {{day.summary.pendingCount}} 个</text></view></view><text class="day-arrow">{{day.expanded ? '收起 ⌃' : '方案明细 ⌄'}}</text></view>
+        <view class="day-money"><view><text>投入</text><text class="value">¥{{day.summary.cost}}</text></view><view><text>回报</text><text class="value">¥{{day.summary.returned}}</text></view><view><text>净额</text><text class="value {{day.summary.netPositive ? 'positive' : 'negative'}}">{{day.summary.netPositive ? '+' : ''}}¥{{day.summary.net}}</text></view></view>
+        <view class="day-foot">盈利 ¥{{day.summary.profit}} · 亏损 ¥{{day.summary.loss}}</view>
+        <view wx:if="{{day.expanded}}" class="day-plans"><view wx:for="{{day.plans}}" wx:for-item="plan" wx:key="id" class="day-plan" data-id="{{plan.id}}" bindtap="openPlan"><view class="day-plan-top"><text>{{plan.title}}</text><text class="plan-status {{plan.status === '命中' ? 'hit' : ''}}">{{plan.status}}</text></view><view class="day-plan-meta">{{plan.time}} · {{plan.periodLabel}}</view><view class="day-plan-amount">投入 ¥{{plan.cost}} · 回报 {{plan.returned === '—' ? '待核对' : '¥' + plan.returned}} <text>明细 ›</text></view></view></view>
+      </view>
+    </view>
+  </block>
+  <view class="source-footer">数据来自当前设备保存的方案；清理缓存或删除小程序可能导致记录丢失。</view>
+</view>

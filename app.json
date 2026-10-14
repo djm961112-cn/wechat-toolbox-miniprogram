@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/tool/password-vault/index", "pages/tool/bookmark/index", "pages/tool/simulation/index", "pages/tool/simulation/football/index", "pages/tool/simulation/detail/index", "pages/legal/terms/index", "pages/legal/privacy/index", "pages/market/index", "pages/mine/index"],
+  "pages": ["pages/index/index", "pages/tool/mfa/index", "pages/tool/password-vault/index", "pages/tool/bookmark/index", "pages/tool/simulation/index", "pages/tool/simulation/football/index", "pages/tool/simulation/detail/index", "pages/tool/simulation/source-stats/index", "pages/legal/terms/index", "pages/legal/privacy/index", "pages/market/index", "pages/mine/index"],
   "window": {
     "navigationBarTitleText": "工具箱",
     "navigationBarBackgroundColor": "#f6f8fc",

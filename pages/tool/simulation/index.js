@@ -1,9 +1,14 @@
 const { simulationTools, readPlans, removePlan, savePlanCheck, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 const { checkPlan } = require('../../../utils/football-results')
+const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
+
+const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
 
 Page({
-  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '' },
-  onLoad(options = {}) { if (options.tab === 'plans') this.setData({ activeTab: 'plans' }) },
+  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
+    statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
+    statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
+  onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
   onShow() { this.refreshPlans(); this.refreshSources() },
   onUnload() { this.unloaded = true },
   refreshPlans() {
@@ -11,6 +16,7 @@ Page({
       this.plans = readPlans().filter((plan) => plan.toolId === this.data.selectedToolId)
         .map(formatPlanForDisplay)
       this.rebuildGroups()
+      this.refreshStats()
     } catch (error) {
       wx.showToast({ title: '读取方案失败，请重试', icon: 'none' })
     }
@@ -73,6 +79,54 @@ Page({
   },
   selectTab(event) { this.setData({ activeTab: event.currentTarget.dataset.tab }) },
   selectTool(event) { this.setData({ selectedToolId: event.currentTarget.dataset.id }, () => this.refreshPlans()) },
+  selectStatsDimension(event) { this.setData({ statsDimension: event.currentTarget.dataset.dimension, statsYear: '', statsMonth: '' }, () => this.refreshStats()) },
+  changeStatsYear(event) {
+    const selected = this.data.statsYearOptions[Number(event.detail.value)]
+    this.setData({ statsYear: selected ? selected.value : '', statsMonth: '' }, () => this.refreshStats())
+  },
+  changeStatsMonth(event) {
+    const selected = this.data.statsMonthOptions[Number(event.detail.value)]
+    this.setData({ statsMonth: selected ? selected.value : '' }, () => this.refreshStats())
+  },
+  toggleStatsGroup(event) {
+    const id = event.currentTarget.dataset.id
+    this.setData({ expandedStats: { ...this.data.expandedStats, [id]: !this.data.expandedStats[id] } }, () => this.refreshStats())
+  },
+  openStatsGroup(event) {
+    if (this.data.statsDimension === 'period') this.toggleStatsGroup(event)
+    else this.openSourceStats(event)
+  },
+  openSourceStats(event) {
+    const sourceId = event.currentTarget.dataset.source || ''
+    const query = `toolId=${encodeURIComponent(this.data.selectedToolId)}&sourceId=${encodeURIComponent(sourceId)}&year=${this.data.statsYear}&month=${this.data.statsMonth}`
+    wx.navigateTo({ url: `/pages/tool/simulation/source-stats/index?${query}` })
+  },
+  refreshStats() {
+    try {
+      const rows = planRows(readPlans(), this.data.selectedToolId)
+      const dateField = this.data.statsDimension === 'period' ? 'periodDate' : 'createdDate'
+      const years = [...new Set(rows.map((row) => row[dateField].slice(0, 4)))].sort().reverse()
+      const statsYearOptions = [{ label: '全部年份', value: '' }, ...years.map((value) => ({ label: `${value}年`, value }))]
+      const statsYear = years.includes(this.data.statsYear) ? this.data.statsYear : ''
+      const filtered = filterRows(rows, statsYear, this.data.statsMonth, dateField)
+      let statsGroups
+      if (this.data.statsDimension === 'period') {
+        statsGroups = groupRows(filtered, (row) => row.periodId, (row) => row.periodLabel)
+          .sort((left, right) => {
+            const rank = (id) => id === 'unknown' ? 2 : id.startsWith('multi:') ? 1 : 0
+            return rank(left.id) - rank(right.id) || right.id.localeCompare(left.id)
+          })
+          .map((group) => ({ id: group.id, label: group.label, summary: group.summary, expanded: Boolean(this.data.expandedStats[group.id]),
+            sources: groupRows(group.rows, (row) => row.sourceId || 'unlinked', (row) => row.sourceName)
+              .map((source) => ({ id: source.id, label: source.label, summary: source.summary })) }))
+      } else {
+        statsGroups = groupRows(filtered, (row) => row.sourceId || 'unlinked', (row) => row.sourceName)
+          .map((group) => ({ id: group.id, sourceId: group.id === 'unlinked' ? '' : group.id, label: group.label, summary: group.summary }))
+      }
+      this.setData({ statsGroups, statsSummary: aggregate(filtered), statsYearOptions, statsYear, statsYearIndex: statsYearOptions.findIndex((item) => item.value === statsYear),
+        statsMonthIndex: monthOptions.findIndex((item) => item.value === this.data.statsMonth), statsError: '' })
+    } catch (error) { this.setData({ statsGroups: [], statsSummary: null, statsError: error.message || '统计失败，请稍后重试' }) }
+  },
   openTool(event) {
     const tool = simulationTools.find((item) => item.id === event.currentTarget.dataset.id)
     if (tool) wx.navigateTo({ url: tool.url })
