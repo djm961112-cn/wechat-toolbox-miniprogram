@@ -1,5 +1,5 @@
 <view class="page football-page">
-  <view class="source-head"><view><view class="heading">足球模拟</view><view class="source-note">本次查询：{{loading ? '查询中…' : fetchedAt || '等待查询'}}</view><view class="source-note">官方数据更新：{{updatedAt || '等待刷新'}} · 中国竞彩网</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
+  <view class="source-head"><view><view class="heading">{{editMode ? '修改足球方案' : '足球模拟'}}</view><view class="source-note">本次查询：{{loading ? '查询中…' : fetchedAt || '等待查询'}}</view><view class="source-note">官方数据更新：{{updatedAt || '等待刷新'}} · 中国竞彩网</view></view><text class="refresh" bindtap="refreshFeed">刷新</text></view>
   <view class="simulation-notice">仅供个人方案模拟与赛后复盘。金额是本地计算的参考值；本小程序不提供真实投注、支付、出票或兑奖。</view>
   <view wx:if="{{draftRecovered}}" class="draft-notice">已从本机恢复上次页面，赛事和赔率按上次查询快照展示。点击「刷新」会清空当前选择并重新查询。</view>
   <scroll-view class="market-scroll" scroll-x="true"><view class="markets"><view wx:for="{{markets}}" wx:key="id" class="market {{market === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectMarket">{{item.name}}</view></view></scroll-view>
@@ -54,7 +54,7 @@
   <view class="floating-save" bindtap="openPreview">{{saved ? '已保存' : '保存'}}<text>方案</text></view>
   <view wx:if="{{previewVisible}}" class="preview-mask" catchtap="closePreview">
     <view class="preview-dialog" catchtap="stopPropagation">
-      <view class="preview-heading"><text>{{saveFormVisible ? '保存方案' : '组合方式：' + preview.briefPassLabel}}</text><text class="close" catchtap="closePreview">×</text></view>
+      <view class="preview-heading"><text>{{saveFormVisible ? (editMode ? '保存修改' : '保存方案') : '组合方式：' + preview.briefPassLabel}}</text><text class="close" catchtap="closePreview">×</text></view>
       <block wx:if="{{!saveFormVisible}}">
         <scroll-view class="brief-content" scroll-y="true" style="height: {{preview.briefHeight}}rpx;">
           <view wx:for="{{preview.matches}}" wx:key="id" class="brief-match"><view>{{item.label}}</view><view class="simulation-choice-box columns-{{item.selectionRows[0].columns}}"><view wx:for="{{item.selectionRows}}" wx:for-item="row" wx:key="id" class="simulation-choice-row"><text wx:for="{{row.options}}" wx:for-item="choice" wx:key="key" class="simulation-choice-cell">{{choice.text}}</text></view></view></view>
@@ -66,7 +66,7 @@
         <view class="form-label">方案来源（选填）</view><scroll-view class="source-options" scroll-x="true"><view class="source-options-inner"><view class="source-option {{!planSourceId ? 'active' : ''}}" data-id="" bindtap="selectPlanSource">未关联</view><view wx:for="{{sources}}" wx:key="id" class="source-option {{planSourceId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPlanSource">{{item.name}}</view></view></scroll-view>
         <view wx:if="{{!sources.length}}" class="form-tip">可先保存方案，再到“我的方案 → 来源管理”添加并关联。</view>
         <view class="form-label">备注（选填）</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />
-        <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : '保存到我的方案'}}</button>
+        <button class="save-button" loading="{{saving}}" disabled="{{saving || saved}}" catchtap="savePreview">{{saved ? '当前方案已保存' : editMode ? '保存修改' : '保存到我的方案'}}</button>
         <view class="back-preview" catchtap="backToPreview">返回预览</view>
       </view>
     </view>

@@ -1,4 +1,4 @@
-const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, formatPlanForDisplay } = require('../../../utils/simulation-plans')
+const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatPlanForDisplay } = require('../../../utils/simulation-plans')
 const { checkPlan } = require('../../../utils/football-results')
 const { API_URL, normalizeFeed } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
@@ -18,8 +18,24 @@ function latestFeed() {
   }))
 }
 
+function currentMatch(feed, saved) {
+  return feed.matches.find((match) => match.id === String(saved.id) && matchPeriod(match) === matchPeriod(saved) && matchNumber(match) === matchNumber(saved))
+}
+
+function selectionAvailable(match, selection) {
+  const pool = match && match.pools.find((item) => item.id === selection.poolId)
+  return Boolean(pool && pool.selectable && pool.options.some((option) => option.key === selection.key && !option.disabled))
+}
+
+function confirmEdit(content) {
+  return new Promise((resolve) => wx.showModal({
+    title: '部分选择已封盘', content, confirmText: '继续编辑', cancelText: '取消',
+    success: (result) => resolve(Boolean(result.confirm)), fail: () => resolve(false)
+  }))
+}
+
 Page({
-  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
+  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', editingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
     statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
     statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
   onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
@@ -151,6 +167,35 @@ Page({
     const id = event.currentTarget.dataset.id
     if (this.data.checkingId === id) { wx.showToast({ title: '正在核对，请稍候', icon: 'none' }); return }
     wx.navigateTo({ url: `/pages/tool/simulation/detail/index?id=${encodeURIComponent(id)}` })
+  },
+  async editPlan(event) {
+    if (this.data.checkingId || this.data.editingId) return
+    const id = event.currentTarget.dataset.id
+    this.setData({ editingId: id })
+    try {
+      const plan = readPlans().find((item) => item.id === id)
+      if (!plan) throw new Error('方案已删除')
+      const periods = planPeriods(plan)
+      if (periods.length !== 1) throw new Error('历史跨期方案不支持修改')
+      const feed = await latestFeed()
+      const period = periods[0]
+      const selectableMatches = feed.matches.filter((match) => matchPeriod(match) === period && match.selectable)
+      if (!selectableMatches.length) {
+        wx.showModal({ title: '无法修改', content: '赛事已开始或已结束，不支持修改。', showCancel: false })
+        return
+      }
+      const unavailable = plan.matches.filter((saved) => {
+        const current = currentMatch(feed, saved)
+        return !current || !current.selectable || (saved.selections || []).some((selection) => !selectionAvailable(current, selection))
+      })
+      if (unavailable.length) {
+        const labels = unavailable.map((match) => `${matchNumber(match) || '未知'}号 ${match.home || ''} vs ${match.away || ''}`)
+        const accepted = await confirmEdit(`${labels.join('、')} 的赛程已经封盘，不支持编辑。继续编辑并保存会丢失对应选择！`)
+        if (!accepted) return
+      }
+      wx.navigateTo({ url: `/pages/tool/simulation/football/index?editPlanId=${encodeURIComponent(id)}` })
+    } catch (error) { wx.showToast({ title: error.message || '读取最新赛事失败', icon: 'none', duration: 3000 }) }
+    finally { if (!this.unloaded) this.setData({ editingId: '' }) }
   },
   async checkSavedPlan(event) {
     if (this.data.checkingId) return

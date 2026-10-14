@@ -1,5 +1,5 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
-const { savePlan, readSources, formatTime, formatSelectionRows, matchPeriod, matchNumber } = require('../../../../utils/simulation-plans')
+const { savePlan, replacePlan, readPlans, readSources, formatTime, formatSelectionRows, matchPeriod, matchNumber, planPeriods } = require('../../../../utils/simulation-plans')
 const DRAFT_KEY = 'simulation-football-draft-v1'
 const FEED_KEY = 'simulation-football-feed-v1'
 
@@ -10,9 +10,12 @@ Page({
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
     multiplier: '1', multiplierVisible: false, multiplierDraft: '', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
     summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
-    planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false
+    planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false, editMode: false
   },
-  onLoad() { this.restoreDraft() },
+  onLoad(options = {}) {
+    this.editPlanId = options.editPlanId ? decodeURIComponent(options.editPlanId) : ''
+    if (!this.editPlanId) this.restoreDraft()
+  },
   onShow() {
     if (!this.feed && !this.initialFetchStarted) { this.initialFetchStarted = true; this.refreshFeed() }
   },
@@ -44,7 +47,7 @@ Page({
     } catch (error) { wx.showToast({ title: '读取草稿失败，请重新选择', icon: 'none' }) }
   },
   persistDraft() {
-    if (!this.feed) return
+    if (!this.feed || this.editPlanId) return
     try {
       const data = this.data
       const hasDraft = Object.keys(data.selections || {}).length || data.preview || data.multiplier !== '1'
@@ -79,6 +82,10 @@ Page({
           const feed = normalizeFeed(res.data)
           const fetchedAtMs = Date.now()
           const fetchedAt = formatTime(fetchedAtMs, true)
+          if (this.editPlanId) {
+            this.initializeEditFeed(feed, fetchedAt)
+            return
+          }
           this.feedToken = String(fetchedAtMs)
           this.cacheFeed(feed, fetchedAt, this.feedToken)
           this.feed = feed
@@ -94,8 +101,47 @@ Page({
     })
   },
   showFeedError(error) {
+    if (this.editPlanId) {
+      this.feed = null
+      this.setData({ loading: false, error, updatedAt: '', fetchedAt: '', matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] })
+      return
+    }
     if (this.feed) { this.setData({ loading: false }); wx.showToast({ title: error, icon: 'none' }); return }
     this.setData({ loading: false, error, updatedAt: '', fetchedAt: '', matches: [], summary: null, selectedCount: 0, selections: {}, passes: [], chosenPassIds: [] })
+  },
+  initializeEditFeed(feed, fetchedAt) {
+    const plan = readPlans().find((item) => item.id === this.editPlanId)
+    if (!plan) throw new Error('原方案已删除，无法修改')
+    const periods = planPeriods(plan)
+    if (periods.length !== 1) throw new Error('历史跨期方案不支持修改')
+    const period = periods[0]
+    const matches = feed.matches.filter((match) => matchPeriod(match) === period && match.selectable)
+    if (!matches.length) throw new Error('赛事已开始或已结束，不支持修改')
+    const editFeed = { ...feed, matches }
+    const selections = {}
+    plan.matches.forEach((saved) => {
+      const current = matches.find((match) => match.id === String(saved.id) && matchNumber(match) === matchNumber(saved))
+      const savedSelections = saved.selections || []
+      savedSelections.forEach((selection) => {
+        const pool = current && current.pools.find((item) => item.id === selection.poolId)
+        const option = pool && pool.options.find((item) => item.key === selection.key && !item.disabled)
+        if (pool && pool.selectable && option) selections[`${current.id}:${pool.id}:${option.key}`] = true
+      })
+    })
+    const selected = selectedMatches(matches, selections)
+    const selectedPools = [...new Set(selected.reduce((all, match) => all.concat(match.options.map((option) => option.poolId)), []))]
+    const market = !selectedPools.length || selectedPools.every((id) => ['had', 'hhad'].includes(id)) ? 'had' : selectedPools.length === 1 ? selectedPools[0] : 'mixed'
+    let sources = []
+    try { sources = readSources() } catch (error) {}
+    this.editingPlan = plan
+    this.feed = editFeed
+    this.setData({
+      editMode: true, loading: false, error: '', updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false,
+      market, selections, selectedCount: selected.length, chosenPassIds: (plan.passes || []).map((pass) => pass.id), passSelectionEdited: true,
+      multiplier: String(plan.multiplier || 1), multiplierDraft: '', expandedMatchId: market === 'mixed' && selected.length ? selected[0].id : '',
+      preview: null, previewVisible: false, saveFormVisible: false, planTitle: plan.title || '', planNote: plan.note || '',
+      planSourceId: plan.planSourceId || '', sources, saved: false
+    }, () => this.updateView())
   },
   selectMarket(event) {
     const market = event.currentTarget.dataset.id
@@ -212,7 +258,10 @@ Page({
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
       briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0) + (match.selectionRows.length - 1) * 24, 0)), ...this.data.summary
     }
-    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false, planTitle: `足球方案 ${formatTime(Date.now())}`, planNote: '', planSourceId: '' }, () => this.persistDraft())
+    const original = this.editingPlan
+    this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false,
+      planTitle: original ? original.title : `足球方案 ${formatTime(Date.now())}`,
+      planNote: original ? original.note || '' : '', planSourceId: original ? original.planSourceId || '' : '' }, () => this.persistDraft())
   },
   openSaveForm() {
     try { this.setData({ sources: readSources(), saveFormVisible: true }, () => this.persistDraft()) }
@@ -229,11 +278,25 @@ Page({
     const title = this.data.planTitle.trim()
     if (!title) { wx.showToast({ title: '请输入方案名称', icon: 'none' }); return }
     this.setData({ saving: true })
+    if (this.editPlanId) {
+      wx.showActionSheet({
+        itemList: ['新增方案', '当前方案'],
+        success: (result) => this.commitPreview(result.tapIndex === 1),
+        fail: () => this.setData({ saving: false })
+      })
+      return
+    }
+    this.commitPreview(false)
+  },
+  commitPreview(replaceCurrent) {
     try {
-      savePlan({ ...this.data.preview, title, note: this.data.planNote.trim(), planSourceId: this.data.planSourceId })
+      const snapshot = { ...this.data.preview, title: this.data.planTitle.trim(), note: this.data.planNote.trim(), planSourceId: this.data.planSourceId }
+      if (replaceCurrent) replacePlan(this.editPlanId, snapshot)
+      else savePlan(snapshot)
       try { wx.removeStorageSync(DRAFT_KEY) } catch (error) {}
       this.setData({ saved: true, saving: false, previewVisible: false })
-      wx.showToast({ title: '已保存到我的方案', icon: 'success' })
+      wx.showToast({ title: replaceCurrent ? '当前方案已更新' : '已新增方案', icon: 'success' })
+      if (this.editPlanId) setTimeout(() => { if (!this.unloaded) this.viewPlans() }, 300)
     } catch (error) { this.setData({ saving: false }); wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
   },
   viewPlans() {

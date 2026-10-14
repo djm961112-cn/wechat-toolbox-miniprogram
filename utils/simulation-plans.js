@@ -56,6 +56,25 @@ function savePlan(snapshot) {
   return plan
 }
 
+function replacePlan(id, snapshot) {
+  if (!simulationTools.some((tool) => tool.id === snapshot.toolId)) throw new Error('不支持的模拟工具')
+  if (!snapshot.title || !Array.isArray(snapshot.matches) || !snapshot.matches.length) throw new Error('请填写方案名称和比赛选择')
+  if (snapshot.toolId === 'football' && (snapshot.matches.some((match) => !matchPeriod(match)) || planPeriods(snapshot).length !== 1)) throw new Error('一条足球方案只能保存同一期号的比赛')
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('原方案已删除，无法更新')
+  const original = plans[index]
+  const updated = {
+    ...original, ...snapshot, ...sourceFields(snapshot.planSourceId), version: 3, periodIds: planPeriods(snapshot),
+    id: original.id, createdAt: original.createdAt, purchased: original.purchased === true, updatedAt: Date.now()
+  }
+  delete updated.check
+  delete updated.pricingNote
+  plans[index] = updated
+  wx.setStorageSync(STORAGE_KEY, plans)
+  return updated
+}
+
 function setPlanSource(id, sourceId) {
   const plans = readPlans()
   const index = plans.findIndex((plan) => plan.id === id)
@@ -160,4 +179,4 @@ function formatPlanForDisplay(plan) {
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, replacePlan, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
