@@ -31,7 +31,7 @@ Page({
           entryGroups.push(group)
         }
         const { id, label, choices, returnAmount } = entry
-        const verdict = this.data.plan.check ? gradeEntry(entry.legs, this.data.plan.check.results, this.data.plan.multiplier) : {}
+        const verdict = this.data.plan.check && this.data.plan.check.status === 'complete' ? gradeEntry(entry.legs, this.data.plan.check.results, this.data.plan.multiplier) : {}
         group.entries.push({ id, label, choices, returnAmount, ...verdict })
       })
       this.entries = entries

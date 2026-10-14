@@ -11,7 +11,12 @@
       <view class="money"><view>模拟投入<text>¥{{plan.cost}}</text></view><view>{{plan.minReturn ? '模拟回报区间' : '历史模拟回报上限'}}<text>{{plan.minReturn ? '¥' + plan.minReturn + ' ～ ' : ''}}¥{{plan.maxReturn}}</text></view></view>
       <view class="hint">区间为至少一组与赛果匹配时的模拟回报，未计逐项舍入、上限及税费，不代表实际收益。</view>
       <view wx:if="{{plan.capped}}" class="hint">包含可能触及计算上限的组合，实际模拟回报可能低于上述估算。</view>
-      <view wx:if="{{plan.check}}" class="settlement-summary"><view>{{plan.check.statusLabel}} · 匹配赛果 {{plan.check.wonCount}} 组</view><view>已确认模拟回报 <text>¥{{plan.check.prizeAmount}}</text></view><view wx:if="{{plan.check.refundCount}}">无效组合模拟返还 ¥{{plan.check.refundAmount}} · {{plan.check.refundCount}} 组</view><view wx:if="{{plan.check.pendingCount}}">{{plan.check.pendingCount}} 组待赛果</view><view wx:if="{{plan.check.pendingReason}}" class="hint">{{plan.check.pendingReason}}</view><view class="hint">核对时间：{{plan.checkedTime}}</view></view>
+      <view wx:if="{{plan.check}}" class="settlement-summary {{plan.check.status === 'complete' ? 'terminal' : 'waiting'}}">
+        <block wx:if="{{plan.check.status !== 'complete'}}"><view class="settlement-status">比赛未结束</view><view wx:for="{{plan.check.pendingScores}}" wx:for-item="score" wx:key="*this" class="settlement-score">{{score}}</view><view wx:if="{{!plan.check.pendingScores || !plan.check.pendingScores.length}}" class="settlement-score">暂未查到最终赛果，请稍后再核对</view></block>
+        <block wx:elif="{{plan.check.outcome === 'won' || !plan.check.outcome && plan.check.prizeAmount !== '0.00'}}"><view class="settlement-status">已中奖 · 模拟回报</view><view class="settlement-prize">¥{{plan.check.prizeAmount}}</view></block>
+        <block wx:elif="{{plan.check.outcome === 'refund' || plan.check.refundCount}}"><view class="settlement-status">场次无效 · 模拟返还</view><view class="settlement-prize">¥{{plan.check.refundAmount}}</view></block>
+        <view wx:else class="settlement-status">未中奖</view><view class="hint">核对时间：{{plan.checkedTime}}</view>
+      </view>
     </view>
     <view class="section card">
       <view class="section-title">比赛选择</view>

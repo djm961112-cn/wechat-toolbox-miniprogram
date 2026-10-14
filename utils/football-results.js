@@ -4,7 +4,7 @@ const { matchPeriod, matchNumber } = require('./simulation-plans')
 const LIST_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchDataPageListV1.qry'
 const DETAIL_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchGeneral.qry'
 const RESULT_POOLS = ['had', 'hhad', 'crs', 'ttg', 'hafu'].map((id) => POOLS.find((pool) => pool.id === id))
-const RESULT_UNAVAILABLE_MESSAGE = '结果还未公示或未查到，请稍后再试'
+const RESULT_UNAVAILABLE_MESSAGE = '比赛未结束'
 
 function requestValue(url, data) {
   return new Promise((resolve, reject) => wx.request({
@@ -19,17 +19,77 @@ function requestValue(url, data) {
   }))
 }
 
-async function queryDate(date) {
+async function queryDate(date, method = 'result') {
   const matches = []
   // Date filtering is by kick-off date, not issue date. Follow the official pagination.
   for (let pageNo = 1; pageNo <= 20; pageNo += 1) {
-    const value = await requestValue(LIST_URL, { method: 'result', matchDate: date, pageSize: 100, ...(pageNo > 1 ? { pageNo, pageType: '1' } : {}) })
+    const value = await requestValue(LIST_URL, { method, matchDate: date, pageSize: 100, ...(pageNo > 1 ? { pageNo, pageType: '1' } : {}) })
     const groups = value.matchInfoList || []
-    if (!Array.isArray(groups)) throw new Error('官方赛果列表格式异常')
+    if (!Array.isArray(groups)) throw new Error('官方比赛列表格式异常')
     matches.push(...groups.reduce((all, group) => all.concat((group.subMatchList || []).map((match) => ({ ...match, matchNumDate: match.matchNumDate || group.matchNumDate }))), []))
-    if (String(value.nextPage || '0') === '0') return matches
+    if (method === 'live' || String(value.nextPage || '0') === '0') return matches
   }
   throw new Error('赛果列表尚未查询完整，请稍后重试')
+}
+
+function scorePair(value) {
+  const found = String(value || '').trim().match(/^(\d{1,2}):(\d{1,2})$/)
+  return found ? [Number(found[1]), Number(found[2])] : null
+}
+
+function scoreOutcome(home, away) { return home > away ? 'h' : home === away ? 'd' : 'a' }
+
+function scorePoolKey(poolId, full, half, goalLine) {
+  if (!full) return ''
+  const [home, away] = full
+  if (poolId === 'had') return scoreOutcome(home, away)
+  if (poolId === 'hhad') return goalLine === null ? '' : scoreOutcome(home + Number(goalLine), away)
+  if (poolId === 'ttg') return `s${Math.min(home + away, 7)}`
+  if (poolId === 'hafu') return half ? scoreOutcome(...half) + scoreOutcome(home, away) : ''
+  if (poolId === 'crs') {
+    const exact = `s${String(home).padStart(2, '0')}s${String(away).padStart(2, '0')}`
+    return POOLS.find((pool) => pool.id === 'crs').options.some(([key]) => key === exact) ? exact : `s1s${scoreOutcome(home, away)}`
+  }
+  return ''
+}
+
+function resultTextFromKey(pool, key, goalLine) {
+  const definition = POOLS.find((item) => item.id === pool)
+  const option = definition && definition.options.find(([value]) => value === key)
+  if (!option) return '待公布'
+  if (pool === 'hhad') return option[1].replace(/^让/, '')
+  if (pool === 'hafu') return option[1].replace(/^(.)/, '$1-')
+  return option[1].replace(/球$/, '')
+}
+
+// The live list contains provisional scores. Only official terminal statuses 10/11
+// may produce winning keys; derive them from the final score and saved handicap.
+function normalizeLiveResult(snapshot, candidate) {
+  const statusCode = String(candidate.matchStatus || '')
+  const terminal = ['10', '11'].includes(statusCode)
+  const full = scorePair(candidate.sectionsNo999)
+  const half = scorePair(candidate.sectionsNo1)
+  const pools = RESULT_POOLS.map((pool) => {
+    const selectedHandicap = (snapshot.selections || []).find((option) => option.poolId === 'hhad')
+    const line = selectedHandicap && selectedHandicap.goalLine != null && Number.isFinite(Number(selectedHandicap.goalLine)) ? String(selectedHandicap.goalLine) : null
+    const goalLine = pool.id === 'hhad' ? line : null
+    const key = terminal ? scorePoolKey(pool.id, full, half, goalLine) : ''
+    return { id: pool.id, name: pool.id === 'hhad' ? `让球${line === null ? '' : '(' + line + ')'}` : pool.name,
+      key, goalLine, resultText: key ? resultTextFromKey(pool.id, key, goalLine) : '待公布', odds: '-', state: key ? 'settled' : 'pending' }
+  })
+  return { matchId: String(snapshot.id), period: matchPeriod(snapshot), number: matchNumber(snapshot), label: snapshot.label,
+    league: candidate.leagueAbbName || snapshot.league, home: candidate.homeTeamAbbName || snapshot.home,
+    away: candidate.awayTeamAbbName || snapshot.away, fullScore: full ? candidate.sectionsNo999 : '—',
+    halfScore: half ? candidate.sectionsNo1 : '—', status: terminal && full ? 'published' : 'pending',
+    statusLabel: terminal && full ? '已结束（比分直播）' : '比赛未结束', pools, source: 'live', fetchedAt: Date.now() }
+}
+
+function sameMatch(candidate, match) {
+  return matchPeriod(candidate) === matchPeriod(match) && matchNumber(candidate) === matchNumber(match) && String(candidate.matchId) === String(match.id)
+}
+
+function pendingResult(match) {
+  return normalizeResult(match, null, { matchStatusName: '比赛未结束' })
 }
 
 function resultKey(poolId, combination, description) {
@@ -90,8 +150,11 @@ async function checkPlan(plan) {
     if (!byDate.has(match.date)) byDate.set(match.date, await queryDate(match.date))
   }
   const results = []
+  const liveByDate = new Map()
   for (const match of plan.matches) {
     const candidate = byDate.get(match.date).find((item) => matchPeriod(item) === matchPeriod(match) && matchNumber(item) === matchNumber(match))
+    if (candidate && String(candidate.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场比赛身份不一致，已停止核对`)
+    let result
     if (!candidate) {
       // An issue/number/ID binding was captured at save time. Use its stable ID for
       // rescheduled matches; the detail API echoes matchStatus, so only real winning keys establish publication.
@@ -99,26 +162,53 @@ async function checkPlan(plan) {
       try { detail = await requestValue(DETAIL_URL, { matchId: match.id, matchStatus: '11' }) }
       catch (error) {
         if (/合法域名|网络/.test(error.message || '')) throw error
-        throw new Error(RESULT_UNAVAILABLE_MESSAGE)
       }
-      if (String(detail.matchId) !== String(match.id)) throw new Error('历史比赛赛果身份不一致，请稍后重试')
-      const published = Array.isArray(detail.matchResultList) && detail.matchResultList.some((pool) => resultKey(String(pool.poolCode).toLowerCase(), pool.combination, pool.combinationDesc))
+      if (detail && String(detail.matchId) !== String(match.id)) throw new Error('历史比赛赛果身份不一致，请稍后重试')
+      const published = detail && Array.isArray(detail.matchResultList) && detail.matchResultList.some((pool) => resultKey(String(pool.poolCode).toLowerCase(), pool.combination, pool.combinationDesc))
       const previous = (plan.check && plan.check.results || []).find((item) => item.matchId === String(match.id) && item.period === matchPeriod(match) && item.number === matchNumber(match) && item.status === 'published')
-      const result = normalizeResult(match, null, { ...detail, matchStatus: published ? '11' : '', matchStatusName: published ? '已公布赛果' : '赛果暂未公布' })
-      results.push(!published && previous ? { ...previous, fromCache: true } : { ...result, lookupBySavedId: true })
-      continue
+      result = !published && previous ? { ...previous, fromCache: true } : published ? { ...normalizeResult(match, null, { ...detail, matchStatus: '11', matchStatusName: '已公布赛果' }), lookupBySavedId: true } : pendingResult(match)
+    } else {
+      let detail
+      try { detail = await requestValue(DETAIL_URL, { matchId: candidate.matchId, matchStatus: candidate.matchStatus }) }
+      catch (error) {
+        if (/合法域名|网络/.test(error.message || '')) throw error
+      }
+      if (detail && String(detail.matchId) !== String(candidate.matchId)) throw new Error('官方赛果详情身份不一致，请稍后重试')
+      result = normalizeResult(match, candidate, detail || {})
     }
-    if (String(candidate.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场比赛身份不一致，已停止核对`)
-    const detail = await requestValue(DETAIL_URL, { matchId: candidate.matchId, matchStatus: candidate.matchStatus })
-    if (String(detail.matchId) !== String(candidate.matchId)) throw new Error('官方赛果详情身份不一致，请稍后重试')
-    results.push(normalizeResult(match, candidate, detail))
+    const selectedPools = [...new Set((match.selections || []).map((option) => option.poolId))]
+    const needsLive = result.status === 'pending' || result.status === 'published' && selectedPools.some((id) => !result.pools.some((pool) => pool.id === id && pool.key))
+    if (needsLive) {
+      if (!liveByDate.has(match.date)) {
+        try { liveByDate.set(match.date, await queryDate(match.date, 'live')) }
+        catch (error) { if (/合法域名/.test(error.message || '')) throw error; liveByDate.set(match.date, []) }
+      }
+      const liveCandidates = liveByDate.get(match.date)
+      const sameNumber = liveCandidates.find((item) => matchPeriod(item) === matchPeriod(match) && matchNumber(item) === matchNumber(match))
+      if (sameNumber && String(sameNumber.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场直播比赛身份不一致，已停止核对`)
+      if (sameNumber && sameMatch(sameNumber, match)) {
+        let liveDetail
+        try { liveDetail = await requestValue(DETAIL_URL, { matchId: sameNumber.matchId, matchStatus: sameNumber.matchStatus }) }
+        catch (error) { if (/合法域名/.test(error.message || '')) throw error }
+        if (liveDetail && String(liveDetail.matchId) !== String(match.id)) throw new Error('比分直播详情身份不一致，已停止核对')
+        const liveResult = normalizeLiveResult(match, { ...sameNumber,
+          sectionsNo999: liveDetail && liveDetail.sectionsNo999 || sameNumber.sectionsNo999,
+          sectionsNo1: liveDetail && liveDetail.sectionsNo1 || sameNumber.sectionsNo1 })
+        if (liveResult.status === 'published' && result.status === 'published') {
+          result = { ...result, pools: result.pools.map((pool) => pool.key ? pool : liveResult.pools.find((item) => item.id === pool.id && item.key) || pool),
+            fullScore: result.fullScore === '—' ? liveResult.fullScore : result.fullScore,
+            halfScore: result.halfScore === '—' ? liveResult.halfScore : result.halfScore }
+        } else if (liveResult.status === 'published') result = liveResult
+        else if (result.status === 'pending') result = liveResult
+      }
+    }
+    results.push(result)
   }
-  if (!hasCheckableResult(results)) throw new Error(RESULT_UNAVAILABLE_MESSAGE)
   return { version: 1, checkedAt: Date.now(), results, ...settlePlan(plan, results) }
 }
 
 function gradeOption(option, result) {
-  if (!result || result.status === 'suspended') return { state: 'pending', odds: 0, reason: result && result.status === 'suspended' ? '结果暂不可核对' : '未查询到完整赛果' }
+  if (!result || !['published', 'cancelled'].includes(result.status)) return { state: 'pending', odds: 0, reason: RESULT_UNAVAILABLE_MESSAGE }
   const pool = result.pools.find((item) => item.id === option.poolId)
   if (!pool || pool.state === 'pending') return { state: 'pending', odds: 0, reason: '未查询到完整赛果' }
   if (pool.state === 'void') return { state: 'void', odds: 1 }
@@ -150,6 +240,7 @@ function settlePlan(plan, results) {
   const matches = plan.matches.map((match) => {
     if (!Array.isArray(match.selections) || !match.selections.length || match.selections.some((option) => !Number.isFinite(Number(option.odds)) || Number(option.odds) <= 0)) throw new Error('方案赔率快照不完整，无法核对')
     const result = results.find((item) => item.matchId === String(match.id))
+    if (!result || !['published', 'cancelled'].includes(result.status)) { allPublished = false; pendingReasons.add(RESULT_UNAVAILABLE_MESSAGE) }
     const options = match.selections.map((option) => ({ ...option, ...gradeOption(option, result) }))
     options.filter((option) => option.state === 'pending').forEach((option) => { allPublished = false; pendingReasons.add(option.reason) })
     return { ...match, options }
@@ -188,7 +279,9 @@ function settlePlan(plan, results) {
   }
   if (totalCount !== Number(plan.count)) throw new Error('方案组合数与选择快照不一致，无法核对')
   if (!Number.isSafeInteger(prizeCents) || !Number.isSafeInteger(refundCents) || !Number.isSafeInteger(prizeCents + refundCents)) throw new Error('核对金额过大，无法准确计算')
-  return { status: allPublished ? 'complete' : 'partial', statusLabel: allPublished ? '核对完成' : '部分结果待确认', pendingReason: [...pendingReasons].join('、'), totalCount, wonCount, pendingCount, refundCount,
+  const pendingScores = results.filter((result) => result.status === 'pending' && scorePair(result.fullScore)).map((result) => `${result.period}期 ${result.number} 当前比分：${result.fullScore}`)
+  const outcome = !allPublished ? 'pending' : prizeCents > 0 ? 'won' : refundCents > 0 ? 'refund' : 'lost'
+  return { status: allPublished ? 'complete' : 'partial', outcome, statusLabel: outcome === 'pending' ? '比赛未结束' : outcome === 'won' ? '已中奖' : outcome === 'refund' ? '场次无效' : '未中奖', pendingReason: [...pendingReasons].join('、'), pendingScores, totalCount, wonCount, pendingCount, refundCount,
     lostCount: totalCount - wonCount - pendingCount - refundCount, prizeAmount: (prizeCents / 100).toFixed(2), refundAmount: (refundCents / 100).toFixed(2), returnAmount: ((prizeCents + refundCents) / 100).toFixed(2) }
 }
 

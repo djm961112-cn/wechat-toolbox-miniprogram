@@ -27,9 +27,12 @@
 .period-group .plan-card { margin-top: 16rpx; }
 .check-link { color: #25866a; font-size: 22rpx; flex-shrink: 0; }
 .check-link.checking { color: #99a4b5; }
-.check-summary { margin: 0 0 20rpx; padding: 18rpx; border-radius: 14rpx; background: #edf7f2; color: #608578; font-size: 22rpx; line-height: 1.7; }
-.check-summary text { color: #25866a; font-weight: 650; }
-.check-summary .refund-text { font-size: 20rpx; font-weight: 400; }
+.check-summary { margin: 0 0 20rpx; padding: 20rpx 24rpx; border-radius: 16rpx; font-size: 22rpx; line-height: 1.6; }
+.check-summary.terminal { background: #eaf7f0; color: #25866a; }
+.check-summary.waiting { background: #f3f5f8; color: #66778c; }
+.check-status { font-size: 27rpx; font-weight: 750; }
+.check-prize { color: #d74639; font-size: 42rpx; font-weight: 800; letter-spacing: 1rpx; }
+.check-score { margin-top: 5rpx; font-size: 21rpx; }
 .empty { padding: 64rpx 28rpx; text-align: center; }
 .empty-symbol { color: #8ebbaa; font-size: 62rpx; }
 .empty-title { margin-top: 16rpx; font-size: 28rpx; font-weight: 650; }
