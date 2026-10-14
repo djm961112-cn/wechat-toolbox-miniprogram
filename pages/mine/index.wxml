@@ -7,6 +7,7 @@
   <view class="score-card card">
     <view class="score-heading"><view><view class="section-title">给工具箱打分</view><view class="section-subtitle">选择 1 至 10 分，记录你的使用感受</view></view><view class="current-score">{{savedScore === null ? '未评分' : savedScore + '分'}}</view></view>
     <view class="score-grid"><view wx:for="{{scoreOptions}}" wx:key="*this" class="score-option {{draftScore === item ? 'active' : ''}}" data-score="{{item}}" bindtap="chooseScore">{{item}}</view></view>
+    <view class="manual-score"><text>手动输入</text><input type="number" maxlength="2" value="{{manualScore}}" placeholder="输入分数" bindinput="inputManualScore" /><text>分</text></view>
     <button class="save-score" bindtap="saveScore">保存评分</button>
     <view wx:if="{{savedAt}}" class="saved-time">上次保存：{{savedAt}}</view>
   </view>

@@ -8,13 +8,13 @@ function formatTime(timestamp) {
 }
 
 Page({
-  data: { scoreOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], savedScore: null, draftScore: null, savedAt: '', user: null, authLoading: false, loginLoading: false, authError: '' },
+  data: { scoreOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], savedScore: null, draftScore: null, manualScore: '', savedAt: '', user: null, authLoading: false, loginLoading: false, authError: '' },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar()
     if (tabBar) tabBar.setData({ selected: 2 })
     try {
       const record = readScoreRecord()
-      this.setData({ savedScore: record ? record.value : null, draftScore: record ? record.value : null, savedAt: record && record.updatedAt ? formatTime(record.updatedAt) : '' })
+      this.setData({ savedScore: record ? record.value : null, draftScore: record && record.value <= 10 ? record.value : null, manualScore: record && record.value === 99 ? '99' : '', savedAt: record && record.updatedAt ? formatTime(record.updatedAt) : '' })
     } catch (error) { wx.showToast({ title: '读取评分失败，请重试', icon: 'none' }) }
     this.loadUser()
   },
@@ -47,11 +47,16 @@ Page({
       wx.showToast({ title: '已退出登录', icon: 'success' })
     } })
   },
-  chooseScore(event) { this.setData({ draftScore: Number(event.currentTarget.dataset.score) }) },
+  chooseScore(event) { this.setData({ draftScore: Number(event.currentTarget.dataset.score), manualScore: '' }) },
+  inputManualScore(event) {
+    const manualScore = String(event.detail.value || '').replace(/\D/g, '').slice(0, 2)
+    this.setData({ manualScore, draftScore: manualScore ? null : this.data.draftScore })
+  },
   saveScore() {
     try {
-      const record = saveLocalScore(this.data.draftScore)
-      this.setData({ savedScore: record.value, savedAt: formatTime(record.updatedAt) })
+      const value = this.data.manualScore ? Number(this.data.manualScore) : this.data.draftScore
+      const record = saveLocalScore(value)
+      this.setData({ savedScore: record.value, draftScore: record.value <= 10 ? record.value : null, manualScore: record.value === 99 ? '99' : '', savedAt: formatTime(record.updatedAt) })
       wx.showToast({ title: '评分已保存', icon: 'success' })
     } catch (error) { wx.showToast({ title: error.message || '保存失败，请检查本机空间', icon: 'none' }) }
   },

@@ -1,4 +1,5 @@
 const { tools } = require('./tool-data')
+const { readScore } = require('./profile-score')
 
 const STORAGE_KEY = 'tool-preferences-v1'
 
@@ -11,20 +12,26 @@ function readOverrides() {
 
 function defaultEnabled(tool) { return tool.defaultEnabled !== false }
 
+function availableTools() {
+  let simulationUnlocked = false
+  try { simulationUnlocked = readScore() === 99 } catch (error) {}
+  return tools.filter((tool) => tool.id !== 'simulation' || simulationUnlocked)
+}
+
 function isEnabled(tool, overrides) {
   return Object.prototype.hasOwnProperty.call(overrides, tool.id) ? overrides[tool.id] === true : defaultEnabled(tool)
 }
 
 function readToolPreferences() {
   const overrides = readOverrides()
-  return tools.map((tool) => ({ ...tool, enabled: isEnabled(tool, overrides) }))
+  return availableTools().map((tool) => ({ ...tool, enabled: isEnabled(tool, overrides) }))
 }
 
 function readEnabledTools() { return readToolPreferences().filter((tool) => tool.enabled) }
 
 function setToolEnabled(id, enabled) {
   if (typeof enabled !== 'boolean') throw new Error('工具喜好状态无效')
-  const tool = tools.find((item) => item.id === id)
+  const tool = availableTools().find((item) => item.id === id)
   if (!tool) throw new Error('工具不存在，请刷新后重试')
   const overrides = readOverrides()
   if (enabled === defaultEnabled(tool)) delete overrides[id]

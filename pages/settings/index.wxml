@@ -9,6 +9,7 @@
       <switch checked="{{item.enabled}}" color="#25866a" data-id="{{item.id}}" bindchange="toggleTool" />
     </view>
   </view>
-  <view class="settings-note">新增工具会自动加入喜好设置并默认开启；“模拟计算”默认关闭，可按需手动开启。</view>
+  <view class="settings-note">新增工具会自动加入喜好设置并默认开启。</view>
+  <view wx:if="{{simulationUnlocked}}" class="settings-note">“模拟计算”默认关闭，可按需手动开启。</view>
   <view class="settings-note">工具喜好仅保存在当前设备，清理缓存或删除小程序可能导致设置丢失。</view>
 </view>

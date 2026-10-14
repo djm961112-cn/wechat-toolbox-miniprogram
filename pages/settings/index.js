@@ -1,11 +1,13 @@
 const { readToolPreferences, setToolEnabled } = require('../../utils/tool-preferences')
 
 Page({
-  data: { preferences: [], error: '' },
+  data: { preferences: [], simulationUnlocked: false, error: '' },
   onShow() { this.refreshPreferences() },
   refreshPreferences() {
-    try { this.setData({ preferences: readToolPreferences(), error: '' }) }
-    catch (error) { this.setData({ preferences: [], error: error.message || '读取工具喜好失败' }) }
+    try {
+      const preferences = readToolPreferences()
+      this.setData({ preferences, simulationUnlocked: preferences.some((tool) => tool.id === 'simulation'), error: '' })
+    } catch (error) { this.setData({ preferences: [], simulationUnlocked: false, error: error.message || '读取工具喜好失败' }) }
   },
   toggleTool(event) {
     try {
