@@ -62,7 +62,6 @@
         <view class="preview-actions"><button class="save-button" catchtap="openSaveForm">保存方案</button></view>
       </block>
       <view wx:else class="save-form">
-        <view class="form-label">方案名称</view><input class="form-input" maxlength="60" value="{{planTitle}}" bindinput="setTitle" />
         <view class="form-label">方案来源（选填）</view><scroll-view class="source-options" scroll-x="true"><view class="source-options-inner"><view class="source-option {{!planSourceId ? 'active' : ''}}" data-id="" bindtap="selectPlanSource">未关联</view><view wx:for="{{sources}}" wx:key="id" class="source-option {{planSourceId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPlanSource">{{item.name}}</view></view></scroll-view>
         <view wx:if="{{!sources.length}}" class="form-tip">可先保存方案，再到“我的方案 → 来源管理”添加并关联。</view>
         <view class="form-label">备注（选填）</view><textarea class="form-note" maxlength="300" value="{{planNote}}" placeholder="记录选择原因，方便后续核对" bindinput="setNote" />

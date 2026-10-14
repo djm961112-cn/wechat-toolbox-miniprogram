@@ -3,7 +3,7 @@
   <block wx:elif="{{plan}}">
     <view class="simulation-notice">本页仅展示已保存方案的本地模拟值与赛果匹配情况，不提供真实投注、支付、出票或兑奖。</view>
     <view class="summary card">
-      <view class="title">{{plan.title}}</view><view class="muted meta">{{plan.createdTime}}</view>
+      <view class="summary-time">保存于 {{plan.createdTime}}</view>
       <view class="metrics">{{plan.count}} 组 · {{plan.multiplier}} 倍</view>
       <view class="pass-label">组合方式：{{plan.passLabel}}</view>
       <view class="pass-label">所属期号：{{plan.periodLabel || '未记录'}}</view>

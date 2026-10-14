@@ -88,7 +88,6 @@
 .sheet-heading { display: flex; justify-content: space-between; align-items: center; font-size: 31rpx; font-weight: 650; }
 .close { padding: 0 8rpx; font-size: 40rpx; color: #9aa7b7; }
 .form-label { margin: 18rpx 0 12rpx; color: #7b889a; font-size: 22rpx; }
-.form-input { height: 70rpx; box-sizing: border-box; padding: 0 18rpx; border-radius: 14rpx; background: #f5f7fa; font-size: 23rpx; }
 .form-note { width: 100%; height: 130rpx; box-sizing: border-box; padding: 16rpx; border-radius: 14rpx; background: #f5f7fa; font-size: 23rpx; }
 .save-button { margin-top: 20rpx; border-radius: 16rpx; background: #d6463f; color: #fff; font-size: 25rpx; }
 .save-button::after { border: none; }

@@ -37,7 +37,7 @@ Page({
           days: groupRows(group.rows, (row) => row.periodDate, (row) => `${Number(row.periodDate.slice(5, 7))}月${Number(row.periodDate.slice(8, 10))}日`)
             .sort((left, right) => right.id.localeCompare(left.id))
             .map((day) => ({ id: day.id, label: day.label, summary: day.summary, expanded: Boolean(this.data.expandedDays[day.id]),
-              plans: day.rows.map((row) => ({ id: row.id, title: row.title, periodLabel: row.periodLabel, time: row.createdTime,
+              plans: day.rows.map((row, index) => ({ id: row.id, label: `方案 ${index + 1}`, periodLabel: row.periodLabel, time: row.createdTime,
                 cost: money(row.cost), returned: row.checked ? money(row.returned) : '—', status: row.checked ? row.won ? '命中' : row.returned > 0 ? '已返还' : '未命中' : '待核对' })) })) }))
       this.setData({ title: sourceRows[0] ? sourceRows[0].sourceName : this.data.sourceId ? '来源记录' : '未关联来源', year, yearOptions,
         yearIndex: yearOptions.findIndex((item) => item.value === year), monthIndex: monthOptions.findIndex((item) => item.value === this.data.month),

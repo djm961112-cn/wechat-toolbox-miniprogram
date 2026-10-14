@@ -2,7 +2,7 @@
 .detail-page { padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
 .simulation-notice { margin-bottom: 18rpx; padding: 16rpx 20rpx; border-radius: 14rpx; background: #eaf5f0; color: #4d7868; font-size: 20rpx; line-height: 1.5; }
 .summary, .section { padding: 26rpx; margin-bottom: 22rpx; }
-.title { font-size: 32rpx; font-weight: 650; word-break: break-all; }
+.summary-time { color: #8793a8; font-size: 21rpx; }
 .meta { margin-top: 8rpx; font-size: 20rpx; }
 .metrics { margin-top: 24rpx; color: #608578; font-size: 24rpx; }
 .pass-label { margin-top: 12rpx; color: #78869b; font-size: 23rpx; word-break: break-all; }

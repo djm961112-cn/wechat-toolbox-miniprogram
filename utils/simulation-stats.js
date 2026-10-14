@@ -29,7 +29,7 @@ function planRows(plans, toolId) {
     const checked = plan.check && plan.check.status === 'complete'
     const returned = checked ? cents(plan.check.returnAmount, '核对回报金额') : 0
     const prize = checked ? cents(plan.check.prizeAmount, '中奖金额') : 0
-    return { id: plan.id, title: plan.title, toolId, sourceId: plan.planSourceId || '', sourceName: plan.planSourceName || '未关联来源',
+    return { id: plan.id, toolId, sourceId: plan.planSourceId || '', sourceName: plan.planSourceName || '未关联来源',
       periodId, periodGroupLabel, periodLabel, createdDate, createdTime: formatTime(createdAt), periodDate: periodId === 'unknown' ? createdDate : periodDate(periodId) || createdDate,
       cost, returned, checked: Boolean(checked), won: Boolean(checked && prize > 0), profit: checked ? Math.max(returned - cost, 0) : 0,
       loss: checked ? Math.max(cost - returned, 0) : 0 }

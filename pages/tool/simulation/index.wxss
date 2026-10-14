@@ -73,7 +73,9 @@
 .empty-description { margin-top: 12rpx; color: #8793a8; font-size: 22rpx; }
 .plan-card { margin-bottom: 20rpx; padding: 26rpx; border-radius: 24rpx; box-shadow: 0 10rpx 30rpx rgba(39,63,82,.055); }
 .plan-head { display: flex; gap: 16rpx; align-items: center; justify-content: space-between; }
-.plan-title { flex: 1; min-width: 0; word-break: break-all; color: #172a43; font-size: 30rpx; font-weight: 750; }
+.plan-created { flex: 1; min-width: 0; color: #8d99a8; font-size: 19rpx; }
+.plan-created text { display: block; }
+.plan-created text:last-child { margin-top: 4rpx; color: #33485a; font-size: 23rpx; font-weight: 700; }
 .plan-actions { display: flex; flex-shrink: 0; align-items: center; }
 .plan-main-actions { display: flex; align-items: center; gap: 18rpx; padding-right: 24rpx; }
 .delete-link { flex-shrink: 0; padding-left: 22rpx; border-left: 1rpx solid #e7ebf0; color: #9ba6b6; font-size: 22rpx; }

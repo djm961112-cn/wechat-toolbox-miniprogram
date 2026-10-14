@@ -10,7 +10,7 @@ Page({
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
     multiplier: '1', multiplierVisible: false, multiplierDraft: '', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
     summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
-    planTitle: '', planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false, editMode: false
+    planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false, editMode: false
   },
   onLoad(options = {}) {
     this.editPlanId = options.editPlanId ? decodeURIComponent(options.editPlanId) : ''
@@ -42,7 +42,7 @@ Page({
         passSelectionEdited: Boolean(draft.passSelectionEdited), multiplier: Number.isInteger(multiplier) && multiplier >= 1 && multiplier <= 9999 ? String(multiplier) : '1',
         expandedMatchId: draft.expandedMatchId || '', preview: draft.preview || null,
         previewVisible: Boolean(draft.previewVisible && draft.preview), saveFormVisible: Boolean(draft.saveFormVisible && draft.previewVisible && draft.preview),
-        planTitle: draft.planTitle || '', planNote: draft.planNote || '', planSourceId: draft.planSourceId || '', sources
+        planNote: draft.planNote || '', planSourceId: draft.planSourceId || '', sources
       }, () => this.updateView())
     } catch (error) { wx.showToast({ title: '读取草稿失败，请重新选择', icon: 'none' }) }
   },
@@ -56,7 +56,7 @@ Page({
         version: 1, feedToken: this.feedToken, market: data.market, selections: data.selections, chosenPassIds: data.chosenPassIds,
         passSelectionEdited: data.passSelectionEdited, multiplier: data.multiplier, expandedMatchId: data.expandedMatchId,
         preview: data.preview, previewVisible: data.previewVisible, saveFormVisible: data.saveFormVisible,
-        planTitle: data.planTitle, planNote: data.planNote, planSourceId: data.planSourceId
+        planNote: data.planNote, planSourceId: data.planSourceId
       })
     } catch (error) {
       if (!this.draftSaveFailed) { this.draftSaveFailed = true; wx.showToast({ title: '草稿自动保存失败，请检查空间', icon: 'none' }) }
@@ -90,7 +90,7 @@ Page({
           this.cacheFeed(feed, fetchedAt, this.feedToken)
           this.feed = feed
           // Explicit refresh starts a fresh calculation; returning from the background never reaches this path.
-          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false, selections: {}, chosenPassIds: [], passSelectionEdited: false, preview: null, previewVisible: false, saveFormVisible: false, planTitle: '', planNote: '', planSourceId: '', saved: false }, () => this.updateView())
+          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false, selections: {}, chosenPassIds: [], passSelectionEdited: false, preview: null, previewVisible: false, saveFormVisible: false, planNote: '', planSourceId: '', saved: false }, () => this.updateView())
         } catch (error) { this.showFeedError(error.message) }
       },
       fail: (error) => {
@@ -139,7 +139,7 @@ Page({
       editMode: true, loading: false, error: '', updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false,
       market, selections, selectedCount: selected.length, chosenPassIds: (plan.passes || []).map((pass) => pass.id), passSelectionEdited: true,
       multiplier: String(plan.multiplier || 1), multiplierDraft: '', expandedMatchId: market === 'mixed' && selected.length ? selected[0].id : '',
-      preview: null, previewVisible: false, saveFormVisible: false, planTitle: plan.title || '', planNote: plan.note || '',
+      preview: null, previewVisible: false, saveFormVisible: false, planNote: plan.note || '',
       planSourceId: plan.planSourceId || '', sources, saved: false
     }, () => this.updateView())
   },
@@ -258,10 +258,8 @@ Page({
       briefPassLabel: this.data.passes.filter((pass) => pass.selected).map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
       briefHeight: Math.min(650, matches.reduce((height, match) => height + 90 + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0) + (match.selectionRows.length - 1) * 24, 0)), ...this.data.summary
     }
-    const original = this.editingPlan
     this.setData({ preview, passVisible: false, previewVisible: true, saveFormVisible: false,
-      planTitle: original ? original.title : `足球方案 ${formatTime(Date.now())}`,
-      planNote: original ? original.note || '' : '', planSourceId: original ? original.planSourceId || '' : '' }, () => this.persistDraft())
+      planNote: this.editingPlan ? this.editingPlan.note || '' : '', planSourceId: this.editingPlan ? this.editingPlan.planSourceId || '' : '' }, () => this.persistDraft())
   },
   openSaveForm() {
     try { this.setData({ sources: readSources(), saveFormVisible: true }, () => this.persistDraft()) }
@@ -270,13 +268,10 @@ Page({
   backToPreview() { if (!this.data.saving) this.setData({ saveFormVisible: false }, () => this.persistDraft()) },
   closePreview() { if (!this.data.saving) this.setData({ previewVisible: false }, () => this.persistDraft()) },
   stopPropagation() {},
-  setTitle(event) { this.setData({ planTitle: event.detail.value }, () => this.persistDraft()) },
   setNote(event) { this.setData({ planNote: event.detail.value }, () => this.persistDraft()) },
   selectPlanSource(event) { this.setData({ planSourceId: event.currentTarget.dataset.id || '' }, () => this.persistDraft()) },
   savePreview() {
     if (this.data.saving || this.data.saved || !this.data.previewVisible || !this.data.saveFormVisible || !this.data.preview) return
-    const title = this.data.planTitle.trim()
-    if (!title) { wx.showToast({ title: '请输入方案名称', icon: 'none' }); return }
     this.setData({ saving: true })
     if (this.editPlanId) {
       wx.showActionSheet({
@@ -290,7 +285,7 @@ Page({
   },
   commitPreview(replaceCurrent) {
     try {
-      const snapshot = { ...this.data.preview, title: this.data.planTitle.trim(), note: this.data.planNote.trim(), planSourceId: this.data.planSourceId }
+      const snapshot = { ...this.data.preview, note: this.data.planNote.trim(), planSourceId: this.data.planSourceId }
       if (replaceCurrent) replacePlan(this.editPlanId, snapshot)
       else savePlan(snapshot)
       try { wx.removeStorageSync(DRAFT_KEY) } catch (error) {}
