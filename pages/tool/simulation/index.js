@@ -52,9 +52,9 @@ function decoratePlanResults(plan) {
     }) }))
     return { ...match, selectionRows }
   })
-  const previewHeight = Math.min(620, Math.max(180, matches.reduce((height, match) => height + 88
-    + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0)
-    + Math.max(0, match.selectionRows.length - 1) * 24, 0)))
+  const previewHeight = Math.min(520, Math.max(140, matches.reduce((height, match) => height + 70
+    + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 56, 0)
+    + Math.max(0, match.selectionRows.length - 1) * 10, 0)))
   return { ...plan, ...(hasResults ? { check: { ...plan.check, outcome } } : {}), matches, previewHeight }
 }
 
