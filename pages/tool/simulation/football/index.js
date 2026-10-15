@@ -90,7 +90,7 @@ Page({
           this.cacheFeed(feed, fetchedAt, this.feedToken)
           this.feed = feed
           // Explicit refresh starts a fresh calculation; returning from the background never reaches this path.
-          this.setData({ loading: false, updatedAt: feed.updatedAt, fetchedAt, draftRecovered: false, selections: {}, chosenPassIds: [], passSelectionEdited: false, preview: null, previewVisible: false, saveFormVisible: false, planNote: '', planSourceId: '', saved: false }, () => this.updateView())
+          this.setData({ loading: false, updatedAt: feed.updatedAt || (!feed.matches.length ? '暂无赛事' : ''), fetchedAt, draftRecovered: false, selections: {}, chosenPassIds: [], passSelectionEdited: false, preview: null, previewVisible: false, saveFormVisible: false, planNote: '', planSourceId: '', saved: false }, () => this.updateView())
         } catch (error) { this.showFeedError(error.message) }
       },
       fail: (error) => {

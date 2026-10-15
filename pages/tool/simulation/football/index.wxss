@@ -12,6 +12,7 @@
 .market.active { color: #fff; background: #d6463f; }
 .selection-heading { display: flex; justify-content: space-between; margin: 16rpx 4rpx 20rpx; color: #8b97a9; font-size: 21rpx; }
 .state { padding: 54rpx 26rpx; color: #8793a8; font-size: 25rpx; text-align: center; line-height: 1.7; }
+.empty-match-symbol { margin-bottom: 12rpx; font-size: 54rpx; opacity: .52; }
 .retry { margin-top: 20rpx; color: #d6463f; background: #fff0ee; font-size: 24rpx; }
 .match-card { padding: 22rpx; margin-bottom: 20rpx; }
 .match-meta { display: flex; justify-content: space-between; gap: 10rpx; color: #8b97a9; font-size: 18rpx; }

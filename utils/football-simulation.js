@@ -21,8 +21,10 @@ const COMPOUND = {
 }
 
 function normalizeFeed(response) {
-  if (!response || String(response.errorCode) !== '0' || !response.value || !Array.isArray(response.value.matchInfoList)) throw new Error('官方赛事数据格式异常')
+  if (!response || String(response.errorCode) !== '0' || !response.value || typeof response.value !== 'object' || Array.isArray(response.value)) throw new Error('官方赛事数据格式异常')
   const value = response.value
+  if (value.matchInfoList == null) return { matches: [], rules: value.allUpList || {}, updatedAt: value.lastUpdateTime || '', empty: true }
+  if (!Array.isArray(value.matchInfoList)) throw new Error('官方赛事数据格式异常')
   const matches = value.matchInfoList.reduce((all, group) => all.concat((group.subMatchList || []).map((match) => ({ ...match, matchNumDate: match.matchNumDate || group.matchNumDate }))), [])
     .filter((match) => !Number(match.isHide))
     .map((match) => {
@@ -46,7 +48,7 @@ function normalizeFeed(response) {
       })
       return { id: String(match.matchId), number: match.matchNumStr, period: String(match.matchNumDate || groupPeriod(match.businessDate)), businessDate: match.businessDate, date: match.matchDate, time: String(match.matchTime || '').slice(0,5), league: match.leagueAbbName, home: match.homeTeamAbbName, away: match.awayTeamAbbName, preOpen: pools.some((pool) => pool.selectable && pool.preOpen), selectable: pools.some((pool) => pool.selectable), statusLabel: match.matchStatus === 'Closed' ? '已停售' : '暂无可选玩法', pools }
     })
-  return { matches, rules: value.allUpList || {}, updatedAt: value.lastUpdateTime || '' }
+  return { matches, rules: value.allUpList || {}, updatedAt: value.lastUpdateTime || '', empty: false }
 }
 
 function groupPeriod(date) { const value = String(date || ''); return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.slice(2).replace(/-/g, '') : '' }

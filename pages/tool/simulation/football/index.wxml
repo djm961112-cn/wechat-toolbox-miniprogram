@@ -6,7 +6,7 @@
   <view class="selection-heading"><text>已选 {{selectedCount}} 场 · 同场多玩法 · 仅限同一期号</text></view>
   <view wx:if="{{loading}}" class="state card">正在查询官方最新赛事…</view>
   <view wx:elif="{{error}}" class="state card"><view>{{error}}</view><button class="retry" bindtap="refreshFeed">重试</button></view>
-  <view wx:elif="{{!matches.length}}" class="state card">当前玩法暂无可用赛事</view>
+  <view wx:elif="{{!matches.length}}" class="state card"><view class="empty-match-symbol">⚽</view><view>当前暂无相关比赛，敬请期待。</view></view>
   <block wx:else>
     <view wx:for="{{matches}}" wx:key="id" class="match-card card">
       <view class="match-meta"><text>{{item.period}}期 · {{item.number}} · {{item.league}}</text><text>{{item.date}} {{item.time}}</text></view>
