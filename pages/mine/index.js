@@ -1,5 +1,6 @@
 const { readScoreRecord, saveScore: saveLocalScore } = require('../../utils/profile-score')
 const auth = require('../../utils/auth')
+const LOGIN_ENABLED = false
 
 function formatTime(timestamp) {
   const date = new Date(timestamp)
@@ -8,7 +9,7 @@ function formatTime(timestamp) {
 }
 
 Page({
-  data: { scoreOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], savedScore: null, draftScore: null, manualScore: '', savedAt: '', user: null, authLoading: false, loginLoading: false, authError: '' },
+  data: { scoreOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], savedScore: null, draftScore: null, manualScore: '', savedAt: '', user: null, authLoading: false, loginLoading: false, authError: '', loginEnabled: LOGIN_ENABLED },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar()
     if (tabBar) tabBar.setData({ selected: 2 })
@@ -16,7 +17,8 @@ Page({
       const record = readScoreRecord()
       this.setData({ savedScore: record ? record.value : null, draftScore: record && record.value <= 10 ? record.value : null, manualScore: record && record.value === 99 ? '99' : '', savedAt: record && record.updatedAt ? formatTime(record.updatedAt) : '' })
     } catch (error) { wx.showToast({ title: '读取评分失败，请重试', icon: 'none' }) }
-    this.loadUser()
+    if (LOGIN_ENABLED) this.loadUser()
+    else this.setData({ user: null, authLoading: false, loginLoading: false, authError: '' })
   },
   async loadUser() {
     const session = auth.readSession()

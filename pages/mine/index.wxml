@@ -1,6 +1,6 @@
 <view class="page mine-page">
-  <view class="profile-card card"><view class="avatar">{{user ? '微' : '我'}}</view><view class="profile-copy"><view class="profile-name">{{user ? user.displayName : '未登录'}}</view><view class="profile-status">{{user ? '已登录 · 用户 #' + user.id : '本地模式'}}</view></view><button wx:if="{{!user}}" class="login-button" loading="{{loginLoading}}" disabled="{{loginLoading}}" bindtap="login">微信登录</button><text wx:else class="logout-button" bindtap="logout">退出</text></view>
-  <view class="profile-hint">{{user ? '登录状态来自 OpenOTools 服务器，本机工具数据暂未自动同步。' : '登录后可逐步启用云端同步；未登录也可以继续使用本地工具。'}}</view>
+  <view class="profile-card card"><view class="avatar">{{user ? '微' : '我'}}</view><view class="profile-copy"><view class="profile-name">{{user ? user.displayName : '本地用户'}}</view><view class="profile-status">{{user ? '已登录 · 用户 #' + user.id : '本地模式'}}</view></view><button wx:if="{{loginEnabled && !user}}" class="login-button" loading="{{loginLoading}}" disabled="{{loginLoading}}" bindtap="login">微信登录</button><text wx:elif="{{loginEnabled && user}}" class="logout-button" bindtap="logout">退出</text></view>
+  <view class="profile-hint">{{loginEnabled ? (user ? '登录状态来自 OpenOTools 服务器，本机工具数据暂未自动同步。' : '登录后可逐步启用云端同步；未登录也可以继续使用本地工具。') : '当前使用本地模式，工具数据保存在本机。'}}</view>
   <view wx:if="{{authLoading}}" class="auth-message">正在校验登录状态…</view>
   <view wx:if="{{authError}}" class="auth-message error">{{authError}}</view>
 
