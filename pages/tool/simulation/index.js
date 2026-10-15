@@ -27,6 +27,11 @@ function selectionAvailable(match, selection) {
   return Boolean(pool && pool.selectable && pool.options.some((option) => option.key === selection.key && !option.disabled))
 }
 
+function needsLatestOdds(plan) {
+  return plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0)
+    || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine)))))
+}
+
 function confirmEdit(content) {
   return new Promise((resolve) => wx.showModal({
     title: '部分选择已封盘', content, confirmText: '继续编辑', cancelText: '取消',
@@ -35,7 +40,7 @@ function confirmEdit(content) {
 }
 
 Page({
-  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', editingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
+  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', checkingPeriodId: '', checkingPeriodProgress: '', editingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
     statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
     statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
   onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
@@ -165,11 +170,12 @@ Page({
   },
   openDetail(event) {
     const id = event.currentTarget.dataset.id
+    if (this.data.checkingPeriodId) { wx.showToast({ title: '本期方案正在核对', icon: 'none' }); return }
     if (this.data.checkingId === id) { wx.showToast({ title: '正在核对，请稍候', icon: 'none' }); return }
     wx.navigateTo({ url: `/pages/tool/simulation/detail/index?id=${encodeURIComponent(id)}` })
   },
   async editPlan(event) {
-    if (this.data.checkingId || this.data.editingId) return
+    if (this.data.checkingId || this.data.checkingPeriodId || this.data.editingId) return
     const id = event.currentTarget.dataset.id
     this.setData({ editingId: id })
     try {
@@ -198,13 +204,13 @@ Page({
     finally { if (!this.unloaded) this.setData({ editingId: '' }) }
   },
   async checkSavedPlan(event) {
-    if (this.data.checkingId) return
+    if (this.data.checkingId || this.data.checkingPeriodId) return
     const id = event.currentTarget.dataset.id
     this.setData({ checkingId: id })
     try {
       const plan = readPlans().find((item) => item.id === id)
       if (!plan) throw new Error('方案已删除')
-      if (plan.matches.some((match) => (match.selections || []).some((option) => !(Number(option.odds) > 0) || option.poolId === 'hhad' && (option.goalLine == null || option.goalLine === '' || !Number.isFinite(Number(option.goalLine)))))) {
+      if (needsLatestOdds(plan)) {
         completePlanOdds(id, await latestFeed())
         if (!this.unloaded) { this.refreshPlans(); wx.showToast({ title: '赔率已补全，可点击核对', icon: 'none' }) }
         return
@@ -218,7 +224,42 @@ Page({
     } catch (error) { if (!this.unloaded) wx.showToast({ title: error.message || '核对失败，请重试', icon: 'none', duration: 3000 }) }
     finally { if (!this.unloaded) this.setData({ checkingId: '' }) }
   },
+  async checkPeriod(event) {
+    if (this.data.checkingId || this.data.checkingPeriodId) return
+    const periodId = event.currentTarget.dataset.id
+    const group = this.data.planGroups.find((item) => item.id === periodId)
+    if (!group || !group.plans.length) return
+    const ids = group.plans.map((plan) => plan.id)
+    let completeCount = 0, pendingCount = 0, failedCount = 0
+    let oddsFeedPromise
+    this.setData({ checkingPeriodId: periodId, checkingPeriodProgress: `0/${ids.length}` })
+    try {
+      for (let index = 0; index < ids.length; index += 1) {
+        if (!this.unloaded) this.setData({ checkingPeriodProgress: `${index + 1}/${ids.length}` })
+        try {
+          let plan = readPlans().find((item) => item.id === ids[index])
+          if (!plan) throw new Error('方案已删除')
+          if (needsLatestOdds(plan)) {
+            if (!oddsFeedPromise) oddsFeedPromise = latestFeed()
+            completePlanOdds(plan.id, await oddsFeedPromise)
+            plan = readPlans().find((item) => item.id === plan.id)
+          }
+          const check = await checkPlan(plan)
+          savePlanCheck(plan.id, check)
+          if (check.status === 'complete') completeCount += 1
+          else pendingCount += 1
+        } catch (error) { failedCount += 1 }
+      }
+      if (!this.unloaded) {
+        this.refreshPlans()
+        wx.showModal({ title: '本期核对完成', content: `已完成 ${completeCount} 个，比赛未结束 ${pendingCount} 个，失败 ${failedCount} 个。`, showCancel: false })
+      }
+    } finally {
+      if (!this.unloaded) this.setData({ checkingPeriodId: '', checkingPeriodProgress: '' })
+    }
+  },
   deletePlan(event) {
+    if (this.data.checkingPeriodId) { wx.showToast({ title: '本期方案正在核对', icon: 'none' }); return }
     const id = event.currentTarget.dataset.id
     wx.showModal({
       title: '删除方案', content: '删除后无法恢复，确定删除这条方案吗？',

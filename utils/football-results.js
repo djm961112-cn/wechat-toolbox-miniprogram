@@ -62,11 +62,12 @@ function resultTextFromKey(pool, key, goalLine) {
   return option[1].replace(/球$/, '')
 }
 
-// The live list contains provisional scores. Only official terminal statuses 10/11
-// may produce winning keys; derive them from the final score and saved handicap.
+// The live list contains provisional scores. Official status 6 means live ended;
+// result statuses 10/11 are also terminal. Only these statuses may produce
+// winning keys, derived from the final score and saved handicap.
 function normalizeLiveResult(snapshot, candidate) {
   const statusCode = String(candidate.matchStatus || '')
-  const terminal = ['10', '11'].includes(statusCode)
+  const terminal = ['6', '10', '11'].includes(statusCode)
   const full = scorePair(candidate.sectionsNo999)
   const half = scorePair(candidate.sectionsNo1)
   const pools = RESULT_POOLS.map((pool) => {
