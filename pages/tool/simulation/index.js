@@ -1,5 +1,5 @@
 const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatPlanForDisplay } = require('../../../utils/simulation-plans')
-const { checkPlan } = require('../../../utils/football-results')
+const { checkPlan, gradeOption } = require('../../../utils/football-results')
 const { API_URL, normalizeFeed } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
 
@@ -39,8 +39,27 @@ function confirmEdit(content) {
   }))
 }
 
+function decoratePlanResults(plan) {
+  const hasResults = Boolean(plan.check && Array.isArray(plan.check.results))
+  const outcome = hasResults && (plan.check.outcome || (plan.check.status !== 'complete' ? 'pending'
+    : Number(plan.check.prizeAmount) > 0 ? 'won' : Number(plan.check.refundAmount) > 0 ? 'refund' : 'lost'))
+  const matches = plan.matches.map((match) => {
+    const result = hasResults && plan.check.results.find((item) => item.matchId === String(match.id))
+    const selectionRows = match.selectionRows.map((row) => ({ ...row, options: row.options.map((choice) => {
+      const selection = (match.selections || []).find((option) => option.poolId === row.id && option.key === choice.key)
+      const verdict = selection ? gradeOption(selection, result) : null
+      return { ...choice, resultState: verdict && verdict.state || '' }
+    }) }))
+    return { ...match, selectionRows }
+  })
+  const previewHeight = Math.min(620, Math.max(180, matches.reduce((height, match) => height + 88
+    + match.selectionRows.reduce((sum, row) => sum + Math.ceil(row.options.length / row.columns) * 66, 0)
+    + Math.max(0, match.selectionRows.length - 1) * 24, 0)))
+  return { ...plan, ...(hasResults ? { check: { ...plan.check, outcome } } : {}), matches, previewHeight }
+}
+
 Page({
-  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', checkingPeriodId: '', checkingPeriodProgress: '', editingId: '', sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
+  data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', checkingPeriodId: '', checkingPeriodProgress: '', editingId: '', previewPlan: null, sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
     statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
     statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
   onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
@@ -49,7 +68,7 @@ Page({
   refreshPlans() {
     try {
       this.plans = readPlans().filter((plan) => plan.toolId === this.data.selectedToolId)
-        .map(formatPlanForDisplay)
+        .map(formatPlanForDisplay).map(decoratePlanResults)
       this.rebuildGroups()
       this.refreshStats()
     } catch (error) {
@@ -174,6 +193,11 @@ Page({
     if (this.data.checkingId === id) { wx.showToast({ title: '正在核对，请稍候', icon: 'none' }); return }
     wx.navigateTo({ url: `/pages/tool/simulation/detail/index?id=${encodeURIComponent(id)}` })
   },
+  openPlanPreview(event) {
+    const plan = (this.plans || []).find((item) => item.id === event.currentTarget.dataset.id)
+    if (plan) this.setData({ previewPlan: plan })
+  },
+  closePlanPreview() { this.setData({ previewPlan: null }) },
   async editPlan(event) {
     if (this.data.checkingId || this.data.checkingPeriodId || this.data.editingId) return
     const id = event.currentTarget.dataset.id

@@ -9,7 +9,7 @@ Page({
     markets: [{ id: 'had', name: '胜平负 / 让球' }, ...POOLS.filter(({ id }) => !['had', 'hhad'].includes(id)).map(({ id, name }) => ({ id, name })), { id: 'mixed', name: '混合玩法' }],
     matches: [], selections: {}, selectedCount: 0, passes: [], chosenPassIds: [], passSelectionEdited: false,
     multiplier: '1', multiplierVisible: false, multiplierDraft: '', quickMultipliers: [10, 20, 50, 100, 500], multiplierKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'confirm'],
-    summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 150, previewVisible: false, preview: null,
+    summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 80, previewVisible: false, preview: null,
     planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false, editMode: false
   },
   onLoad(options = {}) {
@@ -236,7 +236,7 @@ Page({
       try { summary = calculate(selected, available.filter((pass) => chosenPassIds.includes(pass.id)), Number(this.data.multiplier)) }
       catch (error) { calculationError = error.message }
     }
-    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passSelectionEdited, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 150, summary, calculationError }, () => this.persistDraft())
+    this.setData({ matches, selectedCount: selected.length, passes: available.map((pass) => ({ ...pass, selected: chosenPassIds.includes(pass.id) })), chosenPassIds, passSelectionEdited, passLabel: available.filter((pass) => chosenPassIds.includes(pass.id)).map((pass) => pass.label).join(' + '), passPanelHeight: Math.ceil(available.length / 4) * 76 + 80, summary, calculationError }, () => this.persistDraft())
   },
   openPreview() {
     if (!this.feed || this.data.loading || !this.data.summary) { wx.showToast({ title: this.data.calculationError || '请选择比赛及组合方式', icon: 'none' }); return }

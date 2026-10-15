@@ -31,10 +31,7 @@
     <view class="pass-sheet" catchtap="stopPropagation">
       <view class="sheet-heading"><text>组合方式</text><text class="close" catchtap="closePasses">×</text></view>
       <scroll-view class="pass-content" scroll-y="true" style="height: {{passPanelHeight}}rpx;">
-        <view class="pass-hint">过关方式可多选。增减比赛会自动选择最高可用关数；同一场数下保留手动选择。单关只包含有单关资格的选项。</view>
         <view class="pass-options"><view wx:for="{{passes}}" wx:key="id" class="pass {{item.selected ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="togglePass">{{item.label}}</view></view>
-        <view wx:if="{{!passes.length}}" class="pass-hint">请先选择比赛。仅串关的选项至少需要两场。</view>
-        <view wx:if="{{calculationError}}" class="calculation-error">{{calculationError}}</view>
       </scroll-view>
       <view class="pass-done" bindtap="closePasses">完成</view>
     </view>
