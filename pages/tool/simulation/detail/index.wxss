@@ -29,13 +29,18 @@
 .feature-track.left { transform: scaleX(-1); }
 .feature-fill { height: 100%; border-radius: 99rpx; background: #e54841; }
 .feature-fill.away { background: #788797; }
-.history-row { padding: 18rpx 0; }
-.history-row + .history-row { border-top: 1rpx solid #edf1f5; }
-.history-meta { display: flex; justify-content: space-between; color: #98a3b3; font-size: 18rpx; }
-.history-match { display: grid; grid-template-columns: minmax(0,1fr) 82rpx minmax(0,1fr); gap: 12rpx; align-items: center; margin-top: 10rpx; color: #33475a; font-size: 22rpx; word-break: break-all; }
-.history-match text:first-child { text-align: right; }
+.history-table { overflow: hidden; border: 1rpx solid #e7ebef; border-radius: 14rpx; }
+.history-columns, .history-row { display: grid; grid-template-columns: 108rpx minmax(0,1fr) 80rpx minmax(0,1fr) 66rpx; gap: 8rpx; align-items: center; box-sizing: border-box; }
+.history-columns { min-height: 58rpx; padding: 0 10rpx; background: #f5f7f9; color: #98a2ae; font-size: 16rpx; text-align: center; }
+.history-row { min-height: 104rpx; padding: 12rpx 10rpx; border-top: 1rpx solid #edf1f5; color: #33475a; }
+.history-meta text { display: block; color: #8793a2; font-size: 16rpx; line-height: 1.45; word-break: break-all; }
+.history-meta text:last-child { margin-top: 4rpx; color: #a2abb5; }
+.history-team { font-size: 20rpx; line-height: 1.35; word-break: break-all; }
+.history-team.home { text-align: right; }
+.history-team.away { text-align: left; }
 .history-score { color: #e54841; text-align: center; font-size: 25rpx; font-weight: 750; }
 .history-score text { display: block; margin-top: 3rpx; color: #9ba5b1; font-size: 16rpx; font-weight: 400; }
+.history-total { display: flex; width: 46rpx; height: 46rpx; align-items: center; justify-content: center; border-radius: 50%; background: #fff0ee; color: #d94b43; font-size: 19rpx; font-weight: 750; }
 .table-list { overflow: hidden; border: 1rpx solid #edf1f5; border-radius: 12rpx; }
 .table-row { display: grid; grid-template-columns: 60rpx minmax(90rpx,1.5fr) 60rpx 108rpx 72rpx 60rpx; align-items: center; min-height: 70rpx; padding: 0 8rpx; border-top: 1rpx solid #edf1f5; color: #5f6c7b; font-size: 18rpx; text-align: center; box-sizing: border-box; }
 .table-row:first-child { border-top: none; }

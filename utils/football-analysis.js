@@ -51,12 +51,18 @@ function resultLabel(value) {
   return value === 'home' ? '胜' : value === 'draw' ? '平' : value === 'away' ? '负' : '-'
 }
 
+function totalGoals(item) {
+  if (item.totalTeamFullCourtGoalCnt != null && item.totalTeamFullCourtGoalCnt !== '') return Number(item.totalTeamFullCourtGoalCnt)
+  const score = String(item.fullCourtGoal || '').match(/^(\d+):(\d+)$/)
+  return score ? Number(score[1]) + Number(score[2]) : '-'
+}
+
 function matchRow(item) {
   return {
     id: String(item.sportteryMatchId || item.matchId || `${item.matchDate}-${item.homeTeamShortName}-${item.awayTeamShortName}`),
     date: item.matchDate || String(item.matchDateTime || '').slice(0, 10), time: String(item.matchDateTime || '').slice(11, 16),
     league: item.tournamentShortName || '', home: item.homeTeamShortName || '', away: item.awayTeamShortName || '',
-    score: item.fullCourtGoal || '', half: item.halfTimeGoal || '', result: resultLabel(item.teamMatchResult),
+    score: item.fullCourtGoal || '', half: item.halfTimeGoal || '', totalGoals: totalGoals(item), result: resultLabel(item.teamMatchResult),
     stage: [item.phaseName, item.groupName, item.gameweek ? `第${item.gameweek}轮` : ''].filter(Boolean).join(' · ')
   }
 }

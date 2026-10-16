@@ -21,7 +21,7 @@
     <view wx:elif="{{analysisTab === 'history'}}" class="section card">
       <view class="section-title analysis-title">历史交锋</view><view wx:if="{{analysis.history.summary}}" class="analysis-summary">{{analysis.history.summary}}</view>
       <view wx:if="{{!analysis.history.matches.length}}" class="analysis-empty">暂无历史交锋数据</view>
-      <view wx:for="{{analysis.history.matches}}" wx:key="id" class="history-row"><view class="history-meta"><text>{{item.league}}</text><text>{{item.date}}</text></view><view class="history-match"><text>{{item.home}}</text><view class="history-score">{{item.score || '-' }}<text>半场 {{item.half || '-'}}</text></view><text>{{item.away}}</text></view></view>
+      <view wx:else class="history-table"><view class="history-columns"><text>赛制/日期</text><text>主队</text><text>比分</text><text>客队</text><text>总球数</text></view><view wx:for="{{analysis.history.matches}}" wx:key="id" class="history-row"><view class="history-meta"><text>{{item.league || '-'}}</text><text>{{item.date || '-'}}</text></view><text class="history-team home">{{item.home}}</text><view class="history-score">{{item.score || '-'}}<text>半场 {{item.half || '-'}}</text></view><text class="history-team away">{{item.away}}</text><text class="history-total">{{item.totalGoals}}</text></view></view>
     </view>
     <view wx:elif="{{analysisTab === 'table'}}" class="section card">
       <view class="section-title analysis-title">积分榜<text class="analysis-subtitle">{{analysis.table.title}}</text></view>
