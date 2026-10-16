@@ -1,6 +1,6 @@
-const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatPlanForDisplay } = require('../../../utils/simulation-plans')
-const { checkPlan, gradeOption } = require('../../../utils/football-results')
-const { API_URL, normalizeFeed } = require('../../../utils/football-simulation')
+const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, updatePlanTerms, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatPlanForDisplay } = require('../../../utils/simulation-plans')
+const { checkPlan, gradeOption, settlePlan } = require('../../../utils/football-results')
+const { API_URL, POOLS, normalizeFeed, calculate } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
 
 const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
@@ -58,8 +58,26 @@ function decoratePlanResults(plan) {
   return { ...plan, ...(hasResults ? { check: { ...plan.check, outcome } } : {}), matches, previewHeight }
 }
 
+function editablePasses(plan) {
+  const options = plan.matches.reduce((all, match) => all.concat(match.selections || []), [])
+  const existing = new Map((plan.passes || []).map((pass) => [pass.id, pass]))
+  const result = []
+  if (options.some((option) => option.single === true) || existing.has('Single')) result.push(existing.get('Single') || { id: 'Single', label: '单关', sizes: [1] })
+  const limits = options.map((option) => option.maxLegs || (POOLS.find((pool) => pool.id === option.poolId) || {}).maxLegs || 8)
+  const limit = Math.min(plan.matches.length, limits.length ? Math.min(...limits) : plan.matches.length, 8)
+  if (options.every((option) => option.allUp !== false)) {
+    for (let size = 2; size <= limit; size += 1) {
+      const id = `${size}x1`
+      result.push(existing.get(id) || { id, label: `${size}串1`, sizes: [size] })
+    }
+  }
+  existing.forEach((pass, id) => { if (!result.some((item) => item.id === id)) result.push(pass) })
+  return result
+}
+
 Page({
   data: { activeTab: 'collection', selectedToolId: 'football', tools: simulationTools, planGroups: [], planCount: 0, periodQuery: '', expandedPeriods: {}, checkingId: '', checkingPeriodId: '', checkingPeriodProgress: '', editingId: '', previewPlan: null, sources: [], sourceVisible: false, editingPlanId: '', currentSourceId: '', newSourceName: '',
+    termsVisible: false, termsPlanId: '', termsMultiplier: '1', termsPasses: [], termsPassIds: [], termsSummary: null, termsError: '', termsSaving: false, termsQuickMultipliers: [1, 2, 5, 10, 20, 50, 100, 500],
     statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
     statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
   onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
@@ -118,6 +136,63 @@ Page({
       setPlanPurchased(event.currentTarget.dataset.id, event.detail.value === true)
       this.refreshPlans()
     } catch (error) { this.refreshPlans(); wx.showToast({ title: error.message || '保存购买状态失败', icon: 'none' }) }
+  },
+  openPlanTerms(event) {
+    try {
+      const id = event.currentTarget.dataset.id
+      const plan = readPlans().find((item) => item.id === id)
+      if (!plan) throw new Error('方案已删除，请刷新后重试')
+      const termsPassIds = (plan.passes || []).map((pass) => pass.id)
+      const termsPasses = editablePasses(plan).map((pass) => ({ ...pass, selected: termsPassIds.includes(pass.id) }))
+      this.termsPlan = plan
+      this.setData({ termsVisible: true, termsPlanId: id, termsMultiplier: String(plan.multiplier || 1), termsPasses,
+        termsPassIds, termsSummary: null, termsError: '', termsSaving: false }, () => this.recalculateTerms())
+    } catch (error) { wx.showToast({ title: error.message || '读取方案失败', icon: 'none' }) }
+  },
+  closePlanTerms() {
+    if (this.data.termsSaving) return
+    this.termsPlan = null
+    this.setData({ termsVisible: false, termsPlanId: '', termsSummary: null, termsError: '' })
+  },
+  inputTermsMultiplier(event) {
+    const value = String(event.detail.value || '').replace(/\D/g, '').slice(0, 4)
+    this.setData({ termsMultiplier: value }, () => this.recalculateTerms())
+  },
+  chooseTermsMultiplier(event) { this.setData({ termsMultiplier: String(event.currentTarget.dataset.value) }, () => this.recalculateTerms()) },
+  toggleTermsPass(event) {
+    const id = event.currentTarget.dataset.id
+    const termsPassIds = this.data.termsPassIds.includes(id) ? this.data.termsPassIds.filter((item) => item !== id) : this.data.termsPassIds.concat(id)
+    this.setData({ termsPassIds, termsPasses: this.data.termsPasses.map((pass) => ({ ...pass, selected: termsPassIds.includes(pass.id) })) }, () => this.recalculateTerms())
+  },
+  recalculateTerms() {
+    try {
+      if (!this.termsPlan) throw new Error('方案不存在')
+      const multiplier = Number(this.data.termsMultiplier)
+      const passes = this.data.termsPasses.filter((pass) => this.data.termsPassIds.includes(pass.id))
+      if (!passes.length) throw new Error('请至少选择一种过关方式')
+      const matches = this.termsPlan.matches.map((match) => ({ id: String(match.id), options: match.selections || [] }))
+      this.setData({ termsSummary: calculate(matches, passes, multiplier), termsError: '' })
+    } catch (error) { this.setData({ termsSummary: null, termsError: error.message || '无法重新计算' }) }
+  },
+  savePlanTerms() {
+    if (!this.termsPlan || !this.data.termsSummary || this.data.termsSaving) {
+      if (this.data.termsError) wx.showToast({ title: this.data.termsError, icon: 'none' })
+      return
+    }
+    this.setData({ termsSaving: true })
+    try {
+      const multiplier = Number(this.data.termsMultiplier)
+      const passes = this.data.termsPasses.filter((pass) => this.data.termsPassIds.includes(pass.id))
+      const nextPlan = { ...this.termsPlan, ...this.data.termsSummary, passes, multiplier }
+      const check = this.termsPlan.check && Array.isArray(this.termsPlan.check.results)
+        ? { ...this.termsPlan.check, ...settlePlan(nextPlan, this.termsPlan.check.results), checkedAt: Date.now() } : null
+      updatePlanTerms(this.termsPlan.id, passes, multiplier, check)
+      this.termsPlan = null
+      this.setData({ termsVisible: false, termsPlanId: '', termsSummary: null, termsError: '' })
+      this.refreshPlans()
+      wx.showToast({ title: '方案计算已更新', icon: 'success' })
+    } catch (error) { wx.showToast({ title: error.message || '更新失败，请重试', icon: 'none' }) }
+    finally { if (!this.unloaded) this.setData({ termsSaving: false }) }
   },
   rebuildGroups() {
     const groups = new Map()

@@ -350,4 +350,4 @@ function settlePlan(plan, results) {
     lostCount: totalCount - wonCount - pendingCount - refundCount, prizeAmount: (prizeCents / 100).toFixed(2), refundAmount: (refundCents / 100).toFixed(2), returnAmount: ((prizeCents + refundCents) / 100).toFixed(2) }
 }
 
-module.exports = { checkPlan, queryMatchPage, gradeOption, gradeEntry, hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE }
+module.exports = { checkPlan, queryMatchPage, gradeOption, gradeEntry, settlePlan, hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE }

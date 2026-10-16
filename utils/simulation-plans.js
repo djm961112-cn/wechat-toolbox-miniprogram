@@ -93,6 +93,29 @@ function setPlanPurchased(id, purchased) {
   wx.setStorageSync(STORAGE_KEY, plans)
 }
 
+function updatePlanTerms(id, passes, multiplier, check) {
+  if (!Array.isArray(passes) || !passes.length) throw new Error('请至少选择一种过关方式')
+  if (!Number.isInteger(multiplier) || multiplier < 1 || multiplier > 9999) throw new Error('倍数应为 1 至 9999 的整数')
+  const plans = readPlans()
+  const index = plans.findIndex((plan) => plan.id === id)
+  if (index < 0) throw new Error('方案已删除，请刷新后重试')
+  const plan = plans[index]
+  const { calculate } = require('./football-simulation')
+  const matches = plan.matches.map((match) => ({ id: String(match.id), options: match.selections || [] }))
+  const summary = calculate(matches, passes, multiplier)
+  const updated = {
+    ...plan, ...summary, passes, multiplier,
+    passLabel: passes.map((pass) => pass.label).join(' + '),
+    briefPassLabel: passes.map((pass) => pass.id === 'Single' ? '单关' : `${pass.sizes[0]}关`).join('、'),
+    updatedAt: Date.now()
+  }
+  if (check) updated.check = check
+  else delete updated.check
+  plans[index] = updated
+  wx.setStorageSync(STORAGE_KEY, plans)
+  return updated
+}
+
 function matchPeriod(match) {
   const explicit = String(match.period || match.matchNumDate || '')
   if (/^\d{6}$/.test(explicit)) return explicit
@@ -181,4 +204,4 @@ function formatPlanForDisplay(plan) {
   }) }
 }
 
-module.exports = { simulationTools, readPlans, savePlan, replacePlan, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
+module.exports = { simulationTools, readPlans, savePlan, replacePlan, removePlan, savePlanCheck, completePlanOdds, setPlanPurchased, updatePlanTerms, readSources, createSource, setPlanSource, matchPeriod, matchNumber, planPeriods, formatTime, formatSelectionRows, formatPlanForDisplay }
