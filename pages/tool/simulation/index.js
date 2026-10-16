@@ -198,6 +198,11 @@ Page({
     if (plan) this.setData({ previewPlan: plan })
   },
   closePlanPreview() { this.setData({ previewPlan: null }) },
+  openMatchPage(event) {
+    const planId = event.currentTarget.dataset.planId
+    const matchId = event.currentTarget.dataset.matchId
+    if (planId && matchId) wx.navigateTo({ url: `/pages/tool/simulation/detail/index?planId=${encodeURIComponent(planId)}&matchId=${encodeURIComponent(matchId)}` })
+  },
   async editPlan(event) {
     if (this.data.checkingId || this.data.checkingPeriodId || this.data.editingId) return
     const id = event.currentTarget.dataset.id

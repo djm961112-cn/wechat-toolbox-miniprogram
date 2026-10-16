@@ -151,6 +151,46 @@ function hasCheckableResult(results) {
   return Array.isArray(results) && results.some((result) => ['published', 'cancelled'].includes(result.status))
 }
 
+async function queryMatchPage(snapshot) {
+  if (!snapshot || !snapshot.id || !/^\d{4}-\d{2}-\d{2}$/.test(String(snapshot.date || ''))) throw new Error('比赛信息不完整，无法查询')
+  let candidate = null
+  let resultDetail = null
+  let resultError = null
+  try {
+    const matches = await queryDate(snapshot.date)
+    const sameNumber = matches.find((match) => matchPeriod(match) === matchPeriod(snapshot) && matchNumber(match) === matchNumber(snapshot))
+    if (sameNumber && String(sameNumber.matchId) !== String(snapshot.id)) throw new Error('比赛身份不一致，已停止查询')
+    candidate = sameNumber || matches.find((match) => String(match.matchId) === String(snapshot.id)) || null
+    if (candidate) resultDetail = await requestValue(DETAIL_URL, { matchId: candidate.matchId, matchStatus: candidate.matchStatus })
+    else resultDetail = await requestValue(DETAIL_URL, { matchId: snapshot.id, matchStatus: '11' })
+    if (resultDetail && String(resultDetail.matchId) !== String(snapshot.id)) throw new Error('比赛详情身份不一致，已停止查询')
+  } catch (error) { resultError = error }
+  const hasPublishedResult = resultDetail && Array.isArray(resultDetail.matchResultList)
+    && resultDetail.matchResultList.some((pool) => resultKey(String(pool.poolCode).toLowerCase(), pool.combination, pool.combinationDesc))
+  if (hasPublishedResult || candidate && String(candidate.matchStatus) === '13') {
+    return { mode: 'result', result: normalizeResult(snapshot, candidate, { ...(resultDetail || {}), matchStatus: hasPublishedResult ? '11' : candidate.matchStatus }) }
+  }
+  let liveCandidate = null
+  try { liveCandidate = (await queryLiveMatches([snapshot.id]))[0] || null }
+  catch (error) { if (!resultError) resultError = error }
+  if (!liveCandidate && candidate && (candidate.sectionsNo999 || candidate.sectionsNo1)) liveCandidate = candidate
+  if (liveCandidate) {
+    let liveDetail
+    try { liveDetail = await requestValue(DETAIL_URL, { matchId: liveCandidate.matchId, matchStatus: liveCandidate.matchStatus }) }
+    catch (error) {}
+    if (liveDetail && String(liveDetail.matchId) !== String(snapshot.id)) throw new Error('比分直播身份不一致，已停止查询')
+    const terminal = ['6', '10', '11'].includes(String(liveCandidate.matchStatus))
+    const merged = { ...liveCandidate,
+      matchStatus: terminal ? liveCandidate.matchStatus : liveDetail && liveDetail.matchStatus || liveCandidate.matchStatus,
+      matchStatusName: terminal ? liveCandidate.matchStatusName : liveDetail && liveDetail.matchStatusName || liveCandidate.matchStatusName,
+      sectionsNo999: liveCandidate.sectionsNo999 || liveDetail && liveDetail.sectionsNo999,
+      sectionsNo1: liveCandidate.sectionsNo1 || liveDetail && liveDetail.sectionsNo1 }
+    return { mode: 'live', result: normalizeLiveResult(snapshot, merged) }
+  }
+  if (resultError && /合法域名|网络|接口/.test(resultError.message || '')) throw resultError
+  return { mode: 'live', result: pendingResult(snapshot) }
+}
+
 async function checkPlan(plan) {
   if (!Array.isArray(plan.matches) || !plan.matches.length || !Array.isArray(plan.passes)) throw new Error('方案缺少完整选择数据，无法核对')
   const byDate = new Map()
@@ -310,4 +350,4 @@ function settlePlan(plan, results) {
     lostCount: totalCount - wonCount - pendingCount - refundCount, prizeAmount: (prizeCents / 100).toFixed(2), refundAmount: (refundCents / 100).toFixed(2), returnAmount: ((prizeCents + refundCents) / 100).toFixed(2) }
 }
 
-module.exports = { checkPlan, gradeOption, gradeEntry, hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE }
+module.exports = { checkPlan, queryMatchPage, gradeOption, gradeEntry, hasCheckableResult, RESULT_UNAVAILABLE_MESSAGE }

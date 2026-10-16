@@ -1,5 +1,22 @@
 <view class="page detail-page">
-  <view wx:if="{{error}}" class="empty card">{{error}}</view>
+  <view wx:if="{{matchLoading && !matchPage}}" class="empty card">正在查询比赛数据…</view>
+  <view wx:elif="{{matchError && !matchPage}}" class="empty card"><view>{{matchError}}</view><view class="single-retry" bindtap="refreshMatchPage">重试</view></view>
+  <block wx:elif="{{matchPage}}">
+    <view class="single-match-card card">
+      <view class="single-meta"><text>{{matchPage.result.league}} · {{matchPage.result.period}}期 · {{matchPage.result.number}}</text><text class="single-mode">{{matchPage.mode === 'result' ? '赛果' : '比分直播'}}</text></view>
+      <view class="single-teams"><text>{{matchPage.result.home}}</text><view class="single-score">{{matchPage.result.fullScore}}<text>半场 {{matchPage.result.halfScore}}</text></view><text>{{matchPage.result.away}}</text></view>
+      <view class="single-status">{{matchPage.result.statusLabel}}</view>
+      <view wx:if="{{matchError}}" class="single-error">{{matchError}}</view>
+      <view class="single-refresh" bindtap="refreshMatchPage">{{matchLoading ? '刷新中…' : '刷新'}}</view>
+    </view>
+    <view wx:if="{{matchPage.mode === 'result'}}" class="section card">
+      <view class="section-title">玩法赛果</view>
+      <view class="result-pools"><view wx:for="{{matchPage.result.pools}}" wx:for-item="pool" wx:key="id" class="result-pool"><view class="result-pool-name">{{pool.name}}</view><view class="result-outcome {{pool.state === 'settled' ? 'published' : ''}}">{{pool.resultText}}</view><view class="result-odds">{{pool.odds}}</view></view></view>
+      <view class="hint">玩法赛果和参考赔率来自官方已公布数据。</view>
+    </view>
+    <view wx:else class="single-live-note">比分直播每 30 秒自动刷新；正式玩法赛果公布后会自动切换为赛果详情。</view>
+  </block>
+  <view wx:elif="{{error}}" class="empty card">{{error}}</view>
   <block wx:elif="{{plan}}">
     <view class="simulation-notice">本页仅展示已保存方案的本地模拟值与赛果匹配情况，不提供真实投注、支付、出票或兑奖。</view>
     <view class="summary card">
