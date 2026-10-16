@@ -45,6 +45,12 @@
       <view wx:for="{{analysis.injury}}" wx:for-item="team" wx:key="id" class="team-block"><view class="team-title">{{team.team || (team.id === 'home' ? analysis.header.home : analysis.header.away)}}</view><view wx:if="{{!team.players.length}}" class="analysis-empty compact">暂无数据</view><view class="player-grid"><view wx:for="{{team.players}}" wx:for-item="player" wx:key="id" class="player-card injury-card"><view class="player-head"><text class="player-no">{{player.no}}</text><view><text class="player-name">{{player.name}}</text><text class="player-position">{{player.position}}</text></view><text class="injury-status">{{player.status}}</text></view><view class="player-counts"><text>总场 {{player.appearances}}</text><text>首发 {{player.starts}}</text><text>替补 {{player.substitutes}}</text></view></view></view></view>
       <view class="analysis-footnote">赛事统计以全场 90 分钟（含伤停补时）为准，实际数据以官方公布内容为准。</view>
     </view>
+    <view wx:elif="{{analysisTab === 'odds'}}" class="section card">
+      <view class="section-title analysis-title">赔率变化</view>
+      <scroll-view class="odds-market-scroll" scroll-x="true"><view class="odds-markets"><view wx:for="{{analysis.odds.markets}}" wx:for-item="market" wx:key="id" class="odds-market {{oddsMarket === market.id ? 'active' : ''}}" data-id="{{market.id}}" bindtap="selectOddsMarket">{{market.name}}</view></view></scroll-view>
+      <block wx:for="{{analysis.odds.markets}}" wx:for-item="market" wx:key="id"><view wx:if="{{oddsMarket === market.id}}"><view wx:if="{{!market.rows.length}}" class="analysis-empty">暂无赔率变化数据</view><view wx:for="{{market.rows}}" wx:for-item="row" wx:key="id" class="odds-snapshot"><view class="odds-time"><text>{{row.time || '发布时间未知'}}</text><text wx:if="{{row.goalLine !== ''}}">让球 {{row.goalLine > 0 ? '+' : ''}}{{row.goalLine}}</text></view><view class="odds-options columns-{{market.columns}}"><view wx:for="{{row.options}}" wx:for-item="option" wx:key="key" class="odds-option {{option.trend}}"><text>{{option.name}}</text><view>{{option.odds}}<text class="trend-icon">{{option.trend === 'up' ? '↑' : option.trend === 'down' ? '↓' : '–'}}</text></view></view></view></view></view></block>
+      <view class="analysis-footnote">赔率及变化方向来自中国竞彩网发布时间记录；红色表示上调，蓝色表示下调。</view>
+    </view>
   </block>
   <view wx:elif="{{matchLoading && !matchPage}}" class="empty card">正在查询比赛数据…</view>
   <view wx:elif="{{matchError && !matchPage}}" class="empty card"><view>{{matchError}}</view><view class="single-retry" bindtap="refreshMatchPage">重试</view></view>

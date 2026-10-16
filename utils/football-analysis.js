@@ -1,9 +1,12 @@
+const { POOLS } = require('./football-simulation')
+
 const API_ROOT = 'https://webapi.sporttery.cn/gateway/uniform/football/'
 const URLS = {
   head: `${API_ROOT}getMatchHeadV1.qry`, feature: `${API_ROOT}getMatchFeatureV1.qry`,
   history: `${API_ROOT}getResultHistoryV1.qry`, table: `${API_ROOT}getMatchTablesV1.qry`,
   recent: `${API_ROOT}getMatchResultV1.qry`, future: `${API_ROOT}getFutureMatchesV1.qry`,
-  scorer: `${API_ROOT}getMatchPlayerV1.qry`, injury: `${API_ROOT}getInjurySuspensionV1.qry`
+  scorer: `${API_ROOT}getMatchPlayerV1.qry`, injury: `${API_ROOT}getInjurySuspensionV1.qry`,
+  odds: `${API_ROOT}getFixedBonusV1.qry`
 }
 
 function requestValue(url, data) {
@@ -133,6 +136,28 @@ function injuryData(raw) {
   })
 }
 
+function oddsData(raw) {
+  const history = raw.oddsHistory || {}
+  const marketOrder = ['had', 'hhad', 'ttg', 'hafu', 'crs']
+  const marketNames = { had: '胜平负', hhad: '让球胜平负', ttg: '总进球', hafu: '半全场', crs: '比分' }
+  return {
+    markets: marketOrder.map((id) => {
+      const definition = POOLS.find((item) => item.id === id)
+      const rows = Array.isArray(history[`${id}List`]) ? history[`${id}List`].map((item, index) => ({
+        id: `${id}-${item.updateDate || ''}-${item.updateTime || ''}-${index}`,
+        time: [item.updateDate, item.updateTime].filter(Boolean).join(' '), goalLine: id === 'hhad' ? item.goalLine : '',
+        options: definition.options.map(([key, name]) => {
+          const apiKey = id === 'crs' && /^s1s[had]$/.test(key) ? key.replace('s1s', 's-1s') : key
+          const value = item[apiKey]
+          const trend = Number(item[`${apiKey}f`])
+          return value == null || value === '' ? null : { key, name: id === 'hhad' ? name.replace(/^让/, '') : name, odds: String(value), trend: trend > 0 ? 'up' : trend < 0 ? 'down' : 'flat' }
+        }).filter(Boolean)
+      })) : []
+      return { id, name: marketNames[id], columns: id === 'had' || id === 'hhad' ? 3 : 4, rows }
+    })
+  }
+}
+
 async function queryFootballAnalysis(matchId) {
   if (!/^\d+$/.test(String(matchId || ''))) throw new Error('比赛信息不完整，无法分析')
   const params = { sportteryMatchId: String(matchId) }
@@ -145,15 +170,16 @@ async function queryFootballAnalysis(matchId) {
     optionalRequest(URLS.recent, { ...params, termLimits: 10, tournamentFlag: 0, homeAwayFlag: 0 }),
     optionalRequest(URLS.future, { ...params, termLimits: 4 }),
     optionalRequest(URLS.scorer, { ...params, termLimits: 3 }),
-    optionalRequest(URLS.injury, params)
+    optionalRequest(URLS.injury, params),
+    optionalRequest(URLS.odds, { matchId: String(matchId), clientCode: 3001 })
   ]
-  const [feature, history, table, recent, future, scorer, injury] = await Promise.all(requests)
+  const [feature, history, table, recent, future, scorer, injury, odds] = await Promise.all(requests)
   return {
     sourceUrl: `https://m.sporttery.cn/zqlszl/bssj/index.html?mid=${matchId}`,
-    partialError: [feature, history, table, recent, future, scorer, injury].some((item) => item.failed),
+    partialError: [feature, history, table, recent, future, scorer, injury, odds].some((item) => item.failed),
     header: { number: head.matchNum || '', league: head.tournamentCnShortName || head.tournamentCnName || '', home: head.homeTeamShortName || feature.value.homeTeamShortName || '', away: head.awayTeamShortName || feature.value.awayTeamShortName || '', time: head.matchDateTime || '' },
     featureRows: featureRows(feature.value), history: historyData(history.value), table: tableData(table.value),
-    recent: teamResults(recent.value), future: futureData(future.value), scorer: playerData(scorer.value), injury: injuryData(injury.value)
+    recent: teamResults(recent.value), future: futureData(future.value), scorer: playerData(scorer.value), injury: injuryData(injury.value), odds: oddsData(odds.value)
   }
 }
 

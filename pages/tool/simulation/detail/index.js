@@ -6,7 +6,8 @@ const { queryFootballAnalysis } = require('../../../../utils/football-analysis')
 Page({
   data: {
     plan: null, analysis: null, analysisLoading: false, analysisError: '', analysisTab: 'feature',
-    analysisTabs: [{ id: 'feature', name: '特征分析' }, { id: 'history', name: '历史交锋' }, { id: 'table', name: '积分榜' }, { id: 'recent', name: '比赛近况' }, { id: 'future', name: '未来赛事' }, { id: 'scorer', name: '射手信息' }, { id: 'injury', name: '伤停一览' }],
+    analysisTabs: [{ id: 'feature', name: '特征分析' }, { id: 'history', name: '历史交锋' }, { id: 'table', name: '积分榜' }, { id: 'recent', name: '比赛近况' }, { id: 'future', name: '未来赛事' }, { id: 'scorer', name: '射手信息' }, { id: 'injury', name: '伤停一览' }, { id: 'odds', name: '赔率变化' }],
+    oddsMarket: 'had',
     matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: ''
   },
   onLoad(options = {}) {
@@ -42,13 +43,17 @@ Page({
     this.setData({ analysisLoading: true, analysisError: '' })
     try {
       const analysis = await queryFootballAnalysis(this.analysisId)
-      if (!this.unloaded) this.setData({ analysis, analysisLoading: false })
+      if (!this.unloaded) {
+        const available = analysis.odds.markets.find((item) => item.rows.length)
+        this.setData({ analysis, analysisLoading: false, oddsMarket: available ? available.id : 'had' })
+      }
     } catch (error) {
       if (!this.unloaded) this.setData({ analysisLoading: false, analysisError: error.message || '分析数据查询失败' })
     } finally { this.analysisRequestRunning = false }
   },
   refreshAnalysis() { this.loadAnalysis() },
   selectAnalysisTab(event) { this.setData({ analysisTab: event.currentTarget.dataset.id }) },
+  selectOddsMarket(event) { this.setData({ oddsMarket: event.currentTarget.dataset.id }) },
   async loadMatchPage() {
     if (!this.matchSnapshot || this.matchRequestRunning) return
     this.matchRequestRunning = true

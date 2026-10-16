@@ -78,6 +78,22 @@
 .injury-card .player-head { align-items: flex-start; }
 .injury-status { flex-shrink: 0; padding: 4rpx 7rpx; border-radius: 5rpx; background: #fff0ee; color: #d94b43; font-size: 15rpx; }
 .analysis-footnote { margin-top: 24rpx; color: #9aa4b0; font-size: 18rpx; line-height: 1.6; }
+.odds-market-scroll { margin: -2rpx 0 16rpx; white-space: nowrap; }
+.odds-markets { display: flex; width: max-content; gap: 9rpx; padding-bottom: 4rpx; }
+.odds-market { flex-shrink: 0; padding: 10rpx 18rpx; border-radius: 99rpx; background: #f1f4f7; color: #7b8898; font-size: 19rpx; }
+.odds-market.active { background: #fff0ee; color: #d94b43; font-weight: 700; }
+.odds-snapshot { padding: 16rpx 0; border-top: 1rpx solid #edf1f5; }
+.odds-time { display: flex; justify-content: space-between; gap: 12rpx; margin-bottom: 10rpx; color: #929daa; font-size: 17rpx; }
+.odds-time text:last-child { color: #d94b43; }
+.odds-options { display: grid; gap: 7rpx; }
+.odds-options.columns-3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.odds-options.columns-4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.odds-option { min-width: 0; padding: 9rpx 4rpx; border: 1rpx solid #e8ecf0; border-radius: 8rpx; background: #fafbfc; text-align: center; }
+.odds-option > text { display: block; color: #667486; font-size: 16rpx; line-height: 1.3; word-break: break-all; }
+.odds-option > view { margin-top: 4rpx; color: #34495b; font-size: 19rpx; font-weight: 700; }
+.trend-icon { margin-left: 4rpx; color: #a5aeb8; }
+.odds-option.up > view, .odds-option.up .trend-icon { color: #e54841; }
+.odds-option.down > view, .odds-option.down .trend-icon { color: #3a7cc5; }
 .single-match-card { padding: 26rpx; text-align: center; }
 .single-meta { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; color: #8793a8; font-size: 20rpx; text-align: left; }
 .single-mode { flex-shrink: 0; padding: 7rpx 14rpx; border-radius: 99rpx; background: #fff0ee; color: #d6463f; font-size: 19rpx; }
