@@ -152,6 +152,12 @@ Page({
       summary: null, calculationError: '' }, () => this.updateView())
   },
   expandMatch(event) { const id = event.currentTarget.dataset.id; this.setData({ expandedMatchId: this.data.expandedMatchId === id ? '' : id }, () => this.updateView()) },
+  copyMatch(event) {
+    const match = this.feed && this.feed.matches.find((item) => item.id === event.currentTarget.dataset.id)
+    if (!match) { wx.showToast({ title: '比赛信息不存在', icon: 'none' }); return }
+    wx.setClipboardData({ data: `${matchNumber(match)}${match.home} VS ${match.away}`,
+      fail: () => wx.showToast({ title: '复制失败，请重试', icon: 'none' }) })
+  },
   toggleOption(event) {
     if (!this.feed || this.data.loading) return
     const { key, match } = event.currentTarget.dataset

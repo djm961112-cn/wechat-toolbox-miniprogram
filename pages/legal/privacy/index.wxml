@@ -30,7 +30,7 @@
       <view class="section-title">三、系统权限与剪贴板</view>
       <view class="section-list">
         <text class="list-item">1. 摄像头：仅在用户主动点击“扫一扫绑定”时用于扫描 TOTP 二维码。</text>
-        <text class="list-item">2. 剪贴板：仅在用户主动点击“复制”时，将所选账号标识、平台密码或收藏的网址写入系统剪贴板；本小程序不会读取剪贴板中的其他内容。</text>
+        <text class="list-item">2. 剪贴板：仅在用户主动点击“复制”时，将所选账号标识、平台密码、收藏网址或比赛对阵名称写入系统剪贴板；本小程序不会读取剪贴板中的其他内容。</text>
       </view>
     </view>
 

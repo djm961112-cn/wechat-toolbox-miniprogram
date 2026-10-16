@@ -9,21 +9,22 @@
   <view wx:elif="{{!matches.length}}" class="state card"><view class="empty-match-symbol">⚽</view><view>当前暂无相关比赛，敬请期待。</view></view>
   <block wx:else>
     <view wx:for="{{matches}}" wx:key="id" class="match-card card">
-      <view class="match-meta"><text>{{item.period}}期 · {{item.number}} · {{item.league}}</text><text>{{item.date}} {{item.time}}</text></view>
-      <view class="teams"><text>{{item.home}}</text><text class="versus">vs</text><text>{{item.away}}</text></view>
+      <view class="match-compact-head">
+        <view class="match-info"><view class="match-tags"><text class="match-number">{{item.number}}</text><text class="match-league">{{item.league}}</text></view><text class="match-period">{{item.period}}期</text><text class="match-time">{{item.date}} {{item.time}}</text></view>
+        <view class="compact-teams"><text>{{item.home}}</text><text class="versus">VS</text><text>{{item.away}}</text></view>
+        <view class="match-tools"><text class="copy-match" data-id="{{item.id}}" catchtap="copyMatch">复制</text><text wx:if="{{market === 'mixed'}}" class="more-match" data-id="{{item.id}}" catchtap="expandMatch">{{item.expanded ? '收起' : '更多'}}</text></view>
+      </view>
       <view wx:if="{{!item.selectable}}" class="readonly-note">{{item.statusLabel}} · 仅展示，不可选择</view>
       <view wx:elif="{{item.preOpen}}" class="preopen-note">未开盘，可先选择并保存；缺失赔率的回报待补全</view>
       <view wx:if="{{item.selectedOptions}}" class="selected-note">已选择 {{item.selectedOptions}} 项</view>
       <view wx:for="{{item.pools}}" wx:for-item="pool" wx:key="id" class="pool {{pool.id === 'had' || pool.id === 'hhad' ? 'result-pool' : ''}}">
-        <view class="pool-heading"><text>{{pool.name}}</text><view><text wx:if="{{pool.missing}}" class="eligibility">暂未开放</text><text wx:elif="{{!pool.selectable}}" class="eligibility">暂不可选</text><block wx:else><text wx:if="{{pool.needsOdds}}" class="eligibility pending">待赔率</text><text class="eligibility {{pool.single ? 'single' : ''}}">{{pool.single ? '可单关' : '仅串关'}}</text><text wx:if="{{!pool.allUp}}" class="eligibility">仅单关</text></block></view></view>
         <view class="pool-body">
-          <view wx:if="{{pool.id === 'had' || pool.id === 'hhad'}}" class="handicap {{pool.id === 'hhad' ? 'adjusted' : ''}}"><text>[{{pool.goalLabel}}]</text><text class="handicap-note">{{pool.id === 'had' ? '普通' : '让球'}}</text></view>
+          <view class="pool-summary"><text class="pool-name">{{pool.name}}</text><text wx:if="{{pool.id === 'had' || pool.id === 'hhad'}}" class="pool-goal {{pool.id === 'hhad' ? 'adjusted' : ''}}">[{{pool.goalLabel}}]</text><text wx:if="{{pool.missing}}" class="pool-eligibility">未开放</text><text wx:elif="{{!pool.selectable}}" class="pool-eligibility">不可选</text><text wx:else class="pool-eligibility active">{{pool.single ? (pool.allUp ? '单/串' : '单关') : '串关'}}</text><text wx:if="{{pool.needsOdds}}" class="pool-eligibility pending">待赔率</text></view>
           <view class="options {{pool.id === 'crs' ? 'scores' : pool.id === 'ttg' ? 'goals' : ''}}">
             <view wx:for="{{pool.options}}" wx:for-item="option" wx:key="key" class="option {{option.selected ? 'chosen' : ''}} {{option.disabled ? 'disabled' : ''}}" data-key="{{option.selectionKey}}" data-match="{{item.id}}" data-pool="{{pool.id}}" bindtap="toggleOption"><text>{{option.name}}</text><text class="odds">{{option.oddsText}}</text></view>
           </view>
         </view>
       </view>
-      <view wx:if="{{market === 'mixed'}}" class="expand" data-id="{{item.id}}" bindtap="expandMatch">{{item.expanded ? '收起玩法 ↑' : '展开总进球 / 半全场 / 比分 ↓'}}</view>
     </view>
   </block>
   <view class="reference-note">模拟回报区间按保存时的赔率和组合方式计算，仅供个人复盘参考；未计逐项舍入、上限及税费，不代表实际收益。</view>
