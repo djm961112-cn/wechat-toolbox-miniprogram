@@ -147,7 +147,7 @@
 .saved-preview-content { max-height: 53vh; }
 .saved-preview-match { padding: 14rpx 18rpx; border-top: 1rpx solid #edf1f5; color: #263b4e; text-align: center; font-size: 23rpx; line-height: 1.45; word-break: break-all; }
 .saved-preview-dialog .simulation-choice-box { margin-top: 8rpx; gap: 10rpx; }
-.saved-preview-dialog .simulation-choice-cell { padding: 9rpx 7rpx; font-size: 21rpx; line-height: 1.45; }
+.saved-preview-dialog .simulation-choice-cell { padding: 9rpx 7rpx; border-color: #d6463f; background: #d6463f; color: #fff; font-size: 21rpx; font-weight: 700; line-height: 1.45; }
 .saved-preview-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10rpx; padding: 14rpx 18rpx 16rpx; border-top: 1rpx solid #edf1f5; background: #fff; }
 .saved-preview-summary view { display: flex; min-width: 0; min-height: 82rpx; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; padding: 11rpx 13rpx; border-radius: 12rpx; background: #fff7f6; text-align: center; }
 .saved-preview-summary text { display: block; color: #929dab; font-size: 18rpx; line-height: 1.4; }
