@@ -4,7 +4,11 @@ const { queryMatchPage, gradeEntry } = require('../../../../utils/football-resul
 const { queryFootballAnalysis } = require('../../../../utils/football-analysis')
 
 Page({
-  data: { plan: null, analysis: null, analysisLoading: false, analysisError: '', matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: '' },
+  data: {
+    plan: null, analysis: null, analysisLoading: false, analysisError: '', analysisTab: 'feature',
+    analysisTabs: [{ id: 'feature', name: '特征分析' }, { id: 'history', name: '历史交锋' }, { id: 'table', name: '积分榜' }, { id: 'recent', name: '比赛近况' }, { id: 'future', name: '未来赛事' }, { id: 'scorer', name: '射手信息' }, { id: 'injury', name: '伤停一览' }],
+    matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: ''
+  },
   onLoad(options = {}) {
     try {
       if (options.analysisId) {
@@ -44,6 +48,7 @@ Page({
     } finally { this.analysisRequestRunning = false }
   },
   refreshAnalysis() { this.loadAnalysis() },
+  selectAnalysisTab(event) { this.setData({ analysisTab: event.currentTarget.dataset.id }) },
   async loadMatchPage() {
     if (!this.matchSnapshot || this.matchRequestRunning) return
     this.matchRequestRunning = true
