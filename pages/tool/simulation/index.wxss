@@ -21,8 +21,9 @@
 .stats-amounts view, .stats-group-money view { min-width: 0; }
 .stats-amounts view > text:first-child, .stats-group-money view > text:first-child { display: block; color: #8a99a5; font-size: 19rpx; }
 .stats-amount { display: block; margin-top: 7rpx; color: #233a4b; font-size: 25rpx; font-weight: 750; word-break: break-all; }
-.stats-amount.positive, .stats-source-money .positive { color: #16866a; }
-.stats-amount.negative, .stats-source-money .negative { color: #d44d42; }
+.stats-amount.return-amount { color: #d6463f; font-size: 31rpx; font-weight: 850; }
+.stats-amount.positive, .stats-source-money .positive { color: #d6463f; }
+.stats-amount.negative, .stats-source-money .negative { color: #3a9966; font-size: 22rpx; font-weight: 500; }
 .stats-overview-foot, .stats-group-foot { margin-top: 19rpx; padding-top: 13rpx; border-top: 1rpx solid #deebe4; color: #738a7e; font-size: 20rpx; line-height: 1.5; }
 .stats-group { padding: 23rpx 26rpx; margin-bottom: 16rpx; border-radius: 20rpx; }
 .stats-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
@@ -38,7 +39,11 @@
 .stats-source-count { margin-left: 12rpx; color: #8e9aa5; font-size: 19rpx; }
 .stats-source-money { margin-top: 7rpx; color: #6f8290; font-size: 20rpx; }
 .stats-source-money text { margin-left: 12rpx; font-weight: 700; }
+.stats-source-money .return-inline { color: #d6463f; font-size: 24rpx; font-weight: 800; }
 .stats-source-gain { margin-top: 5rpx; color: #90a0ac; font-size: 19rpx; }
+.profit-inline { margin-right: 18rpx; color: #d6463f; }
+.loss-muted { color: #3a9966; font-size: .92em; font-weight: 400; }
+.stats-overview-foot > text + text, .stats-group-foot > text + text, .stats-source-gain > text + text { margin-left: 18rpx; }
 .stats-footnote { margin: 20rpx 12rpx 30rpx; color: #97a3b1; font-size: 20rpx; line-height: 1.6; }
 .tool-entry { display: flex; align-items: center; padding: 28rpx; }
 .tool-symbol { display: flex; width: 100rpx; height: 100rpx; align-items: center; justify-content: center; border-radius: 24rpx; background: #eaf7f3; font-size: 54rpx; }

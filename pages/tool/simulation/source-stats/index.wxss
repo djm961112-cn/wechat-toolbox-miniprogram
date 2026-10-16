@@ -12,13 +12,19 @@
 .source-metrics, .day-money { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12rpx; margin-top: 21rpx; }
 .source-metrics view > text:first-child, .day-money view > text:first-child { display: block; color: #8a99a5; font-size: 19rpx; }
 .source-metrics .value, .day-money .value { display: block; margin-top: 6rpx; color: #243b4a; font-size: 24rpx; font-weight: 750; word-break: break-all; }
-.source-metrics .positive, .day-money .positive { color: #16866a; }
-.source-metrics .negative, .day-money .negative { color: #d44d42; }
+.source-metrics .return-amount, .day-money .return-amount { color: #d6463f; font-size: 30rpx; font-weight: 850; }
+.source-metrics .positive, .day-money .positive, .month-amount .positive { color: #d6463f; }
+.source-metrics .negative, .day-money .negative, .month-amount .negative { color: #3a9966; font-size: 21rpx; font-weight: 500; }
 .source-overview-foot, .day-foot { margin-top: 17rpx; padding-top: 13rpx; border-top: 1rpx solid #deebe4; color: #74897d; font-size: 20rpx; line-height: 1.5; }
+.profit-inline { margin-right: 18rpx; color: #d6463f; }
+.loss-muted { color: #3a9966; font-size: 18rpx; font-weight: 400; }
+.source-overview-foot > text + text, .day-foot > text + text { margin-left: 18rpx; }
 .month-section { margin-top: 28rpx; }
 .month-heading { display: flex; justify-content: space-between; gap: 12rpx; margin: 0 3rpx 14rpx; color: #233a4c; font-size: 28rpx; font-weight: 750; }
 .month-heading text { color: #94a1ad; font-size: 19rpx; font-weight: 400; }
 .month-amount { margin: -5rpx 3rpx 14rpx; color: #819388; font-size: 20rpx; }
+.month-amount text { margin-left: 18rpx; }
+.month-amount .return-inline { color: #d6463f; font-size: 24rpx; font-weight: 800; }
 .day-card { padding: 24rpx; margin-bottom: 16rpx; border-radius: 20rpx; }
 .day-head { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
 .day-title { color: #20384b; font-size: 27rpx; font-weight: 750; }
@@ -33,6 +39,7 @@
 .plan-status { flex-shrink: 0; color: #8c9aab; font-size: 20rpx; }
 .plan-status.hit { color: #16866a; }
 .day-plan-meta, .day-plan-amount { margin-top: 6rpx; color: #8999a8; font-size: 20rpx; }
-.day-plan-amount text { color: #25866a; float: right; }
+.day-plan-amount .plan-return { margin-left: 16rpx; color: #d6463f; font-size: 23rpx; font-weight: 800; }
+.day-plan-amount text:last-child { color: #25866a; float: right; }
 .source-footer { margin: 24rpx 10rpx 0; color: #a0abba; font-size: 20rpx; line-height: 1.6; }
 .empty { padding: 50rpx 25rpx; color: #8793a8; text-align: center; font-size: 23rpx; }
