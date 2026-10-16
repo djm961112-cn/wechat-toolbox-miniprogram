@@ -3,6 +3,7 @@ const { matchPeriod, matchNumber } = require('./simulation-plans')
 
 const LIST_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchDataPageListV1.qry'
 const DETAIL_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchGeneral.qry'
+const LIVE_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchLiveV1.qry'
 const RESULT_POOLS = ['had', 'hhad', 'crs', 'ttg', 'hafu'].map((id) => POOLS.find((pool) => pool.id === id))
 const RESULT_UNAVAILABLE_MESSAGE = '比赛未结束'
 
@@ -30,6 +31,13 @@ async function queryDate(date, method = 'result') {
     if (method === 'live' || String(value.nextPage || '0') === '0') return matches
   }
   throw new Error('赛果列表尚未查询完整，请稍后重试')
+}
+
+async function queryLiveMatches(matchIds) {
+  const expected = new Set(matchIds.map(String))
+  const value = await requestValue(LIVE_URL, { matchIds: [...expected].join(','), method: 'live' })
+  if (!Array.isArray(value)) throw new Error('官方比分直播格式异常')
+  return value.filter((match) => expected.has(String(match.matchId)))
 }
 
 function scorePair(value) {
@@ -152,6 +160,7 @@ async function checkPlan(plan) {
   }
   const results = []
   const liveByDate = new Map()
+  let liveMatchesPromise
   for (const match of plan.matches) {
     const candidate = byDate.get(match.date).find((item) => matchPeriod(item) === matchPeriod(match) && matchNumber(item) === matchNumber(match))
     if (candidate && String(candidate.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场比赛身份不一致，已停止核对`)
@@ -180,25 +189,40 @@ async function checkPlan(plan) {
     const selectedPools = [...new Set((match.selections || []).map((option) => option.poolId))]
     const needsLive = result.status === 'pending' || result.status === 'published' && selectedPools.some((id) => !result.pools.some((pool) => pool.id === id && pool.key))
     if (needsLive) {
-      if (!liveByDate.has(match.date)) {
-        try { liveByDate.set(match.date, await queryDate(match.date, 'live')) }
-        catch (error) { if (/合法域名/.test(error.message || '')) throw error; liveByDate.set(match.date, []) }
+      if (!liveMatchesPromise) {
+        liveMatchesPromise = queryLiveMatches(plan.matches.map((item) => item.id)).catch((error) => {
+          if (/合法域名/.test(error.message || '')) throw error
+          return []
+        })
       }
-      const liveCandidates = liveByDate.get(match.date)
-      const sameNumber = liveCandidates.find((item) => matchPeriod(item) === matchPeriod(match) && matchNumber(item) === matchNumber(match))
-      if (sameNumber && String(sameNumber.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场直播比赛身份不一致，已停止核对`)
-      if (sameNumber && sameMatch(sameNumber, match)) {
+      let liveCandidate = (await liveMatchesPromise).find((item) => String(item.matchId) === String(match.id))
+      if (!liveCandidate) {
+        if (!liveByDate.has(match.date)) {
+          try { liveByDate.set(match.date, await queryDate(match.date, 'live')) }
+          catch (error) { if (/合法域名/.test(error.message || '')) throw error; liveByDate.set(match.date, []) }
+        }
+        const liveCandidates = liveByDate.get(match.date)
+        const sameNumber = liveCandidates.find((item) => matchPeriod(item) === matchPeriod(match) && matchNumber(item) === matchNumber(match))
+        if (sameNumber && String(sameNumber.matchId) !== String(match.id)) throw new Error(`${matchPeriod(match)}期 ${matchNumber(match)}场直播比赛身份不一致，已停止核对`)
+        if (sameNumber && sameMatch(sameNumber, match)) liveCandidate = sameNumber
+      }
+      if (liveCandidate) {
         let liveDetail
-        try { liveDetail = await requestValue(DETAIL_URL, { matchId: sameNumber.matchId, matchStatus: sameNumber.matchStatus }) }
+        try { liveDetail = await requestValue(DETAIL_URL, { matchId: liveCandidate.matchId, matchStatus: liveCandidate.matchStatus }) }
         catch (error) { if (/合法域名/.test(error.message || '')) throw error }
         if (liveDetail && String(liveDetail.matchId) !== String(match.id)) throw new Error('比分直播详情身份不一致，已停止核对')
-        const liveResult = normalizeLiveResult(match, { ...sameNumber,
-          sectionsNo999: liveDetail && liveDetail.sectionsNo999 || sameNumber.sectionsNo999,
-          sectionsNo1: liveDetail && liveDetail.sectionsNo1 || sameNumber.sectionsNo1 })
+        const liveStatus = ['6', '10', '11'].includes(String(liveCandidate.matchStatus)) ? liveCandidate.matchStatus
+          : liveDetail && liveDetail.matchStatus || liveCandidate.matchStatus
+        const liveResult = normalizeLiveResult(match, { ...liveCandidate,
+          matchStatus: liveStatus,
+          matchStatusName: ['6', '10', '11'].includes(String(liveCandidate.matchStatus)) ? liveCandidate.matchStatusName : liveDetail && liveDetail.matchStatusName || liveCandidate.matchStatusName,
+          sectionsNo999: liveCandidate.sectionsNo999 || liveDetail && liveDetail.sectionsNo999,
+          sectionsNo1: liveCandidate.sectionsNo1 || liveDetail && liveDetail.sectionsNo1 })
         if (liveResult.status === 'published' && result.status === 'published') {
           result = { ...result, pools: result.pools.map((pool) => pool.key ? pool : liveResult.pools.find((item) => item.id === pool.id && item.key) || pool),
             fullScore: result.fullScore === '—' ? liveResult.fullScore : result.fullScore,
-            halfScore: result.halfScore === '—' ? liveResult.halfScore : result.halfScore }
+            halfScore: result.halfScore === '—' ? liveResult.halfScore : result.halfScore,
+            statusLabel: liveResult.statusLabel, source: 'live' }
         } else if (liveResult.status === 'published') result = liveResult
         else if (result.status === 'pending') result = liveResult
       }
