@@ -158,6 +158,11 @@ Page({
     wx.setClipboardData({ data: `${matchNumber(match)}${match.home} VS ${match.away}`,
       fail: () => wx.showToast({ title: '复制失败，请重试', icon: 'none' }) })
   },
+  openAnalysis(event) {
+    const matchId = event.currentTarget.dataset.id
+    if (!matchId) { wx.showToast({ title: '比赛信息不存在', icon: 'none' }); return }
+    wx.navigateTo({ url: `/pages/tool/simulation/detail/index?analysisId=${encodeURIComponent(matchId)}` })
+  },
   toggleOption(event) {
     if (!this.feed || this.data.loading) return
     const { key, match } = event.currentTarget.dataset
@@ -228,7 +233,8 @@ Page({
           const option = pool && pool.options.find((item) => item.key === optionKey)
           const key = `${match.id}:${definition.id}:${optionKey}`
           const disabled = !option || option.disabled || pool.selectable === false
-          return { ...option, key: optionKey, name, disabled, oddsText: option ? option.oddsText : '-', selectionKey: key, selected: Boolean(!disabled && this.data.selections[key]) }
+          const displayName = definition.id === 'hhad' ? name.replace(/^让/, '') : name
+          return { ...option, key: optionKey, name: displayName, disabled, oddsText: option ? option.oddsText : '-', selectionKey: key, selected: Boolean(!disabled && this.data.selections[key]) }
         }) }
       }).filter(Boolean)
       const allSelected = allPools.reduce((count, pool) => count + pool.options.filter((option) => option.selected).length, 0)

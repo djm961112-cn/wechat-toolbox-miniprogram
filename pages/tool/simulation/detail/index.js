@@ -1,11 +1,18 @@
 const { readPlans, formatPlanForDisplay } = require('../../../../utils/simulation-plans')
 const { previewEntries } = require('../../../../utils/football-simulation')
 const { queryMatchPage, gradeEntry } = require('../../../../utils/football-results')
+const { queryFootballAnalysis } = require('../../../../utils/football-analysis')
 
 Page({
-  data: { plan: null, matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: '' },
+  data: { plan: null, analysis: null, analysisLoading: false, analysisError: '', matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: '' },
   onLoad(options = {}) {
     try {
+      if (options.analysisId) {
+        this.analysisId = decodeURIComponent(options.analysisId)
+        wx.setNavigationBarTitle({ title: '对阵分析' })
+        this.loadAnalysis()
+        return
+      }
       const planId = options.planId || options.id
       const plan = readPlans().find((item) => item.id === planId)
       if (!plan) { this.setData({ error: '方案不存在或已删除' }); return }
@@ -25,6 +32,18 @@ Page({
     } catch (error) { this.setData({ error: '读取方案失败，请返回重试' }) }
   },
   onUnload() { this.unloaded = true; if (this.liveTimer) clearTimeout(this.liveTimer) },
+  async loadAnalysis() {
+    if (!this.analysisId || this.analysisRequestRunning) return
+    this.analysisRequestRunning = true
+    this.setData({ analysisLoading: true, analysisError: '' })
+    try {
+      const analysis = await queryFootballAnalysis(this.analysisId)
+      if (!this.unloaded) this.setData({ analysis, analysisLoading: false })
+    } catch (error) {
+      if (!this.unloaded) this.setData({ analysisLoading: false, analysisError: error.message || '分析数据查询失败' })
+    } finally { this.analysisRequestRunning = false }
+  },
+  refreshAnalysis() { this.loadAnalysis() },
   async loadMatchPage() {
     if (!this.matchSnapshot || this.matchRequestRunning) return
     this.matchRequestRunning = true

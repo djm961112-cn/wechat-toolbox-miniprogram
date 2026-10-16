@@ -12,7 +12,7 @@
       <view class="match-compact-head">
         <view class="match-info"><view class="match-tags"><text class="match-number">{{item.number}}</text><text class="match-league">{{item.league}}</text></view><text class="match-period">{{item.period}}期</text><text class="match-time">{{item.date}} {{item.time}}</text></view>
         <view class="compact-teams"><text>{{item.home}}</text><text class="versus">VS</text><text>{{item.away}}</text></view>
-        <view class="match-tools"><text class="copy-match" data-id="{{item.id}}" catchtap="copyMatch">复制</text><text wx:if="{{market === 'mixed'}}" class="more-match" data-id="{{item.id}}" catchtap="expandMatch">{{item.expanded ? '收起' : '更多'}}</text></view>
+        <view class="match-tools"><text class="analyze-match" data-id="{{item.id}}" catchtap="openAnalysis">分析</text><text class="copy-match" data-id="{{item.id}}" catchtap="copyMatch">复制</text><text wx:if="{{market === 'mixed'}}" class="more-match" data-id="{{item.id}}" catchtap="expandMatch">{{item.expanded ? '收起' : '更多'}}</text></view>
       </view>
       <view wx:if="{{!item.selectable}}" class="readonly-note">{{item.statusLabel}} · 仅展示，不可选择</view>
       <view wx:elif="{{item.preOpen}}" class="preopen-note">未开盘，可先选择并保存；缺失赔率的回报待补全</view>

@@ -41,7 +41,8 @@ function normalizeFeed(response) {
         const options = definition.options.map(([key, name]) => {
           const price = Number(odds[key])
           const hasOdds = Number.isFinite(price) && price > 0
-          return { key, name, odds: hasOdds ? price : null, oddsText: hasOdds ? String(odds[key]) : '待赔率', selected: false, disabled: !selectable || !preOpen && !hasOdds }
+          const displayName = definition.id === 'hhad' ? name.replace(/^让/, '') : name
+          return { key, name: displayName, odds: hasOdds ? price : null, oddsText: hasOdds ? String(odds[key]) : '待赔率', selected: false, disabled: !selectable || !preOpen && !hasOdds }
         })
         const hasSelectableOption = selectable && options.some((option) => !option.disabled)
         return { id: definition.id, name: definition.name, maxLegs: definition.maxLegs, single, allUp, selectable: hasSelectableOption, preOpen, missing: !flags && !hasSelectableOption, needsOdds: preOpen && options.some((option) => option.odds === null) || definition.id === 'hhad' && goalLine === null, goalLine: definition.id === 'hhad' ? goalLine : '', updatedAt: `${odds.updateDate || ''} ${odds.updateTime || ''}`.trim(), options }
@@ -227,7 +228,7 @@ function previewEntries(matches, passes, multiplier, offset = 0, limit = 30) {
           // Alternatives for one match remain one leg. Group the detail view by the
           // chosen market on each leg, rather than combining two markets into one ticket.
           const marketChoices = choices.map((options, i) => options.filter((option) => option.poolId === selected[i].poolId))
-          const formatChoice = (option) => `${option.name || option.key}${option.poolId === 'hhad' ? '[' + (option.goalLine == null || option.goalLine === '' ? '待让球数' : option.goalLine) + ']' : ''}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})`
+          const formatChoice = (option) => `${option.poolId === 'hhad' ? String(option.name || option.key).replace(/^让/, '') : option.name || option.key}${option.poolId === 'hhad' ? '[' + (option.goalLine == null || option.goalLine === '' ? '待让球数' : option.goalLine) + ']' : ''}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})`
           rows.push({
             id: String(skipped + index), label: `${size === 1 ? '单关' : `${size}串1`} · 第 ${skipped + index + 1} 组`,
             choices: selected.map((option, i) => `${group[i].number || group[i].id} ${formatChoice(option)}`).join(' × '),

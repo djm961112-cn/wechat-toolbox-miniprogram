@@ -162,7 +162,8 @@ function formatSelectionRows(selections) {
     if (!row) { row = { id: option.poolId, options: [] }; rows.push(row) }
     const goal = Number(option.goalLine)
     const handicap = option.poolId === 'hhad' ? option.goalLine != null && option.goalLine !== '' ? `[${goal > 0 ? '+' : ''}${goal}]` : '[待让球数]' : ''
-    row.options.push({ key: option.key, text: `${option.name || option.key}${handicap}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})` })
+    const name = option.poolId === 'hhad' ? String(option.name || option.key).replace(/^让/, '') : option.name || option.key
+    row.options.push({ key: option.key, text: `${name}${handicap}(${Number(option.odds) > 0 ? Number(option.odds).toFixed(2) : '待赔率'})` })
   })
   // All markets of one match share the widest row, so a shorter row keeps its column alignment.
   const columns = Math.min(3, Math.max(1, ...rows.map((row) => row.options.length)))
