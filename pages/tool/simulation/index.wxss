@@ -111,7 +111,7 @@
 .fact-value.warm { color: #e48031; }
 .fact-pass { flex: 1; min-width: 110rpx; font-size: 23rpx; }
 .match-list { border-top: 1rpx solid #e7ecef; }
-.plan-card .simulation-choice-box { margin-left: 0; margin-right: 0; }
+.plan-card .simulation-choice-box { margin-left: auto; margin-right: auto; }
 .plan-card .simulation-choice-cell { border-color: #ffd1cd; background: #fff4f2; color: #d94941; font-weight: 700; }
 .plan-card .simulation-choice-cell.result-won, .saved-preview-dialog .simulation-choice-cell.result-won { border-color: #d73f38; background: #d73f38; color: #fff; box-shadow: 0 5rpx 12rpx rgba(215,63,56,.18); }
 .plan-card .simulation-choice-cell.result-lost, .saved-preview-dialog .simulation-choice-cell.result-lost { border-color: #f4dedb; background: #fff9f8; color: #c4aaa7; opacity: .5; }
