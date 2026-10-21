@@ -1,0 +1,28 @@
+<view class="page weight-page">
+  <view class="weight-heading"><view class="weight-title">体重控制</view><view class="weight-subtitle">轻量记录，持续看见变化</view></view>
+  <view class="tabs card">
+    <view class="tab {{activeTab === 'record' ? 'active' : ''}}" data-tab="record" bindtap="selectTab">记录</view>
+    <view class="tab {{activeTab === 'chart' ? 'active' : ''}}" data-tab="chart" bindtap="selectTab">图表</view>
+  </view>
+
+  <view wx:if="{{activeTab === 'record'}}" class="record-card card">
+    <view class="record-label">今天的体重</view>
+    <view class="weight-input-row"><input class="weight-input" type="digit" maxlength="6" value="{{weight}}" placeholder="0.0" bindinput="onWeightInput" /><text class="weight-unit">kg</text></view>
+    <button class="save-button" bindtap="saveWeight">保存记录</button>
+    <view wx:if="{{latest}}" class="latest-note">最近一次：<text>{{latest.weight}} kg</text></view>
+  </view>
+
+  <view wx:else class="chart-section">
+    <view class="period-tabs"><view wx:for="{{periods}}" wx:key="id" class="period-tab {{period === item.id ? 'active' : ''}}" data-period="{{item.id}}" bindtap="selectPeriod">{{item.label}}</view></view>
+    <view class="chart-card card">
+      <view class="chart-head"><view><view class="chart-title">体重趋势</view><view class="chart-period">{{periodLabel}}</view></view><view wx:if="{{points.length}}" class="chart-change"><text class="change-value">{{change}}</text><text> kg</text></view></view>
+      <view wx:if="{{points.length}}" class="chart-canvas">
+        <view class="grid-line line-top"></view><view class="grid-line line-middle"></view><view class="grid-line line-bottom"></view>
+        <view wx:for="{{segments}}" wx:key="index" class="chart-segment" style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.width}}%;transform:rotate({{item.angle}}deg)"></view>
+        <view wx:for="{{points}}" wx:key="key" class="chart-point-wrap" style="left:{{item.x}}%;top:{{item.y}}%"><view wx:if="{{item.showValue}}" class="point-value">{{item.weight}}</view><view class="chart-point"></view><view wx:if="{{item.showLabel}}" class="point-label">{{item.shortLabel}}</view></view>
+      </view>
+      <view wx:if="{{points.length}}" class="chart-summary"><view><text>最低</text><strong>{{min}} kg</strong></view><view><text>最高</text><strong>{{max}} kg</strong></view></view>
+      <view wx:else class="empty-chart"><view class="empty-symbol">⌁</view><view class="empty-title">暂无体重数据</view><view class="empty-copy">先去记录一次体重，趋势会显示在这里</view><button class="empty-button" data-tab="record" bindtap="selectTab">去记录</button></view>
+    </view>
+  </view>
+</view>
