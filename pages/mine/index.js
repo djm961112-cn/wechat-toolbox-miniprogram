@@ -1,6 +1,6 @@
 const { readScoreRecord, saveScore: saveLocalScore } = require('../../utils/profile-score')
 const auth = require('../../utils/auth')
-const LOGIN_ENABLED = false
+const LOGIN_ENABLED = true
 
 function formatTime(timestamp) {
   const date = new Date(timestamp)
