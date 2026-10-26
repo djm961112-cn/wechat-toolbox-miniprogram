@@ -5,8 +5,8 @@ const cloud = require('../../utils/cloud-sync')
 
 const CLOUD_NAMES = { mfa: 'MFA 验证器', weight: '体重控制', simulation: '模拟计算' }
 function confirmUpload() {
-  return new Promise((resolve) => wx.showModal({ title: '上传本地数据', content: '将把本机 MFA 密钥、体重记录和模拟方案上传到 OpenOTools 服务器，并由服务端加密保存。云端已有数据会先合并，不会直接覆盖。是否继续？',
-    confirmText: '确认上传', cancelText: '取消', success: (result) => resolve(Boolean(result.confirm)), fail: () => resolve(false) }))
+  return new Promise((resolve) => wx.showModal({ title: '明文上传确认', content: '将把本机 MFA（含 TOTP 密钥）、体重记录和模拟方案明文存储到 OpenOTools，用于跨设备恢复和数据分析。TOTP 密钥泄露可能影响账号验证安全。云端数据会先合并，不直接覆盖。请确认已理解风险。',
+    confirmText: '继续上传', cancelText: '取消', success: (result) => resolve(Boolean(result.confirm)), fail: () => resolve(false) }))
 }
 
 Page({
@@ -34,7 +34,7 @@ Page({
     try {
       const summary = await cloud.getSummary()
       const list = Array.isArray(summary) ? summary : []
-      this.setData({ cloudItems: list.map((item) => ({ ...item, name: CLOUD_NAMES[item.tool] || item.tool })), cloudMessage: list.length ? '云端已有以下加密快照。' : '云端暂无工具数据，可上传本机已有记录。' })
+      this.setData({ cloudItems: list.map((item) => ({ ...item, name: CLOUD_NAMES[item.tool] || item.tool })), cloudMessage: list.length ? '云端已有以下明文快照。' : '云端暂无工具数据，可上传本机已有记录。' })
     } catch (error) { this.setData({ cloudError: error.message || '云端摘要读取失败', cloudMessage: '本地数据未受影响，可稍后重试。' }) }
   },
   async uploadLocalData() {
@@ -43,7 +43,7 @@ Page({
     this.setData({ cloudLoading: true, cloudError: '', cloudMessage: '正在合并并上传本地数据…' })
     try {
       await cloud.importLocalData()
-      this.setData({ cloudMessage: 'MFA、体重和模拟方案已完成加密上传，并启用自动同步。' })
+      this.setData({ cloudMessage: 'MFA、体重和模拟方案已明文上传，后续修改将自动同步。' })
       await this.refreshCloudStatus()
       wx.showToast({ title: '本地数据已上传', icon: 'success' })
     } catch (error) {

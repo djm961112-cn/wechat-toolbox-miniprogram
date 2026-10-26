@@ -1,12 +1,12 @@
 <view class="page legal-page">
   <view class="legal-card card">
     <view class="legal-title">用户服务协议</view>
-    <view class="legal-date">更新日期：2026年10月26日</view>
+    <view class="legal-date">更新日期：2026年10月27日</view>
     <view class="legal-intro">欢迎使用本小程序。使用相关功能前，请完整阅读并理解本协议。继续使用即表示您同意遵守本协议。</view>
 
     <view class="section">
       <view class="section-title">一、服务内容</view>
-      <text class="section-text">本小程序提供动态验证码计算、体重记录、模拟方案、非微信平台凭据整理、单网址收藏和个人评分。MFA、体重和模拟计算需登录后使用并可加密同步；凭据本、收藏夹、评分和工具喜好仍仅保存在本机。</text>
+      <text class="section-text">本小程序提供动态验证码计算、体重记录、模拟方案、非微信平台凭据整理、单网址收藏和个人评分。MFA、体重和模拟计算需登录后使用，已有本地数据由用户在设置页主动上传，启用同步后的修改会自动同步；凭据本、收藏夹、评分和工具喜好仍仅保存在本机。</text>
     </view>
 
     <view class="section">
@@ -20,7 +20,7 @@
 
     <view class="section">
       <view class="section-title">三、数据存储与风险</view>
-      <text class="section-text">MFA、体重和模拟方案在启用同步后可从云端恢复；删除小程序或清理缓存不会自动删除已同步的服务器快照。其他本地数据在删除小程序、清理微信缓存或更换设备后可能丢失。本地缓存未额外加密，请勿保存高价值或不可恢复的重要凭据。</text>
+      <text class="section-text">MFA（含 TOTP 密钥）、体重和模拟方案会以明文结构上传并存储在 OpenOTools 服务器，用于跨设备恢复和后续数据分析。TOTP 密钥属于敏感数据，服务器数据或管理权限泄露可能影响账号验证安全，用户应在理解风险后再主动上传。删除小程序或清理缓存不会自动删除已同步的服务器数据；其他本地数据在删除小程序、清理微信缓存或更换设备后可能丢失。</text>
     </view>
 
     <view class="section">

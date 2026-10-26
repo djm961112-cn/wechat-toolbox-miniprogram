@@ -19,7 +19,7 @@ Page({
     this.loadAccounts()
     this.updateCodes()
     this.startTicker()
-    if (result.pendingUpload) wx.showModal({ title: '发现本地 MFA 数据', content: '请到“我的 → 设置 → 本地数据上传”完成首次加密上传后启用自动同步。', showCancel: false })
+    if (result.pendingUpload) wx.showModal({ title: '发现本地 MFA 数据', content: '请到“我的 → 设置 → 本地数据上传”了解 TOTP 密钥明文存储风险并主动完成首次上传。', showCancel: false })
   },
 
   onShow() {

@@ -4,7 +4,7 @@ const PROTECTED_TOOLS = ['mfa', 'weight', 'simulation']
 
 function confirmLogin() {
   return new Promise((resolve) => wx.showModal({
-    title: '登录后使用', content: '该工具支持云端加密同步，需要先完成微信登录。本机已有数据不会被清空或覆盖。',
+    title: '登录后使用', content: '该工具支持服务器同步，需要先完成微信登录。本机已有数据不会被清空或覆盖，首次上传需在设置页由您主动确认。',
     confirmText: '微信登录', cancelText: '取消', success: (result) => resolve(Boolean(result.confirm)), fail: () => resolve(false)
   }))
 }

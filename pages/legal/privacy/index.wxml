@@ -1,13 +1,13 @@
 <view class="page legal-page">
   <view class="legal-card card">
     <view class="legal-title">隐私政策</view>
-    <view class="legal-date">更新日期：2026年10月26日</view>
-    <view class="legal-intro">本政策说明本小程序处理用户数据的目的、方式、保存期限和用户权利。MFA、体重和模拟方案在未登录或未启用同步时保存在当前设备；用户登录并恢复云端数据或主动上传后，会同步至 OpenOTools 服务器。</view>
+    <view class="legal-date">更新日期：2026年10月27日</view>
+    <view class="legal-intro">本政策说明本小程序处理用户数据的目的、方式、保存期限和用户权利。MFA、体重和模拟方案在未登录或未启用同步时保存在当前设备；用户主动上传后，相关数据会以明文结构存储在 OpenOTools 服务器。</view>
 
     <view class="section">
       <view class="section-title">一、处理的数据</view>
       <view class="section-list">
-        <text class="list-item">1. MFA 验证器：用户主动扫描的 TOTP 二维码信息，包括平台名称、账号标识和动态验证码密钥。</text>
+        <text class="list-item">1. MFA 验证器：用户主动扫描的 TOTP 二维码信息，包括平台名称、账号标识和动态验证码密钥。启用同步后，TOTP 密钥会明文上传并存储在 OpenOTools 服务器。</text>
         <text class="list-item">2. 体重控制：用户主动录入的体重数值、记录时间和记录标识。</text>
         <text class="list-item">3. 本地凭据本：用户主动录入的非微信平台名称、自定义账号标识、平台密码和备注，仅保存在本机，不参与云同步。</text>
         <text class="list-item">4. 协议同意状态：用于记录用户是否已阅读并同意本协议。</text>
@@ -21,9 +21,9 @@
 
     <view class="section">
       <view class="section-title">二、处理目的和方式</view>
-      <text class="section-text">MFA 密钥、体重记录和模拟方案仅在用户完成微信登录并进入对应工具恢复云端数据，或在设置页主动执行“本地数据上传”后同步。同步数据使用会话令牌鉴权，服务端对完整数据快照进行应用层 AES-256-GCM 加密后保存，不出售、不用于广告分析。</text>
+      <text class="section-text">已有本机 MFA（含 TOTP 密钥）、体重记录和模拟方案只会在用户完成微信登录，并在设置页主动执行“本地数据上传”后上传。上传时使用会话令牌鉴权，数据以明文结构存储在 OpenOTools 服务器，用于跨设备恢复和后续数据分析，不出售、不用于广告分析。启用同步后，相关记录的后续新增、修改和删除会自动同步。</text>
       <text class="section-text">本地凭据本、收藏网址、个人评分、工具喜好、赛事缓存和未保存草稿仍只保存在当前设备，不上传 OpenOTools 服务器。</text>
-      <text class="section-text">足球模拟首次进入页面及主动刷新时向中国竞彩网公开数据接口请求赛事、赔率和玩法资格；核对时会请求公开赛果。请求不包含您的本地方案或账号凭据。未保存草稿会自动写入本机缓存，不上传服务器；已保存方案和核对结果可加密同步至 OpenOTools 服务器，但不会发送到赛事接口。本工具不提供真实投注、支付、出票或兑奖。</text>
+      <text class="section-text">足球模拟首次进入页面及主动刷新时向中国竞彩网公开数据接口请求赛事、赔率和玩法资格；核对时会请求公开赛果。请求不包含您的本地方案或账号凭据。未保存草稿会自动写入本机缓存，不上传服务器；已保存方案和核对结果可明文同步至 OpenOTools 服务器，但不会发送到赛事接口。本工具不提供真实投注、支付、出票或兑奖。</text>
       <text class="section-text">微信登录仅在用户主动点击后触发。服务器不会保存微信临时登录凭证或 session_key；会话令牌只以哈希形式保存在服务器数据库，本机保存登录令牌用于维持登录状态。登录本身不会清空本地记录，首次上传会先合并云端和本机数据。</text>
     </view>
 
@@ -42,7 +42,7 @@
 
     <view class="section">
       <view class="section-title">五、安全说明</view>
-      <text class="section-text">不同微信用户和不同小程序之间的本地缓存相互隔离，但当前版本未对本地缓存额外加密。云端 MFA、体重和模拟方案采用服务端应用层加密保存。请勿在非专用字段录入微信密码、支付密码、银行卡密码或身份证件信息。</text>
+      <text class="section-text">不同微信用户和不同小程序之间的本地缓存相互隔离，但当前版本未对本地缓存额外加密。OpenOTools 服务器会明文存储已同步的 MFA、体重和模拟方案数据。TOTP 密钥属于敏感数据，如服务器账号、数据库或管理权限泄露，可能影响相关账号的验证安全。请在理解该风险后再主动上传，并请勿在非专用字段录入微信密码、支付密码、银行卡密码或身份证件信息。</text>
     </view>
 
     <view class="section">
