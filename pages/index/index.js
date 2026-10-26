@@ -1,5 +1,6 @@
 const { tools, resolveToolUrl } = require('../../utils/tool-data')
 const { readEnabledTools } = require('../../utils/tool-preferences')
+const { openProtectedTool } = require('../../utils/tool-access')
 
 Page({
   onShow() {
@@ -18,9 +19,9 @@ Page({
       wx.showToast({ title: '读取工具喜好失败', icon: 'none' })
     }
   },
-  openTool(event) {
+  async openTool(event) {
     const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
-    if (tool) wx.navigateTo({ url: resolveToolUrl(tool) })
+    if (tool) await openProtectedTool(tool.id, resolveToolUrl(tool))
   },
   openMarket() { wx.switchTab({ url: '/pages/market/index' }) }
 })

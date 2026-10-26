@@ -4,6 +4,12 @@ const simulationTools = [
   { id: 'football', name: '足球', description: '官方赛事 · 多玩法计算 · 保存方案', symbol: '⚽', url: '/pages/tool/simulation/football/index', sourceUrl: 'https://m.sporttery.cn/mjc/jsq/zqspf/' }
 ]
 
+function scheduleCloudSync() {
+  try { require('./cloud-sync').scheduleSync('simulation') } catch (error) {}
+}
+function writePlans(plans) { wx.setStorageSync(STORAGE_KEY, plans); scheduleCloudSync() }
+function writeSources(sources) { wx.setStorageSync(SOURCE_STORAGE_KEY, sources); scheduleCloudSync() }
+
 function readPlans() {
   const records = wx.getStorageSync(STORAGE_KEY)
   if (!records) return []
@@ -27,7 +33,7 @@ function createSource(name) {
   do { id = `src_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` }
   while (sources.some((source) => source.id === id))
   const source = { id, name: value, createdAt: Date.now() }
-  wx.setStorageSync(SOURCE_STORAGE_KEY, [...sources, source])
+  writeSources([...sources, source])
   return source
 }
 
@@ -52,7 +58,7 @@ function savePlan(snapshot) {
     id: `${now}-${Math.random().toString(36).slice(2, 10)}`,
     createdAt: now
   }
-  wx.setStorageSync(STORAGE_KEY, [plan, ...readPlans()])
+  writePlans([plan, ...readPlans()])
   return plan
 }
 
@@ -72,7 +78,7 @@ function replacePlan(id, snapshot) {
   delete updated.pricingNote
   delete updated.title
   plans[index] = updated
-  wx.setStorageSync(STORAGE_KEY, plans)
+  writePlans(plans)
   return updated
 }
 
@@ -80,8 +86,8 @@ function setPlanSource(id, sourceId) {
   const plans = readPlans()
   const index = plans.findIndex((plan) => plan.id === id)
   if (index < 0) throw new Error('方案已删除，请刷新后重试')
-  plans[index] = { ...plans[index], ...sourceFields(sourceId), version: 3 }
-  wx.setStorageSync(STORAGE_KEY, plans)
+  plans[index] = { ...plans[index], ...sourceFields(sourceId), version: 3, updatedAt: Date.now() }
+  writePlans(plans)
 }
 
 function setPlanPurchased(id, purchased) {
@@ -89,8 +95,8 @@ function setPlanPurchased(id, purchased) {
   const plans = readPlans()
   const index = plans.findIndex((plan) => plan.id === id)
   if (index < 0) throw new Error('方案已删除，请刷新后重试')
-  plans[index] = { ...plans[index], purchased }
-  wx.setStorageSync(STORAGE_KEY, plans)
+  plans[index] = { ...plans[index], purchased, updatedAt: Date.now() }
+  writePlans(plans)
 }
 
 function updatePlanTerms(id, passes, multiplier, check) {
@@ -112,7 +118,7 @@ function updatePlanTerms(id, passes, multiplier, check) {
   if (check) updated.check = check
   else delete updated.check
   plans[index] = updated
-  wx.setStorageSync(STORAGE_KEY, plans)
+  writePlans(plans)
   return updated
 }
 
@@ -137,8 +143,8 @@ function savePlanCheck(id, check) {
   const plans = readPlans()
   const index = plans.findIndex((plan) => plan.id === id)
   if (index < 0) throw new Error('方案已删除，核对结果未保存')
-  plans[index] = { ...plans[index], check }
-  try { wx.setStorageSync(STORAGE_KEY, plans) }
+  plans[index] = { ...plans[index], check, updatedAt: Date.now() }
+  try { writePlans(plans) }
   catch (error) { throw new Error('核对结果保存失败，请检查本机空间') }
 }
 
@@ -163,13 +169,13 @@ function completePlanOdds(id, feed) {
   const { calculate } = require('./football-simulation')
   const summary = calculate(matches.map((match) => ({ id: String(match.id), options: match.selections })), plan.passes, Number(plan.multiplier))
   if (summary.count !== Number(plan.count) || summary.needsOdds) throw new Error('补赔率后组合数量不一致，已停止更新')
-  plans[index] = { ...plan, ...summary, matches, sourceUpdatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now(), true), pricingNote: '缺失赔率按后续官方查询值补全' }
-  wx.setStorageSync(STORAGE_KEY, plans)
+  plans[index] = { ...plan, ...summary, matches, sourceUpdatedAt: feed.updatedAt, fetchedAt: formatTime(Date.now(), true), pricingNote: '缺失赔率按后续官方查询值补全', updatedAt: Date.now() }
+  writePlans(plans)
   return plans[index]
 }
 
 function removePlan(id) {
-  wx.setStorageSync(STORAGE_KEY, readPlans().filter((plan) => plan.id !== id))
+  writePlans(readPlans().filter((plan) => plan.id !== id))
 }
 
 function formatTime(timestamp, includeSeconds = false) {

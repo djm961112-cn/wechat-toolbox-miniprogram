@@ -1,5 +1,6 @@
 const { tools, resolveToolUrl } = require('../../utils/tool-data')
 const { readEnabledTools } = require('../../utils/tool-preferences')
+const { openProtectedTool } = require('../../utils/tool-access')
 Page({
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar()
@@ -30,8 +31,8 @@ Page({
         : tool.category === this.data.selectedCategory)
     })
   },
-  openTool(event) {
+  async openTool(event) {
     const tool = tools.find((item) => item.id === event.currentTarget.dataset.id)
-    if (tool) wx.navigateTo({ url: resolveToolUrl(tool) })
+    if (tool) await openProtectedTool(tool.id, resolveToolUrl(tool))
   }
 })

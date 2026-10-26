@@ -1,5 +1,7 @@
 const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calculate } = require('../../../../utils/football-simulation')
 const { savePlan, replacePlan, readPlans, readSources, formatTime, formatSelectionRows, matchPeriod, matchNumber, planPeriods } = require('../../../../utils/simulation-plans')
+const { ensureToolLogin } = require('../../../../utils/tool-access')
+const cloud = require('../../../../utils/cloud-sync')
 const DRAFT_KEY = 'simulation-football-draft-v1'
 const FEED_KEY = 'simulation-football-feed-v1'
 
@@ -12,11 +14,17 @@ Page({
     summary: null, calculationError: '', passVisible: false, passLabel: '', passPanelHeight: 80, previewVisible: false, preview: null,
     planNote: '', planSourceId: '', sources: [], saving: false, expandedMatchId: '', saved: false, saveFormVisible: false, editMode: false
   },
-  onLoad(options = {}) {
+  async onLoad(options = {}) {
+    if (!await ensureToolLogin('simulation')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('simulation')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
+    this.accessReady = true
     this.editPlanId = options.editPlanId ? decodeURIComponent(options.editPlanId) : ''
     if (!this.editPlanId) this.restoreDraft()
+    if (!this.feed && !this.initialFetchStarted) { this.initialFetchStarted = true; this.refreshFeed() }
   },
   onShow() {
+    if (!this.accessReady) return
     if (!this.feed && !this.initialFetchStarted) { this.initialFetchStarted = true; this.refreshFeed() }
   },
   onHide() { this.persistDraft() },

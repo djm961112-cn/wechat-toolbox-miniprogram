@@ -2,6 +2,8 @@ const { readPlans, formatPlanForDisplay } = require('../../../../utils/simulatio
 const { previewEntries } = require('../../../../utils/football-simulation')
 const { queryMatchPage, gradeEntry } = require('../../../../utils/football-results')
 const { queryFootballAnalysis } = require('../../../../utils/football-analysis')
+const { ensureToolLogin } = require('../../../../utils/tool-access')
+const cloud = require('../../../../utils/cloud-sync')
 
 Page({
   data: {
@@ -10,7 +12,13 @@ Page({
     oddsMarket: 'had',
     matchPage: null, matchLoading: false, matchError: '', entryCount: 0, entryGroups: [], error: '', entryError: ''
   },
-  onLoad(options = {}) {
+  async onLoad(options = {}) {
+    if (!await ensureToolLogin('simulation')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('simulation')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
+    this.initialize(options)
+  },
+  initialize(options = {}) {
     try {
       if (options.analysisId) {
         this.analysisId = decodeURIComponent(options.analysisId)

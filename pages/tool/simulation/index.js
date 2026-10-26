@@ -2,6 +2,8 @@ const { simulationTools, readPlans, removePlan, savePlanCheck, completePlanOdds,
 const { checkPlan, gradeOption, settlePlan } = require('../../../utils/football-results')
 const { API_URL, POOLS, normalizeFeed, calculate } = require('../../../utils/football-simulation')
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
+const { ensureToolLogin, openProtectedTool } = require('../../../utils/tool-access')
+const cloud = require('../../../utils/cloud-sync')
 
 const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
 
@@ -80,8 +82,19 @@ Page({
     termsVisible: false, termsPlanId: '', termsMultiplier: '1', termsPasses: [], termsPassIds: [], termsSummary: null, termsError: '', termsSaving: false, termsQuickMultipliers: [1, 2, 5, 10, 20, 50, 100, 500],
     statsDimension: 'period', statsYear: '', statsMonth: '', statsYearIndex: 0, statsMonthIndex: 0, statsYearOptions: [{ label: '全部年份', value: '' }], statsMonthOptions: monthOptions,
     statsGroups: [], statsSummary: null, statsError: '', expandedStats: {} },
-  onLoad(options = {}) { if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab }) },
-  onShow() { this.refreshPlans(); this.refreshSources() },
+  onLoad(options = {}) {
+    if (options.tab === 'plans' || options.tab === 'stats') this.setData({ activeTab: options.tab })
+    this.initializeAccess()
+  },
+  async initializeAccess() {
+    if (!await ensureToolLogin('simulation')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('simulation')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
+    this.accessReady = true
+    this.refreshPlans(); this.refreshSources()
+    if (result.pendingUpload) wx.showModal({ title: '发现本地模拟方案', content: '请到“我的 → 设置 → 本地数据上传”完成首次上传后启用自动同步。', showCancel: false })
+  },
+  onShow() { if (this.accessReady) { this.refreshPlans(); this.refreshSources() } },
   onUnload() { this.unloaded = true },
   refreshPlans() {
     try {
@@ -258,9 +271,9 @@ Page({
         statsMonthIndex: monthOptions.findIndex((item) => item.value === this.data.statsMonth), statsError: '' })
     } catch (error) { this.setData({ statsGroups: [], statsSummary: null, statsError: error.message || '统计失败，请稍后重试' }) }
   },
-  openTool(event) {
+  async openTool(event) {
     const tool = simulationTools.find((item) => item.id === event.currentTarget.dataset.id)
-    if (tool) wx.navigateTo({ url: tool.url })
+    if (tool) await openProtectedTool('simulation', tool.url)
   },
   openDetail(event) {
     const id = event.currentTarget.dataset.id

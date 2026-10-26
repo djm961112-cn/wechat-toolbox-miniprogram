@@ -1,16 +1,23 @@
 const { readPlans, simulationTools } = require('../../../../utils/simulation-plans')
 const { planRows, aggregate, groupRows, filterRows, money } = require('../../../../utils/simulation-stats')
+const { ensureToolLogin } = require('../../../../utils/tool-access')
+const cloud = require('../../../../utils/cloud-sync')
 
 const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
 
 Page({
   data: { title: '', sourceId: '', toolId: 'football', year: '', month: '', yearOptions: [{ label: '全部年份', value: '' }], yearIndex: 0, monthOptions, monthIndex: 0,
     summary: null, months: [], expandedDays: {}, error: '' },
-  onLoad(options = {}) {
+  async onLoad(options = {}) {
+    if (!await ensureToolLogin('simulation')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('simulation')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
     const toolId = simulationTools.some((tool) => tool.id === options.toolId) ? options.toolId : 'football'
     this.setData({ toolId, sourceId: options.sourceId || '', year: options.year || '', month: options.month || '' })
+    this.accessReady = true
+    this.refresh()
   },
-  onShow() { this.refresh() },
+  onShow() { if (this.accessReady) this.refresh() },
   changeYear(event) {
     const selected = this.data.yearOptions[Number(event.detail.value)]
     this.setData({ year: selected ? selected.value : '', month: '' }, () => this.refresh())

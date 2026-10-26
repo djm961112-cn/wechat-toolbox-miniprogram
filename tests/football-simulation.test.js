@@ -49,12 +49,13 @@ const feed = normalizeFeed(response)
 assert.strictEqual(feed.matches.length,2)
 assert.strictEqual(feed.matches[0].pools[0].single,false)
 assert.strictEqual(feed.matches[0].pools.find(pool=>pool.id==='ttg').single,true)
-assert.strictEqual(feed.matches[0].pools[0].options.length,1)
+assert.strictEqual(feed.matches[0].pools[0].options.length,3)
+assert.deepStrictEqual(feed.matches[0].pools[0].options.map(option=>option.disabled),[false,true,true])
 const selected = selectedMatches(feed.matches,{'1:had:h':true,'1:ttg:s2':true})
 assert.strictEqual(selected.length,1) // Different pools are one match.
 assert.deepStrictEqual(availablePasses(selected,rules,'free').map(p=>p.id),['Single'])
 assert.throws(()=>normalizeFeed({errorCode:1}))
-assert.strictEqual(RESULT_UNAVAILABLE_MESSAGE, '结果还未公示或未查到，请稍后再试')
+assert.strictEqual(RESULT_UNAVAILABLE_MESSAGE, '比赛未结束')
 assert.strictEqual(hasCheckableResult([{status:'pending'},{status:'suspended'}]), false)
 assert.strictEqual(hasCheckableResult([{status:'pending'},{status:'published'}]), true)
 assert.strictEqual(hasCheckableResult([{status:'cancelled'}]), true)
@@ -63,15 +64,15 @@ const memory = new Map()
 global.wx = {getStorageSync:key=>memory.get(key),setStorageSync:(key,value)=>memory.set(key,JSON.parse(JSON.stringify(value)))}
 const originalNow = Date.now
 Date.now=()=>1000
-const saved = savePlan({toolId:'football',title:'方案一',matches:[{id:'1',selections:[{odds:2}]}]})
+const saved = savePlan({toolId:'football',title:'方案一',matches:[{id:'1',period:'261012',selections:[{odds:2}]}]})
 Date.now=()=>2000
-const newer = savePlan({toolId:'football',title:'方案二',matches:[{id:'2',selections:[{odds:3}]}]})
+const newer = savePlan({toolId:'football',title:'方案二',matches:[{id:'2',period:'261012',selections:[{odds:3}]}]})
 assert.deepStrictEqual(readPlans().map(p=>p.id),[newer.id,saved.id])
 saved.matches[0].selections[0].odds=9
 assert.strictEqual(readPlans()[1].matches[0].selections[0].odds,2)
 assert.throws(()=>savePlan({toolId:'football',title:'空方案',matches:[]}))
 global.wx.setStorageSync=()=>{throw new Error('storage full')}
-assert.throws(()=>savePlan({toolId:'football',title:'保存失败',matches:[{id:'x'}]}))
+assert.throws(()=>savePlan({toolId:'football',title:'保存失败',matches:[{id:'x',period:'261012'}]}))
 assert.strictEqual(readPlans().length,2)
 global.wx.setStorageSync=(key,value)=>memory.set(key,value)
 removePlan(saved.id)

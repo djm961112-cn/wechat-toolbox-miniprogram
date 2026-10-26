@@ -34,6 +34,7 @@ function apiRequest({ path, method = 'GET', data, token }) {
       if (response.statusCode >= 200 && response.statusCode < 300) { resolve(response.data); return }
       const error = new Error(response.data && response.data.message || '服务请求失败，请稍后重试')
       error.statusCode = response.statusCode
+      error.code = response.data && response.data.code || ''
       reject(error)
     },
     fail: () => reject(new Error('暂时无法连接登录服务，请检查网络或服务器配置'))
@@ -76,4 +77,18 @@ async function logout() {
   }
 }
 
-module.exports = { API_BASE, readSession, clearSession, login, refreshUser, logout }
+async function authenticatedRequest({ path, method = 'GET', data }) {
+  const session = readSession()
+  if (!session) {
+    const error = new Error('请先登录')
+    error.statusCode = 401
+    throw error
+  }
+  try { return await apiRequest({ path, method, data, token: session.token }) }
+  catch (error) {
+    if (error.statusCode === 401) clearSession()
+    throw error
+  }
+}
+
+module.exports = { API_BASE, readSession, clearSession, login, refreshUser, logout, authenticatedRequest }

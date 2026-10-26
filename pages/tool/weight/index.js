@@ -1,4 +1,6 @@
 const { readRecords, saveRecord, periodRows, chartModel } = require('../../../utils/weight-records')
+const { ensureToolLogin } = require('../../../utils/tool-access')
+const cloud = require('../../../utils/cloud-sync')
 
 const PERIOD_LABELS = { week: '近 7 天', month: '本月', year: '本年' }
 
@@ -9,8 +11,15 @@ Page({
     period: 'week', periodLabel: PERIOD_LABELS.week,
     points: [], segments: [], min: '', max: '', change: ''
   },
-  onLoad() { this.loadRecords() },
-  onShow() { if (this.data.activeTab === 'chart') this.loadRecords() },
+  async onLoad() {
+    if (!await ensureToolLogin('weight')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('weight')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
+    this.accessReady = true
+    this.loadRecords()
+    if (result.pendingUpload) wx.showModal({ title: '发现本地体重记录', content: '请到“我的 → 设置 → 本地数据上传”完成首次上传后启用自动同步。', showCancel: false })
+  },
+  onShow() { if (this.accessReady && this.data.activeTab === 'chart') this.loadRecords() },
   selectTab(event) {
     const activeTab = event.currentTarget.dataset.tab
     this.setData({ activeTab }, () => { if (activeTab === 'chart') this.refreshChart() })
@@ -21,6 +30,7 @@ Page({
       const latest = saveRecord(this.data.weight)
       this.records = readRecords()
       this.setData({ weight: '', latest })
+      cloud.scheduleSync('weight')
       wx.showToast({ title: '体重已保存', icon: 'success' })
     } catch (error) {
       wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none' })

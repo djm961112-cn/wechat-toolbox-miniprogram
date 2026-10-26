@@ -1,4 +1,6 @@
 const { generateTotp, parseOtpAuthUri } = require('../../../utils/totp')
+const { ensureToolLogin } = require('../../../utils/tool-access')
+const cloud = require('../../../utils/cloud-sync')
 
 const STORAGE_KEY = 'mfa-totp-accounts-v1'
 
@@ -9,7 +11,19 @@ Page({
     codes: []
   },
 
+  async onLoad() {
+    if (!await ensureToolLogin('mfa')) { wx.navigateBack(); return }
+    const result = await cloud.prepareTool('mfa')
+    if (result.authExpired) { wx.showToast({ title: '登录已失效，请重新进入并登录', icon: 'none' }); wx.navigateBack(); return }
+    this.accessReady = true
+    this.loadAccounts()
+    this.updateCodes()
+    this.startTicker()
+    if (result.pendingUpload) wx.showModal({ title: '发现本地 MFA 数据', content: '请到“我的 → 设置 → 本地数据上传”完成首次加密上传后启用自动同步。', showCancel: false })
+  },
+
   onShow() {
+    if (!this.accessReady) return
     this.loadAccounts()
     this.updateCodes()
     this.startTicker()
@@ -101,7 +115,8 @@ Page({
       return
     }
 
-    accounts.push({ id: String(Date.now()), ...account })
+    const now = Date.now()
+    accounts.push({ id: String(now), createdAt: now, updatedAt: now, ...account })
     try {
       wx.setStorageSync(STORAGE_KEY, accounts)
     } catch (error) {
@@ -109,6 +124,7 @@ Page({
       return
     }
     this.setData({ accounts, activeTab: 'list' }, () => this.updateCodes())
+    cloud.scheduleSync('mfa')
     wx.showToast({ title: '绑定成功', icon: 'success' })
   },
 
@@ -130,10 +146,11 @@ Page({
           wx.showToast({ title: '名称不能为空', icon: 'none' })
           return
         }
-        const accounts = this.data.accounts.map((item) => item.id === id ? { ...item, name } : item)
+        const accounts = this.data.accounts.map((item) => item.id === id ? { ...item, name, updatedAt: Date.now() } : item)
         try {
           wx.setStorageSync(STORAGE_KEY, accounts)
           this.setData({ accounts })
+          cloud.scheduleSync('mfa')
           wx.showToast({ title: '名称已修改', icon: 'success' })
         } catch (error) {
           wx.showToast({ title: '保存失败，请重试', icon: 'none' })
@@ -153,6 +170,7 @@ Page({
         try {
           wx.setStorageSync(STORAGE_KEY, accounts)
           this.setData({ accounts }, () => this.updateCodes())
+          cloud.scheduleSync('mfa')
         } catch (error) {
           wx.showToast({ title: '删除失败，请重试', icon: 'none' })
         }

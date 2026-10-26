@@ -9,4 +9,12 @@
       <switch checked="{{item.enabled}}" color="#25866a" data-id="{{item.id}}" bindchange="toggleTool" />
     </view>
   </view>
+  <view class="cloud-card card">
+    <view class="cloud-heading"><view><view class="section-title">本地数据上传</view><view class="cloud-subtitle">登录后将三类本地数据加密保存到云端</view></view><text class="cloud-state">{{cloudLoggedIn ? '已登录' : '未登录'}}</text></view>
+    <view class="cloud-message">{{cloudMessage}}</view>
+    <view wx:if="{{cloudItems.length}}" class="cloud-list"><view wx:for="{{cloudItems}}" wx:key="tool" class="cloud-item"><text>{{item.name}}</text><text>修订 {{item.revision}}</text></view></view>
+    <view wx:if="{{cloudError}}" class="cloud-error">{{cloudError}}</view>
+    <button class="cloud-upload" loading="{{cloudLoading}}" disabled="{{cloudLoading}}" bindtap="uploadLocalData">{{cloudLoggedIn ? '上传并合并本地数据' : '登录并上传本地数据'}}</button>
+    <view class="cloud-hint">仅上传 MFA、体重记录、模拟方案与来源；赛事缓存和未保存草稿不会上传。网络失败时本地数据仍会保留。</view>
+  </view>
 </view>
