@@ -1,4 +1,5 @@
 const { POOLS } = require('./football-simulation')
+const { request } = require('./request')
 
 const API_ROOT = 'https://webapi.sporttery.cn/gateway/uniform/football/'
 const URLS = {
@@ -10,7 +11,7 @@ const URLS = {
 }
 
 function requestValue(url, data) {
-  return new Promise((resolve, reject) => wx.request({
+  return new Promise((resolve, reject) => request({
     url, data: { ...data, _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
     success: (res) => {
       if (res.statusCode !== 200 || !res.data || String(res.data.errorCode) !== '0') {

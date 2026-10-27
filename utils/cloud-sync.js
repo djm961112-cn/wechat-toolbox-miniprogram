@@ -35,6 +35,59 @@ function writeLocal(tool, data) {
 function isEmpty(tool, data) { return tool === 'simulation' ? !data.plans.length && !data.sources.length : !data.length }
 function stamp(item) { return Number(item && (item.updatedAt || item.createdAt)) || 0 }
 function same(left, right) { return JSON.stringify(left) === JSON.stringify(right) }
+
+function normalizeDecimal(value, path) {
+  if (value == null) return null
+  const text = String(value).trim()
+  if (!text || ['-', '—', '待赔率', '待公布'].includes(text)) return null
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) || !Number.isFinite(Number(text))) {
+    throw new Error(`云同步数据格式错误：${path} 不是有效数值`)
+  }
+  return typeof value === 'number' ? value : text
+}
+
+function normalizeDecimalField(target, field, path) {
+  if (target && Object.prototype.hasOwnProperty.call(target, field)) target[field] = normalizeDecimal(target[field], `${path}.${field}`)
+}
+
+function normalizeToolData(tool, source) {
+  const data = clone(source)
+  if (tool === 'weight') {
+    data.forEach((item, index) => {
+      const value = normalizeDecimal(item && item.weight, `体重记录[${index + 1}].weight`)
+      if (value == null || Number(value) < 20 || Number(value) > 300) throw new Error(`云同步数据格式错误：体重记录[${index + 1}].weight 应为 20 至 300`)
+      item.weight = Number(value)
+    })
+    return data
+  }
+  if (tool !== 'simulation') return data
+  data.plans.forEach((plan, planIndex) => {
+    const planPath = `模拟方案[${planIndex + 1}]`
+    ;['cost', 'minReturn', 'maxReturn'].forEach((field) => normalizeDecimalField(plan, field, planPath))
+    ;(plan.matches || []).forEach((match, matchIndex) => (match.selections || []).forEach((option, optionIndex) => {
+      const optionPath = `${planPath}.比赛[${matchIndex + 1}].选项[${optionIndex + 1}]`
+      normalizeDecimalField(option, 'odds', optionPath)
+      normalizeDecimalField(option, 'goalLine', optionPath)
+    }))
+    const check = plan.check
+    if (!check || typeof check !== 'object') return
+    ;['prizeAmount', 'refundAmount', 'returnAmount'].forEach((field) => normalizeDecimalField(check, field, `${planPath}.核对结果`))
+    ;(check.results || []).forEach((result, resultIndex) => (result.pools || []).forEach((pool, poolIndex) => {
+      const poolPath = `${planPath}.赛果[${resultIndex + 1}].玩法[${poolIndex + 1}]`
+      normalizeDecimalField(pool, 'odds', poolPath)
+      normalizeDecimalField(pool, 'goalLine', poolPath)
+    }))
+  })
+  return data
+}
+
+function normalizedLocal(tool) {
+  const local = readLocal(tool)
+  const normalized = normalizeToolData(tool, local)
+  if (!same(local, normalized)) writeLocal(tool, normalized)
+  return normalized
+}
+
 function keyFor(tool, item) {
   if (tool === 'mfa') return `${item.secret || ''}\u0000${item.account || ''}\u0000${item.issuer || ''}`
   if (tool === 'weight') return item.id || `${item.createdAt || ''}\u0000${item.weight || ''}`
@@ -91,7 +144,7 @@ function responseRevision(response, fallback) { return Number(response && respon
 async function syncNow(tool, allowRetry = true) {
   const meta = toolMeta(tool)
   if (!auth.readSession() || !meta.enabled) return { skipped: true }
-  const local = readLocal(tool)
+  const local = normalizedLocal(tool)
   try {
     const response = await putTool(tool, local, meta.revision || 0)
     setToolMeta(tool, { revision: responseRevision(response, (meta.revision || 0) + 1), enabled: true, pendingUpload: false, lastError: '', syncedAt: Date.now() })
@@ -99,7 +152,7 @@ async function syncNow(tool, allowRetry = true) {
   } catch (error) {
     if (error.statusCode === 409 && allowRetry) {
       const cloud = await getTool(tool)
-      const merged = await mergeWithPrompt(tool, local, cloud.data)
+      const merged = await mergeWithPrompt(tool, local, normalizeToolData(tool, cloud.data))
       writeLocal(tool, merged)
       setToolMeta(tool, { revision: cloud.revision, enabled: true })
       return syncNow(tool, false)
@@ -123,10 +176,11 @@ function scheduleSync(tool, delay = 900) {
 }
 
 async function restoreTool(tool) {
-  const local = readLocal(tool)
+  const local = normalizedLocal(tool)
   try {
     const cloud = await getTool(tool)
-    const merged = await mergeWithPrompt(tool, local, cloud.data)
+    const remote = normalizeToolData(tool, cloud.data)
+    const merged = await mergeWithPrompt(tool, local, remote)
     writeLocal(tool, merged)
     setToolMeta(tool, { revision: cloud.revision, enabled: true, pendingUpload: false, lastError: '', restoredAt: Date.now() })
     prepared[`${currentUserId()}:${tool}`] = true
@@ -160,12 +214,12 @@ async function importLocalData(retry = true) {
   const byTool = new Map(list.map((item) => [item.tool, item]))
   const items = []
   for (const tool of Object.keys(TOOL_KEYS)) {
-    const local = readLocal(tool)
+    const local = normalizedLocal(tool)
     const saved = byTool.get(tool)
     let data = local, revision = 0
     if (saved) {
       const cloud = await getTool(tool)
-      data = await mergeWithPrompt(tool, local, cloud.data)
+      data = await mergeWithPrompt(tool, local, normalizeToolData(tool, cloud.data))
       revision = cloud.revision
       writeLocal(tool, data)
     }
@@ -187,4 +241,4 @@ async function importLocalData(retry = true) {
   }
 }
 
-module.exports = { TOOL_KEYS, readLocal, writeLocal, toolMeta, mergeToolData, getSummary, getTool, restoreTool, prepareTool, scheduleSync, syncNow, importLocalData }
+module.exports = { TOOL_KEYS, readLocal, writeLocal, toolMeta, mergeToolData, normalizeToolData, getSummary, getTool, restoreTool, prepareTool, scheduleSync, syncNow, importLocalData }

@@ -2,6 +2,7 @@ const { API_URL, POOLS, normalizeFeed, selectedMatches, availablePasses, calcula
 const { savePlan, replacePlan, readPlans, readSources, formatTime, formatSelectionRows, matchPeriod, matchNumber, planPeriods } = require('../../../../utils/simulation-plans')
 const { ensureToolLogin } = require('../../../../utils/tool-access')
 const cloud = require('../../../../utils/cloud-sync')
+const { request } = require('../../../../utils/request')
 const DRAFT_KEY = 'simulation-football-draft-v1'
 const FEED_KEY = 'simulation-football-feed-v1'
 
@@ -81,7 +82,7 @@ Page({
     this.requestVersion = version
     if (this.requestTask) this.requestTask.abort()
     this.setData({ loading: true, error: '' })
-    this.requestTask = wx.request({
+    this.requestTask = request({
       url: API_URL, data: { channel: 'c', _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
       success: (res) => {
         if (this.unloaded || version !== this.requestVersion) return

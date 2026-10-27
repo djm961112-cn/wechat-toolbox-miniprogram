@@ -1,5 +1,6 @@
 const API_BASE = 'https://api.openotools.top'
 const STORAGE_KEY = 'openotools-auth-v1'
+const { request } = require('./request')
 
 function readSession() {
   const session = wx.getStorageSync(STORAGE_KEY)
@@ -21,7 +22,7 @@ function clearSession() {
 }
 
 function apiRequest({ path, method = 'GET', data, token }) {
-  return new Promise((resolve, reject) => wx.request({
+  return new Promise((resolve, reject) => request({
     url: `${API_BASE}${path}`,
     method,
     data,

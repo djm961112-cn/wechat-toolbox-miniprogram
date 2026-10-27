@@ -1,5 +1,6 @@
 const { POOLS, combinations, roundPrize } = require('./football-simulation')
 const { matchPeriod, matchNumber } = require('./simulation-plans')
+const { request } = require('./request')
 
 const LIST_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchDataPageListV1.qry'
 const DETAIL_URL = 'https://webapi.sporttery.cn/gateway/uniform/fb/getMatchGeneral.qry'
@@ -8,7 +9,7 @@ const RESULT_POOLS = ['had', 'hhad', 'crs', 'ttg', 'hafu'].map((id) => POOLS.fin
 const RESULT_UNAVAILABLE_MESSAGE = '比赛未结束'
 
 function requestValue(url, data) {
-  return new Promise((resolve, reject) => wx.request({
+  return new Promise((resolve, reject) => request({
     url, data: { ...data, _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
     success: (res) => {
       if (res.statusCode !== 200 || !res.data || String(res.data.errorCode) !== '0' || !res.data.value) {

@@ -20,6 +20,17 @@ async function main() {
   {
     const storage = new Map()
     session(storage)
+    const cloud = freshCloud(storage, () => {})
+    const normalized = cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p1', matches: [], check: { results: [{ pools: [{ id: 'had', odds: '-' }] }] } }] })
+    assert.strictEqual(normalized.plans[0].check.results[0].pools[0].odds, null, '历史赛果的半角占位符应转为空值')
+    assert.strictEqual(cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p2', cost: ' 4.00 ', matches: [] }] }).plans[0].cost, '4.00')
+    assert.throws(() => cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p2', cost: '异常金额', matches: [] }] }), /模拟方案\[1\]\.cost/)
+    assert.throws(() => cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p3', cost: '0x10', matches: [] }] }), /模拟方案\[1\]\.cost/)
+  }
+
+  {
+    const storage = new Map()
+    session(storage)
     const local = [{ id: 'local', secret: 'SECRET', account: 'a', issuer: 'i' }]
     storage.set('mfa-totp-accounts-v1', local)
     const cloud = freshCloud(storage, (options) => response(options, 404, { code: 'CLOUD_DATA_NOT_FOUND', message: '暂无数据' }))

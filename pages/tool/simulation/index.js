@@ -4,11 +4,12 @@ const { API_URL, POOLS, normalizeFeed, calculate } = require('../../../utils/foo
 const { planRows, aggregate, groupRows, filterRows } = require('../../../utils/simulation-stats')
 const { ensureToolLogin, openProtectedTool } = require('../../../utils/tool-access')
 const cloud = require('../../../utils/cloud-sync')
+const { request } = require('../../../utils/request')
 
 const monthOptions = [{ label: '全部月份', value: '' }, ...Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}月`, value: String(index + 1).padStart(2, '0') }))]
 
 function latestFeed() {
-  return new Promise((resolve, reject) => wx.request({
+  return new Promise((resolve, reject) => request({
     url: API_URL, data: { channel: 'c', _t: Date.now() }, header: { 'Cache-Control': 'no-cache' }, timeout: 15000,
     success: (response) => {
       try {
