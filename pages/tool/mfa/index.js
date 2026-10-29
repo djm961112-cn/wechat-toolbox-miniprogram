@@ -2,8 +2,6 @@ const { generateTotp, parseOtpAuthUri } = require('../../../utils/totp')
 const { ensureToolLogin } = require('../../../utils/tool-access')
 const cloud = require('../../../utils/cloud-sync')
 
-const STORAGE_KEY = 'mfa-totp-accounts-v1'
-
 Page({
   data: {
     activeTab: 'list',
@@ -40,7 +38,7 @@ Page({
   loadAccounts() {
     let accounts = []
     try {
-      accounts = wx.getStorageSync(STORAGE_KEY) || []
+      accounts = cloud.readToolData('mfa')
     } catch (error) {
       accounts = []
     }
@@ -118,13 +116,12 @@ Page({
     const now = Date.now()
     accounts.push({ id: String(now), createdAt: now, updatedAt: now, ...account })
     try {
-      wx.setStorageSync(STORAGE_KEY, accounts)
+      cloud.writeToolData('mfa', accounts)
     } catch (error) {
-      wx.showToast({ title: '保存失败，请检查本机空间', icon: 'none' })
+      wx.showToast({ title: error.message || '保存失败，请稍后重试', icon: 'none' })
       return
     }
     this.setData({ accounts, activeTab: 'list' }, () => this.updateCodes())
-    cloud.scheduleSync('mfa')
     wx.showToast({ title: '绑定成功', icon: 'success' })
   },
 
@@ -148,12 +145,11 @@ Page({
         }
         const accounts = this.data.accounts.map((item) => item.id === id ? { ...item, name, updatedAt: Date.now() } : item)
         try {
-          wx.setStorageSync(STORAGE_KEY, accounts)
+          cloud.writeToolData('mfa', accounts)
           this.setData({ accounts })
-          cloud.scheduleSync('mfa')
           wx.showToast({ title: '名称已修改', icon: 'success' })
         } catch (error) {
-          wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+          wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none' })
         }
       }
     })
@@ -168,11 +164,10 @@ Page({
         if (!result.confirm) return
         const accounts = this.data.accounts.filter((account) => account.id !== id)
         try {
-          wx.setStorageSync(STORAGE_KEY, accounts)
+          cloud.writeToolData('mfa', accounts)
           this.setData({ accounts }, () => this.updateCodes())
-          cloud.scheduleSync('mfa')
         } catch (error) {
-          wx.showToast({ title: '删除失败，请重试', icon: 'none' })
+          wx.showToast({ title: error.message || '删除失败，请重试', icon: 'none' })
         }
       }
     })

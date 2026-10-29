@@ -1,12 +1,12 @@
 const assert = require('assert')
 
-function freshCloud(storage, request) {
+function freshCloud(storage, request, showModal) {
   global.wx = {
     getStorageSync: (key) => storage.get(key),
     setStorageSync: (key, value) => storage.set(key, JSON.parse(JSON.stringify(value))),
     removeStorageSync: (key) => storage.delete(key),
     request,
-    showModal: ({ success, complete }) => { if (success) success({ confirm: true }); if (complete) complete() }
+    showModal: showModal || (({ success, complete }) => { if (success) success({ confirm: true }); if (complete) complete() })
   }
   delete require.cache[require.resolve('../utils/auth')]
   delete require.cache[require.resolve('../utils/cloud-sync')]
@@ -60,10 +60,11 @@ async function main() {
       else response(options, 404, { code: 'CLOUD_DATA_NOT_FOUND', message: '暂无数据' })
     })
     await cloud.restoreTool('weight')
-    storage.set('weight-records-v1', [{ id: 'w1', weight: 70, createdAt: 1 }])
+    cloud.writeToolData('weight', [{ id: 'w1', weight: 70, createdAt: 1 }])
     await cloud.syncNow('weight')
     const put = requests.find((item) => item.method === 'PUT')
     assert.strictEqual(put.data.expectedRevision, 0, '首次保存必须使用 revision 0')
+    assert.strictEqual(storage.has('weight-records-v1'), false, '上传成功后应清理本地完整快照')
   }
 
   {
@@ -85,9 +86,10 @@ async function main() {
       }
     })
     await cloud.restoreTool('weight')
-    storage.set('weight-records-v1', [a, b])
+    cloud.writeToolData('weight', [a, b])
     await cloud.syncNow('weight')
-    assert.deepStrictEqual(storage.get('weight-records-v1').map((item) => item.id).sort(), ['a', 'b', 'c'])
+    assert.deepStrictEqual(cloud.readToolData('weight').map((item) => item.id).sort(), ['a', 'b', 'c'])
+    assert.strictEqual(storage.has('weight-records-v1'), false, '冲突合并上传成功后应清理本地快照')
     assert.strictEqual(putCount, 2, '409 后应重新读取并重试一次')
   }
 
@@ -102,9 +104,33 @@ async function main() {
       else options.fail({ errMsg: 'network error' })
     })
     await cloud.restoreTool('weight')
-    storage.set('weight-records-v1', [a, b])
+    cloud.writeToolData('weight', [a, b])
     await assert.rejects(() => cloud.syncNow('weight'))
     assert.deepStrictEqual(storage.get('weight-records-v1'), [a, b], '网络失败时必须保留本地最新数据')
+  }
+
+  {
+    const storage = new Map()
+    session(storage)
+    const cloud = freshCloud(storage, (options) => options.fail({ errMsg: 'offline' }))
+    const result = await cloud.prepareTool('mfa')
+    assert(result.error)
+    assert.throws(() => cloud.readToolData('mfa'), /服务器数据尚未加载/)
+    assert.throws(() => cloud.writeToolData('mfa', []), /服务器数据尚未加载/)
+  }
+
+  {
+    const storage = new Map()
+    session(storage)
+    const record = { id: 'done', weight: 70, createdAt: 1 }
+    storage.set('weight-records-v1', [record])
+    storage.set('openotools-cloud-sync-v1', { weight: { userId: '7', revision: 1, enabled: true, pendingChanges: true } })
+    let modalCount = 0
+    const cloud = freshCloud(storage, (options) => response(options, 200, { tool: 'weight', revision: 2, data: [record] }), () => { modalCount += 1 })
+    await cloud.restoreTool('weight')
+    assert.strictEqual(modalCount, 0, '服务器已收到相同待上传数据时不应再弹冲突')
+    assert.strictEqual(storage.has('weight-records-v1'), false)
+    assert.strictEqual(storage.get('openotools-cloud-sync-v1').weight.pendingChanges, false)
   }
   console.log('PASS: cloud restore, revision, conflict merge and local-first failure handling')
 }

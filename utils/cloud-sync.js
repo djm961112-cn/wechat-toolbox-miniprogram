@@ -7,6 +7,8 @@ const TOOL_KEYS = {
 }
 const timers = {}
 const prepared = {}
+const memoryData = {}
+const unavailable = {}
 let retryPromptVisible = false
 
 function clone(value) { return JSON.parse(JSON.stringify(value)) }
@@ -19,17 +21,34 @@ function toolMeta(tool) {
 }
 function setToolMeta(tool, patch) { const value = readMeta(); value[tool] = { ...toolMeta(tool), ...patch, userId: currentUserId() }; writeMeta(value); return value[tool] }
 
-function readLocal(tool) {
+function memoryKey(tool) { return `${currentUserId()}:${tool}` }
+function readPersisted(tool) {
   if (!TOOL_KEYS[tool]) throw new Error('不支持的同步工具')
   if (tool === 'simulation') return { plans: wx.getStorageSync(TOOL_KEYS[tool][0]) || [], sources: wx.getStorageSync(TOOL_KEYS[tool][1]) || [] }
   return wx.getStorageSync(TOOL_KEYS[tool][0]) || []
 }
 
-function writeLocal(tool, data) {
+function writePersisted(tool, data) {
   if (tool === 'simulation') {
     wx.setStorageSync(TOOL_KEYS[tool][0], Array.isArray(data.plans) ? data.plans : [])
     wx.setStorageSync(TOOL_KEYS[tool][1], Array.isArray(data.sources) ? data.sources : [])
   } else wx.setStorageSync(TOOL_KEYS[tool][0], Array.isArray(data) ? data : [])
+}
+
+function clearPersisted(tool) { TOOL_KEYS[tool].forEach((key) => wx.removeStorageSync(key)) }
+function setMemory(tool, data) { memoryData[memoryKey(tool)] = clone(data) }
+function readToolData(tool) {
+  const key = memoryKey(tool)
+  if (unavailable[key]) throw new Error('服务器数据尚未加载，暂不能修改')
+  return clone(Object.prototype.hasOwnProperty.call(memoryData, key) ? memoryData[key] : readPersisted(tool))
+}
+function writeToolData(tool, data) {
+  if (unavailable[memoryKey(tool)]) throw new Error('服务器数据尚未加载，暂不能修改')
+  const snapshot = clone(data)
+  writePersisted(tool, snapshot)
+  setMemory(tool, snapshot)
+  setToolMeta(tool, { pendingChanges: true })
+  scheduleSync(tool)
 }
 
 function isEmpty(tool, data) { return tool === 'simulation' ? !data.plans.length && !data.sources.length : !data.length }
@@ -101,9 +120,12 @@ function normalizeToolData(tool, source) {
 }
 
 function normalizedLocal(tool) {
-  const local = readLocal(tool)
+  const local = readToolData(tool)
   const normalized = normalizeToolData(tool, local)
-  if (!same(local, normalized)) writeLocal(tool, normalized)
+  if (!same(local, normalized)) {
+    writePersisted(tool, normalized)
+    setMemory(tool, normalized)
+  }
   return normalized
 }
 
@@ -146,6 +168,13 @@ function chooseConflict(tool, count) {
   }))
 }
 
+function choosePendingVersion(tool) {
+  return new Promise((resolve) => wx.showModal({
+    title: '待上传数据冲突', content: `${tool} 在本机修改尚未上传时，服务器数据也已更新。请选择要保留的完整版本。`,
+    confirmText: '用本机', cancelText: '用云端', success: (result) => resolve(result.confirm ? 'local' : 'cloud'), fail: () => resolve('local')
+  }))
+}
+
 async function mergeWithPrompt(tool, local, remote) {
   let merged = mergeToolData(tool, local, remote)
   if (merged.conflicts.length) merged = mergeToolData(tool, local, remote, await chooseConflict(tool, merged.conflicts.length))
@@ -161,19 +190,23 @@ async function putTool(tool, data, revision) {
 function responseRevision(response, fallback) { return Number(response && response.revision) || fallback }
 
 async function syncNow(tool, allowRetry = true) {
+  if (timers[tool]) { clearTimeout(timers[tool]); delete timers[tool] }
   const meta = toolMeta(tool)
   if (!auth.readSession() || !meta.enabled) return { skipped: true }
   const local = normalizedLocal(tool)
   try {
     const response = await putTool(tool, local, meta.revision || 0)
-    setToolMeta(tool, { revision: responseRevision(response, (meta.revision || 0) + 1), enabled: true, pendingUpload: false, lastError: '', syncedAt: Date.now() })
+    clearPersisted(tool)
+    setMemory(tool, local)
+    setToolMeta(tool, { revision: responseRevision(response, (meta.revision || 0) + 1), enabled: true, pendingUpload: false, pendingChanges: false, lastError: '', syncedAt: Date.now() })
     return response
   } catch (error) {
     if (error.statusCode === 409 && allowRetry) {
       const cloud = await getTool(tool)
       const merged = await mergeWithPrompt(tool, local, normalizeToolData(tool, cloud.data))
-      writeLocal(tool, merged)
-      setToolMeta(tool, { revision: cloud.revision, enabled: true })
+      writePersisted(tool, merged)
+      setMemory(tool, merged)
+      setToolMeta(tool, { revision: cloud.revision, enabled: true, pendingChanges: true })
       return syncNow(tool, false)
     }
     setToolMeta(tool, { lastError: error.message || '同步失败' })
@@ -195,21 +228,34 @@ function scheduleSync(tool, delay = 900) {
 }
 
 async function restoreTool(tool) {
-  const local = normalizedLocal(tool)
+  const meta = toolMeta(tool)
+  const persisted = readPersisted(tool)
+  const local = normalizeToolData(tool, persisted)
   try {
     const cloud = await getTool(tool)
     const remote = normalizeToolData(tool, cloud.data)
-    const merged = await mergeWithPrompt(tool, local, remote)
-    writeLocal(tool, merged)
-    setToolMeta(tool, { revision: cloud.revision, enabled: true, pendingUpload: false, lastError: '', restoredAt: Date.now() })
+    const pendingAlreadyApplied = meta.pendingChanges && same(local, remote)
+    const pendingCurrentRevision = meta.pendingChanges && Number(meta.revision) === Number(cloud.revision)
+    const pendingPreference = meta.pendingChanges && !pendingAlreadyApplied && !pendingCurrentRevision ? await choosePendingVersion(tool) : ''
+    const merged = pendingCurrentRevision || pendingPreference === 'local' ? local : pendingPreference === 'cloud' ? remote : await mergeWithPrompt(tool, local, remote)
+    const pendingChanges = Boolean(meta.pendingChanges && !pendingAlreadyApplied && pendingPreference !== 'cloud')
+    setMemory(tool, merged)
+    delete unavailable[memoryKey(tool)]
+    setToolMeta(tool, { revision: cloud.revision, enabled: true, pendingUpload: false, pendingChanges, lastError: '', restoredAt: Date.now() })
     prepared[`${currentUserId()}:${tool}`] = true
-    if (!same(merged, cloud.data)) await syncNow(tool)
+    if (pendingChanges || !same(merged, cloud.data)) {
+      writePersisted(tool, merged)
+      await syncNow(tool)
+    } else clearPersisted(tool)
     return { restored: true, pendingUpload: false }
   } catch (error) {
     if (error.statusCode === 404 && error.code === 'CLOUD_DATA_NOT_FOUND') {
       const pendingUpload = !isEmpty(tool, local)
-      setToolMeta(tool, { revision: 0, enabled: !pendingUpload, pendingUpload, lastError: '' })
+      setMemory(tool, local)
+      delete unavailable[memoryKey(tool)]
+      setToolMeta(tool, { revision: 0, enabled: !pendingUpload || Boolean(meta.pendingChanges), pendingUpload, pendingChanges: Boolean(meta.pendingChanges), lastError: '' })
       prepared[`${currentUserId()}:${tool}`] = true
+      if (meta.pendingChanges) await syncNow(tool)
       return { restored: false, pendingUpload }
     }
     setToolMeta(tool, { lastError: error.message || '云端读取失败' })
@@ -222,6 +268,9 @@ async function prepareTool(tool) {
   try { return await restoreTool(tool) }
   catch (error) {
     if (error.statusCode === 401) return { restored: false, authExpired: true, error }
+    const persisted = readPersisted(tool)
+    if (!isEmpty(tool, persisted) || toolMeta(tool).pendingChanges) setMemory(tool, persisted)
+    else unavailable[memoryKey(tool)] = true
     wx.showModal({ title: '云端数据暂不可用', content: `${error.message || '网络异常'}。本地数据不会丢失，请稍后重试。`, showCancel: false })
     return { restored: false, error }
   }
@@ -233,15 +282,16 @@ async function importLocalData(retry = true) {
   const byTool = new Map(list.map((item) => [item.tool, item]))
   const items = []
   for (const tool of Object.keys(TOOL_KEYS)) {
-    const local = normalizedLocal(tool)
+    const local = normalizeToolData(tool, readPersisted(tool))
     const saved = byTool.get(tool)
     let data = local, revision = 0
     if (saved) {
       const cloud = await getTool(tool)
       data = await mergeWithPrompt(tool, local, normalizeToolData(tool, cloud.data))
       revision = cloud.revision
-      writeLocal(tool, data)
+      writePersisted(tool, data)
     }
+    setMemory(tool, data)
     items.push({ tool, schemaVersion: 1, expectedRevision: revision, data })
   }
   try {
@@ -250,7 +300,9 @@ async function importLocalData(retry = true) {
     const updatedList = Array.isArray(updated) ? updated : updated.items || updated.tools || []
     Object.keys(TOOL_KEYS).forEach((tool) => {
       const item = updatedList.find((row) => row.tool === tool)
-      setToolMeta(tool, { revision: item ? item.revision : 1, enabled: true, pendingUpload: false, lastError: '', syncedAt: Date.now() })
+      clearPersisted(tool)
+      delete unavailable[memoryKey(tool)]
+      setToolMeta(tool, { revision: item ? item.revision : 1, enabled: true, pendingUpload: false, pendingChanges: false, lastError: '', syncedAt: Date.now() })
       prepared[`${currentUserId()}:${tool}`] = true
     })
     return response
@@ -260,4 +312,4 @@ async function importLocalData(retry = true) {
   }
 }
 
-module.exports = { TOOL_KEYS, readLocal, writeLocal, toolMeta, mergeToolData, normalizeToolData, getSummary, getTool, restoreTool, prepareTool, scheduleSync, syncNow, importLocalData }
+module.exports = { TOOL_KEYS, readToolData, writeToolData, toolMeta, mergeToolData, normalizeToolData, getSummary, getTool, restoreTool, prepareTool, scheduleSync, syncNow, importLocalData }

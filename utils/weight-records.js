@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'weight-records-v1'
+const cloud = require('./cloud-sync')
 
 function pad(value) { return String(value).padStart(2, '0') }
 function dayKey(timestamp) {
@@ -15,7 +16,7 @@ function normalizeWeight(value) {
 }
 
 function readRecords() {
-  const value = wx.getStorageSync(STORAGE_KEY)
+  const value = cloud.readToolData('weight')
   if (!value) return []
   if (!Array.isArray(value)) throw new Error('体重记录格式异常')
   return value.filter((item) => item && Number.isFinite(item.weight) && Number.isFinite(item.createdAt)).sort((a, b) => a.createdAt - b.createdAt)
@@ -23,7 +24,7 @@ function readRecords() {
 
 function saveRecord(value, now = Date.now()) {
   const record = { id: `${now}-${Math.random().toString(36).slice(2, 8)}`, weight: normalizeWeight(value), createdAt: now }
-  wx.setStorageSync(STORAGE_KEY, [...readRecords(), record])
+  cloud.writeToolData('weight', [...readRecords(), record])
   return record
 }
 

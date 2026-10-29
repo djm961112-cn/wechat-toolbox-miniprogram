@@ -1,24 +1,20 @@
-const STORAGE_KEY = 'simulation-plans-v1'
-const SOURCE_STORAGE_KEY = 'simulation-plan-sources-v1'
+const cloud = require('./cloud-sync')
 const simulationTools = [
   { id: 'football', name: '足球', description: '官方赛事 · 多玩法计算 · 保存方案', symbol: '⚽', url: '/pages/tool/simulation/football/index', sourceUrl: 'https://m.sporttery.cn/mjc/jsq/zqspf/' }
 ]
 
-function scheduleCloudSync() {
-  try { require('./cloud-sync').scheduleSync('simulation') } catch (error) {}
-}
-function writePlans(plans) { wx.setStorageSync(STORAGE_KEY, plans); scheduleCloudSync() }
-function writeSources(sources) { wx.setStorageSync(SOURCE_STORAGE_KEY, sources); scheduleCloudSync() }
+function writePlans(plans) { const data = cloud.readToolData('simulation'); cloud.writeToolData('simulation', { ...data, plans }) }
+function writeSources(sources) { const data = cloud.readToolData('simulation'); cloud.writeToolData('simulation', { ...data, sources }) }
 
 function readPlans() {
-  const records = wx.getStorageSync(STORAGE_KEY)
+  const records = cloud.readToolData('simulation').plans
   if (!records) return []
   if (!Array.isArray(records)) throw new Error('方案数据格式异常')
   return records.slice().sort((left, right) => right.createdAt - left.createdAt)
 }
 
 function readSources() {
-  const sources = wx.getStorageSync(SOURCE_STORAGE_KEY)
+  const sources = cloud.readToolData('simulation').sources
   if (!sources) return []
   if (!Array.isArray(sources)) throw new Error('方案来源数据格式异常')
   return sources.slice()

@@ -1,7 +1,7 @@
 <view class="page legal-page">
   <view class="legal-card card">
     <view class="legal-title">用户服务协议</view>
-    <view class="legal-date">更新日期：2026年10月27日</view>
+    <view class="legal-date">更新日期：2026年10月29日</view>
     <view class="legal-intro">欢迎使用本小程序。使用相关功能前，请完整阅读并理解本协议。继续使用即表示您同意遵守本协议。</view>
 
     <view class="section">
@@ -20,7 +20,7 @@
 
     <view class="section">
       <view class="section-title">三、数据存储与风险</view>
-      <text class="section-text">MFA（含 TOTP 密钥）、体重和模拟方案会以明文结构上传并存储在 OpenOTools 服务器，用于跨设备恢复和后续数据分析。TOTP 密钥属于敏感数据，服务器数据或管理权限泄露可能影响账号验证安全，用户应在理解风险后再主动上传。删除小程序或清理缓存不会自动删除已同步的服务器数据；其他本地数据在删除小程序、清理微信缓存或更换设备后可能丢失。</text>
+      <text class="section-text">MFA（含 TOTP 密钥）、体重和模拟方案会以明文结构上传并存储在 OpenOTools 服务器，用于跨设备恢复和后续数据分析。启用同步后进入工具会从服务器读取数据，上传成功后会清理本地完整快照；网络异常时会暂存待上传修改。TOTP 密钥属于敏感数据，服务器数据或管理权限泄露可能影响账号验证安全，用户应在理解风险后再主动上传。</text>
     </view>
 
     <view class="section">

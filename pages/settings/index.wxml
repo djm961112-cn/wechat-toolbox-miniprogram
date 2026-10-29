@@ -15,6 +15,6 @@
     <view wx:if="{{cloudItems.length}}" class="cloud-list"><view wx:for="{{cloudItems}}" wx:key="tool" class="cloud-item"><text>{{item.name}}</text><text>修订 {{item.revision}}</text></view></view>
     <view wx:if="{{cloudError}}" class="cloud-error">{{cloudError}}</view>
     <button class="cloud-upload" loading="{{cloudLoading}}" disabled="{{cloudLoading}}" bindtap="uploadLocalData">{{cloudLoggedIn ? '上传并合并本地数据' : '登录并上传本地数据'}}</button>
-    <view class="cloud-hint">仅上传 MFA（含 TOTP 密钥）、体重记录、模拟方案与来源。已有本地数据需主动上传，启用后的修改会自动同步；赛事缓存和未保存草稿不上传。</view>
+    <view class="cloud-hint">仅上传 MFA（含 TOTP 密钥）、体重记录、模拟方案与来源。启用后以服务器数据为主：进入工具时读取服务器，修改成功上传后会清理本地完整快照；网络失败时仅暂存待上传数据。</view>
   </view>
 </view>
