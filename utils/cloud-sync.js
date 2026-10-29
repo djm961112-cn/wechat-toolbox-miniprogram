@@ -34,7 +34,26 @@ function writeLocal(tool, data) {
 
 function isEmpty(tool, data) { return tool === 'simulation' ? !data.plans.length && !data.sources.length : !data.length }
 function stamp(item) { return Number(item && (item.updatedAt || item.createdAt)) || 0 }
-function same(left, right) { return JSON.stringify(left) === JSON.stringify(right) }
+const NUMERIC_FIELDS = new Set(['version', 'digits', 'createdAt', 'updatedAt', 'checkedAt', 'weight', 'multiplier', 'count', 'cost', 'minReturn', 'maxReturn', 'odds', 'goalLine', 'prizeAmount', 'refundAmount', 'returnAmount', 'totalCount', 'wonCount', 'lostCount', 'pendingCount', 'refundCount'])
+
+function canonicalValue(value, field = '') {
+  if (value == null) return undefined
+  if (Array.isArray(value)) return value.map((item) => canonicalValue(item, field)).filter((item) => item !== undefined)
+  if (typeof value === 'object') {
+    return Object.keys(value).sort().reduce((result, key) => {
+      const normalized = canonicalValue(value[key], key)
+      if (normalized !== undefined) result[key] = normalized
+      return result
+    }, {})
+  }
+  if (NUMERIC_FIELDS.has(field)) {
+    const text = String(value).trim()
+    if (/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) && Number.isFinite(Number(text))) return Number(text)
+  }
+  return value
+}
+
+function same(left, right) { return JSON.stringify(canonicalValue(left)) === JSON.stringify(canonicalValue(right)) }
 
 function normalizeDecimal(value, path) {
   if (value == null) return null

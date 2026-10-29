@@ -21,6 +21,17 @@ async function main() {
     const storage = new Map()
     session(storage)
     const cloud = freshCloud(storage, () => {})
+    const local = { plans: [{ id: 'p1', createdAt: 1000, cost: '4.00', minReturn: null, matches: [] }], sources: [{ id: 's1', name: '自选', createdAt: 1000 }] }
+    const remote = { sources: [{ createdAt: '1000', name: '自选', id: 's1' }], plans: [{ matches: [], cost: 4, createdAt: '1000', id: 'p1' }] }
+    assert.strictEqual(cloud.mergeToolData('simulation', local, remote).conflicts.length, 0, '字段顺序、数字类型和空字段差异不应触发冲突')
+    const changed = { ...remote, plans: [{ ...remote.plans[0], cost: 6 }] }
+    assert.strictEqual(cloud.mergeToolData('simulation', local, changed).conflicts.length, 1, '真实业务数据差异仍应触发冲突')
+  }
+
+  {
+    const storage = new Map()
+    session(storage)
+    const cloud = freshCloud(storage, () => {})
     const normalized = cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p1', matches: [], check: { results: [{ pools: [{ id: 'had', odds: '-' }] }] } }] })
     assert.strictEqual(normalized.plans[0].check.results[0].pools[0].odds, null, '历史赛果的半角占位符应转为空值')
     assert.strictEqual(cloud.normalizeToolData('simulation', { sources: [], plans: [{ id: 'p2', cost: ' 4.00 ', matches: [] }] }).plans[0].cost, '4.00')
