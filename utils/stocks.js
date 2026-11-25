@@ -25,4 +25,12 @@ function normalizeCode(input) {
   throw new Error('请输入沪深股票代码，例如 600519 或 SZ.000001')
 }
 
-module.exports = { stockRequest, rulePayload, normalizeCode }
+function normalizeBarkKey(input) {
+  const value = String(input || '').trim()
+  const match = value.match(/^https:\/\/api\.day\.app\/([A-Za-z0-9_-]{8,128})(?:[/?#].*)?$/i)
+  const key = match ? match[1] : value
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(key)) throw new Error('请粘贴 Bark 设备 Key 或默认推送地址')
+  return key
+}
+
+module.exports = { stockRequest, rulePayload, normalizeCode, normalizeBarkKey }

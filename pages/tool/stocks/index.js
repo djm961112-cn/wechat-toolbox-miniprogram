@@ -1,4 +1,4 @@
-const { stockRequest, rulePayload, normalizeCode } = require('../../../utils/stocks')
+const { stockRequest, rulePayload, normalizeCode, normalizeBarkKey } = require('../../../utils/stocks')
 const { ensureToolLogin } = require('../../../utils/tool-access')
 
 const emptyForm = () => ({ requestId: `rule-${Date.now()}-${Math.random().toString(36).slice(2)}`, symbol: '', metric: 'PRICE', comparison: 'GTE', threshold: '', repeatMode: 'ONCE', enabled: true, matchCurrent: false })
@@ -96,7 +96,8 @@ Page({
   },
   async revoke(e) { await this.perform(async () => { await stockRequest(`stock-devices/${e.currentTarget.dataset.id}`, 'DELETE'); await this.refreshAll() }) },
   inputBark(e) { this.setData({ barkKey: e.detail.value.trim() }) },
-  async saveBark() { await this.perform(async () => { await stockRequest('stocks/notifications/bark', 'PUT', { key: this.data.barkKey }); this.setData({ barkKey: '' }); await this.refreshDashboard() }) },
+  async saveBark() { await this.perform(async () => { await stockRequest('stocks/notifications/bark', 'PUT', { key: normalizeBarkKey(this.data.barkKey) }); this.setData({ barkKey: '' }); await this.refreshDashboard() }) },
+  async disableBark() { await this.perform(async () => { await stockRequest('stocks/notifications/bark', 'DELETE'); await this.refreshDashboard() }) },
   async testNotification() { await this.perform(async () => { await stockRequest('stocks/notifications/test', 'POST'); wx.showToast({ title: '已创建测试通知', icon: 'none' }); await this.refreshAll() }) },
   async authorize() { await this.perform(async () => { const result = await stockRequest('stocks/provider/authorization', 'POST'); wx.setClipboardData({ data: result.url, success: () => wx.showModal({ title: '链接已复制', content: '请在浏览器打开链接，登录富途并只授权行情读取。完成后回到这里刷新。', showCancel: false }) }) }) },
   async perform(action) {
