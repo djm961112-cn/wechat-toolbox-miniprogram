@@ -1,6 +1,6 @@
 const auth = require('./auth')
 
-const PROTECTED_TOOLS = ['mfa', 'weight', 'simulation']
+const PROTECTED_TOOLS = ['mfa', 'weight', 'simulation', 'stocks']
 
 function confirmLogin() {
   return new Promise((resolve) => wx.showModal({

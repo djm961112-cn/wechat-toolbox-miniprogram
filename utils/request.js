@@ -42,7 +42,8 @@ function request(options = {}) {
   const url = String(options.url || '')
   const path = requestPath(url)
   const requestSanitizeOptions = { authLogin: path === '/api/v1/auth/wechat-login' }
-  log('info', '[HTTP][request]', {
+  const stockRequest = /^\/api\/v1\/stock/.test(path)
+  if (!stockRequest) log('info', '[HTTP][request]', {
     requestId, method, url, path, timeout: options.timeout,
     header: sanitizeForLog(options.header || {}, requestSanitizeOptions),
     body: sanitizeForLog(options.data, requestSanitizeOptions)
@@ -53,7 +54,7 @@ function request(options = {}) {
   return wx.request({
     ...options,
     success: (response) => {
-      log(response.statusCode >= 200 && response.statusCode < 400 ? 'info' : 'warn', '[HTTP][response]', {
+      if (!stockRequest) log(response.statusCode >= 200 && response.statusCode < 400 ? 'info' : 'warn', '[HTTP][response]', {
         requestId, method, url, path, durationMs: Date.now() - startedAt, statusCode: response.statusCode,
         header: sanitizeForLog(response.header || {}),
         body: sanitizeForLog(response.data)

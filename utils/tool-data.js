@@ -1,6 +1,7 @@
 const { readScore } = require('./profile-score')
 
 const tools = [
+  { id: 'stocks', name: '股票监控', icon: '/assets/icons/calculator.png', category: '个人日常', url: '/pages/tool/stocks/index' },
   { id: 'mfa', name: 'MFA验证器', icon: '/assets/icons/security-check.png', category: '办公效率', url: '/pages/tool/mfa/index' },
   { id: 'password-vault', name: '本地凭据本', icon: '/assets/icons/password-vault.png', category: '个人日常', url: '/pages/tool/password-vault/index' },
   { id: 'bookmark', name: '收藏夹', icon: '/assets/icons/web-tools.png', category: '个人日常', url: '/pages/tool/bookmark/index' },
